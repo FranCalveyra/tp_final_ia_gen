@@ -1,0 +1,51 @@
+# Baseline: modelo local y Modal
+
+Estado: implementación probada con dobles en CPU. En el intento autorizado del
+01/11 se construyó la imagen (77,28 s), pero Modal rechazó la A100 por falta de
+medio de pago. **No se descargaron pesos ni se ejecutó una GPU.** El diagnóstico
+está en `corridas/smoke-original-20261101/intento.json`. La compatibilidad real y
+el acceso de HF todavía no están verificados.
+
+- `entrega.construir_agente()` carga el modelo una vez y reutiliza `AgenteJSON`.
+- `ModeloLocal` recibe conversaciones y devuelve textos en el mismo orden.
+- Gemma 4 E4B sin entrenar, commit HF inmutable en `configuracion.py`.
+- Transformers genera sin muestreo, bf16, SDPA y padding izquierdo. No se
+  recorta contexto; al superar el presupuesto falla explícitamente.
+- Micro-lotes de 1 por defecto para limitar VRAM. El adaptador admite un tamaño
+  configurable con `MODELO_LOTE`; todavía no se midió rendimiento en GPU.
+- El coordinador conserva sus límites de referencia: 16 turnos y 3 respuestas
+  sin JSON. Las herramientas no se ejecutan dentro del adaptador.
+
+## Pruebas sin GPU ni build
+
+```bash
+uv run --no-project --with pyyaml==6.0.3 python -m unittest discover -s tests -v
+```
+
+## Próxima corrida (requiere nueva autorización)
+
+Requiere autenticación Modal, secreto `huggingface` con `HF_TOKEN` y un medio de
+pago habilitado en Modal para usar GPU. El intento previo no procesó pacientes.
+**El comando siguiente construye la imagen y consume GPU: no ejecutarlo sin
+autorizar ambas acciones.** Usa A100 de 40 GB y timeout de 15 minutos.
+
+```bash
+uvx --from modal==1.6.3 modal run infra/modal_app.py --cantidad 1 --variante original --salida corridas/smoke-original
+```
+
+Solo se envían los casos seleccionados y las normas a Modal, nunca las fichas
+esperadas. Las trazas, tiempos y configuración se devuelven y guardan localmente.
+No se sobreescriben carpetas existentes. Para puntuar después, sin GPU:
+
+```bash
+uv run --no-project --with pyyaml==6.0.3 python -m admision.correr puntuar --trazas corridas/smoke-original/trazas.jsonl --esperadas practica/esperadas-original.jsonl --salida corridas/smoke-original
+```
+
+Las dependencias directas están fijadas en `requirements-inferencia.txt`; todavía
+falta un lock transitivo para la entrega final. No se instaló el proyecto como
+paquete ni se modificó el kit de la cátedra.
+
+Fuentes verificadas: [Gemma4 en Transformers](https://huggingface.co/docs/transformers/model_doc/gemma4)
+(ejemplo text-only con AutoModelForCausalLM + AutoProcessor),
+[GPU de Modal](https://modal.com/docs/guide/gpu),
+[secrets](https://modal.com/docs/guide/secrets).
