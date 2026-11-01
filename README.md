@@ -1,5 +1,7 @@
 # Kit del TP final: la ficha de admisión de guardia
 
+**Equipo:** para el entorno reproducible del proyecto (CPU, variables y Modal), seguir [Preparar el entorno del equipo](docs/entorno-equipo.md). El resto de este documento conserva el manual original del kit.
+
 El enunciado (qué hay que hacer, qué se entrega y cómo se corrige) está en [mission.md](mission.md), y el video que lo presenta en dos partes: [Parte 1](https://www.loom.com/share/2c56572757124aaf8e2a1e1398efe27d) y [Parte 2](https://www.loom.com/share/12f6cb81c76440cd8a86563dcc02b2f2). Esto explica qué trae el kit y cómo se usa.
 
 ## Qué trae
@@ -146,3 +148,5 @@ normas.
     situación (o sea, se aparta de una costumbre).
 - `costumbres.md`, en texto libre: cada costumbre que descubrieron, explicada, con los ids de las filas que la
   respaldan.
+
+Instrumentación: [configurar W&B y probar sin conexión](docs/wandb.md).
