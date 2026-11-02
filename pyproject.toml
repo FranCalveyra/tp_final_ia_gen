@@ -24,3 +24,13 @@ inferencia = [
 ]
 modal = ["modal==1.6.3"]
 tracking = ["wandb==0.31.0"]
+
+# Tokenización CPU multiplataforma, sin PyTorch.
+tokenizacion = ["transformers==5.22.1", "jinja2==3.1.6"]
+
+entrenamiento = [
+    { include-group = "inferencia" },
+    { include-group = "tracking" },
+    { include-group = "tokenizacion" },
+    "peft==0.21.2; sys_platform == 'linux'",
+]

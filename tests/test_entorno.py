@@ -26,6 +26,12 @@ class EntornoTests(unittest.TestCase):
             self.assertIn(tuple(pin.split("==")), versiones)
             self.assertTrue(any(l.split(";")[0].strip() == pin for l in exportado))
 
+    def test_tokenizacion_cpu_tiene_jinja_sin_torch(self):
+        proyecto = tomllib.loads((RAIZ / "pyproject.toml").read_text())
+        grupo = proyecto["dependency-groups"]["tokenizacion"]
+        self.assertEqual(grupo, ["transformers==5.22.1", "jinja2==3.1.6"])
+        self.assertFalse(any(d.startswith("torch") for d in grupo))
+
     def test_plantilla_secretos_sin_valores(self):
         variables = dict(linea.split("=", 1) for linea in
                          (RAIZ / ".env.example").read_text().splitlines()
