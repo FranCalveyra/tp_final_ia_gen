@@ -15,6 +15,11 @@ class EntornoTests(unittest.TestCase):
         self.assertTrue(all("sys_platform == 'linux'" in d
                             for d in proyecto["dependency-groups"]["inferencia"]))
 
+    def test_uv_sync_instala_inferencia_por_defecto(self):
+        proyecto = tomllib.loads((RAIZ / "pyproject.toml").read_text())
+        self.assertIn("inferencia", proyecto["tool"]["uv"]["default-groups"])
+        self.assertTrue(any(d.startswith("peft==") for d in proyecto["dependency-groups"]["inferencia"]))
+
     def test_pines_directos_coinciden_con_export_y_lock(self):
         proyecto = tomllib.loads((RAIZ / "pyproject.toml").read_text())
         lock = tomllib.loads((RAIZ / "uv.lock").read_text())

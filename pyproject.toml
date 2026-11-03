@@ -15,6 +15,8 @@ packages = ["admision"]
 # Se ejecuta desde el checkout: uv no construye ni instala el kit local.
 [tool.uv]
 package = false
+# La cátedra corre solo `uv sync`: debe instalar lo que necesita construir_agente().
+default-groups = ["inferencia"]
 
 [dependency-groups]
 inferencia = [

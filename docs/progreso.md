@@ -129,6 +129,9 @@ Consultar Git para confirmar el estado de publicación remoto; no se cierran iss
   y `merge_and_unload`. La API de PEFT 0.21.2 se verificó leyendo el código del wheel.
 - PEFT pasó al grupo `inferencia`. Lock regenerado (104 paquetes); `requirements-inferencia.txt`
   re-exportado.
+- **Corrección de contrato:** `[tool.uv] default-groups = ["inferencia"]`. Antes, el `uv sync`
+  de la cátedra instalaba solo `pyyaml`. En macOS no se instala nada extra (marcadores Linux)
+  y las imágenes Modal siguen usando los `requirements-*.txt`. Tests: 66 corridos, 65 pasan y 1 opcional se saltea.
 - `.env.example`: Fran agrega a mano las variables `ADAPTER_*` (archivo protegido para el agente).
   Guía: [modelo-modal.md](modelo-modal.md#adapter-lora-probado-con-dobles).
 
