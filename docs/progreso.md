@@ -179,6 +179,15 @@ Consultar Git para confirmar el estado de publicación remoto; no se cierran iss
 - **Decisión:** `ModeloLocal` usa `AutoTokenizer`. El agente es solo texto, y así comparte con el entrenamiento
   (`tokenizacion.py`) el mismo chat template, ya validado con el tokenizer real en CPU. No se agregan
   dependencias de visión ni de audio. Tests: 82 corridos, 81 pasan y 1 opcional se saltea. Falta la corrida real.
+- `t4-original-08` (commit `e5c7f7b`) mostró **otro bug de la entrega y del entrenamiento**: forzar
+  `attn_implementation="sdpa"` falla porque `AutoModelForCausalLM` arma el Gemma 4 completo y su
+  `Gemma4AudioModel` no soporta SDPA. **Decisión:** no forzar la atención. Verificado en
+  `transformers/modeling_utils.py:1844-1878` (5.22.1): por defecto prueba SDPA en cada submodelo y usa
+  eager solo donde no se soporta. El texto sigue con SDPA (`_supports_sdpa = True`). Cambio en
+  `modelo.py` y `entrenamiento.py`, con tests de regresión. Las torres de audio y visión se cargan
+  igual y ocupan VRAM; sacarlas es una optimización pendiente.
+- **Incidente:** una celda de clonado pasaba el token de GitHub como argumento de git y, al fallar,
+  lo imprimió en base64. Se pidió revocarlo; la guía ahora lo pasa por variables de entorno.
 
 ## Próximos pasos y bloqueos
 

@@ -188,7 +188,8 @@ def _ejecutar_cuda(config, registros, ejemplos, tokens, destino, auditoria, chec
             if api.repo_info(repo_id=config["hf_repo"], repo_type="model").private is not True:
                 raise ValueError("repositorio HF no privado")
         modelo = AutoModelForCausalLM.from_pretrained(config["modelo"], revision=config["revision"],
-                                                     dtype=torch.bfloat16, attn_implementation="sdpa")
+                                                     dtype=torch.bfloat16)
+        # Sin attn_implementation: forzar "sdpa" rompe la torre de audio de Gemma 4 (ver modelo.py).
         modelo.config.use_cache = False
         modelo = get_peft_model(modelo, LoraConfig(**LORA, revision=config["revision"]))
         modelo.enable_input_require_grads()

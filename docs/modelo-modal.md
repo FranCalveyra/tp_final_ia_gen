@@ -9,7 +9,8 @@ el acceso de HF todavía no están verificados.
 - `entrega.construir_agente()` carga el modelo una vez y reutiliza `AgenteJSON`.
 - `ModeloLocal` recibe conversaciones y devuelve textos en el mismo orden.
 - Gemma 4 E4B sin entrenar, commit HF inmutable en `configuracion.py`.
-- Transformers genera sin muestreo, bf16, SDPA y padding izquierdo. No se
+- Transformers genera sin muestreo, bf16 y padding izquierdo. La atención no se fuerza:
+  SDPA en el texto y eager en las torres que no lo soportan (forzar SDPA rompe el audio de Gemma 4). No se
   recorta contexto; al superar el presupuesto falla explícitamente.
 - Micro-lotes de 1 por defecto para limitar VRAM. El adaptador admite un tamaño
   configurable con `MODELO_LOTE`; todavía no se midió rendimiento en GPU.

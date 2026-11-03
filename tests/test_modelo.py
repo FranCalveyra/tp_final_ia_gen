@@ -75,6 +75,7 @@ class ModeloTest(unittest.TestCase):
         self.assertEqual(procesador.from_pretrained.call_args.kwargs["padding_side"], "left")
         self.assertEqual(modelo.from_pretrained.call_args.kwargs["revision"], Configuracion.revision)
         self.assertEqual(modelo.from_pretrained.call_args.kwargs["dtype"], "bf16")
+        self.assertNotIn("attn_implementation", modelo.from_pretrained.call_args.kwargs)
         modelo.from_pretrained.return_value.eval.assert_called_once()
 
     def _cargar_con_adapter(self, base=None, revision_base=None):

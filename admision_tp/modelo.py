@@ -24,7 +24,9 @@ class ModeloLocal:
         modelo = AutoModelForCausalLM.from_pretrained(
             configuracion.modelo, revision=configuracion.revision,
             dtype=getattr(torch, configuracion.dtype),
-            device_map=configuracion.device_map, attn_implementation="sdpa")
+            device_map=configuracion.device_map)
+        # Sin attn_implementation: transformers usa SDPA donde se soporta (el texto) y eager en el
+        # resto. Forzar "sdpa" rompe Gemma 4, porque su torre de audio no lo soporta.
         if configuracion.adapter_repo:
             modelo = cls._fusionar_adapter(modelo, configuracion)
         modelo.eval()

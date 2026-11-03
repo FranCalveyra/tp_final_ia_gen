@@ -25,15 +25,23 @@ La VRAM de `metricas.jsonl` es la **suma** de las GPU visibles (cota superior) y
 1. Notebook de Kaggle: acelerador **GPU T4 x2**, Internet activado (no usar P100, ver abajo).
 2. Add-ons > Secrets, con estos nombres: `HF_TOKEN` (token HF de lectura) y `GITHUB_TOKEN`
    (token fine-grained de GitHub, solo lectura de *Contents* y solo sobre este repo).
-3. Celda 1, clonar el repo privado sin imprimir ni guardar el token en el remoto:
+3. Celda 1, clonar o actualizar el repo privado. El token va por variables de entorno de git, **nunca como
+   argumento**: si el comando falla, Python imprime los argumentos y el header en base64 expone el token
+   (pasó el 2026-11-03 y hubo que revocarlo). No se usa `check=True` ni se muestra stderr.
 
 ```python
-import base64, subprocess
+import base64, os, subprocess
 from kaggle_secrets import UserSecretsClient
 t = UserSecretsClient().get_secret("GITHUB_TOKEN")
-h = base64.b64encode(f"x-access-token:{t}".encode()).decode()
-subprocess.run(["git", "-c", f"http.extraheader=AUTHORIZATION: basic {h}", "clone",
-                "https://github.com/FranCalveyra/tp_final_ia_gen.git", "/kaggle/working/repo"], check=True)
+env = {**os.environ, "GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "http.extraheader",
+       "GIT_CONFIG_VALUE_0": "AUTHORIZATION: basic " + base64.b64encode(f"x-access-token:{t}".encode()).decode()}
+del t
+repo = "/kaggle/working/repo"
+cmd = ["git", "-C", repo, "pull"] if os.path.exists(repo) else \
+      ["git", "clone", "https://github.com/FranCalveyra/tp_final_ia_gen.git", repo]
+r = subprocess.run(cmd, env=env, capture_output=True, text=True)
+print("ok" if r.returncode == 0 else f"git falló (código {r.returncode})")
+subprocess.run(["git", "-C", repo, "log", "--oneline", "-1"])
 ```
 
 4. Celda 2, mirar el driver y las dependencias: `!nvidia-smi`, luego

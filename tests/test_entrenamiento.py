@@ -170,13 +170,14 @@ class EntrenamientoTests(unittest.TestCase):
                     ruta = Path(ruta)
                     ruta.mkdir()
                     (ruta / "adapter_model.safetensors").write_text("simulado")
+            carga = {}
             modulos = {
                 "torch": SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True),
                     bfloat16="bf16", long="long", tensor=lambda x, **kw: x),
                 "transformers": SimpleNamespace(Trainer=Trainer, TrainerCallback=object,
                     TrainingArguments=lambda **kw: SimpleNamespace(**kw), set_seed=lambda x: None,
                     AutoTokenizer=SimpleNamespace(from_pretrained=lambda *a, **kw: tokenizer),
-                    AutoModelForCausalLM=SimpleNamespace(from_pretrained=lambda *a, **kw: modelo)),
+                    AutoModelForCausalLM=SimpleNamespace(from_pretrained=lambda *a, **kw: (carga.update(kw), modelo)[1])),
                 "peft": SimpleNamespace(LoraConfig=lambda **kw: kw, get_peft_model=lambda m, c: m),
                 "wandb": SimpleNamespace(init=lambda **kw: run, Settings=lambda **kw: kw),
                 "huggingface_hub": SimpleNamespace(HfApi=API),
@@ -186,6 +187,7 @@ class EntrenamientoTests(unittest.TestCase):
                 estado = entrenar(p, t, raiz / "exito", online=True, publicar=True,
                                   persistir=lambda: commits.append("commit"))
                 self.assertEqual(len(estado["publicaciones"]), 2)
+                self.assertNotIn("attn_implementation", carga)  # Forzar SDPA rompe el audio de Gemma 4.
                 self.assertEqual(len(commits), 6)  # Entradas, cp+recibo, final+recibo, cierre.
                 args = opciones[0]["args"]
                 self.assertFalse(args.save_only_model)
