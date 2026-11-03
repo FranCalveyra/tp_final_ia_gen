@@ -127,6 +127,45 @@ class ModeloTest(unittest.TestCase):
         with patch.dict("os.environ", {}, clear=True):
             self.assertIsNone(Configuracion.desde_entorno().adapter_repo)
 
+    def test_sin_ruta_de_metricas_no_mide_ni_toca_cuda(self):
+        self.adaptador([[{}]])  # El torch doble no tiene `cuda`: fallaría si se midiera.
+
+    def test_metricas_registran_una_linea_por_lote(self):
+        import json
+        import tempfile
+        from pathlib import Path
+
+        cuda = MagicMock()
+        cuda.max_memory_allocated.return_value = 12.5e9
+        cuda.max_memory_reserved.return_value = 14e9
+        torch = SimpleNamespace(inference_mode=nullcontext, cuda=cuda)
+        self.entradas.to.return_value = {"input_ids": "ids", "attention_mask": MagicMock()}
+        self.entradas.to.return_value["attention_mask"].sum.return_value.item.return_value = 9
+        generados = MagicMock(shape=(1, 4))
+        generados.__ne__.return_value.sum.return_value.item.return_value = 3
+        self.modelo.generate.return_value.__getitem__.return_value = generados
+        self.procesador.tokenizer.pad_token_id = 0
+        with tempfile.TemporaryDirectory() as carpeta, patch.dict(sys.modules, {"torch": torch}):
+            ruta = Path(carpeta) / "metricas.jsonl"
+            self.adaptador.configuracion = Configuracion(metricas=str(ruta))
+            self.adaptador([[{}], [{}]])
+            lineas = [json.loads(l) for l in ruta.read_text().splitlines()]
+        self.assertEqual(len(lineas), 2)
+        self.assertEqual(cuda.reset_peak_memory_stats.call_count, 2)
+        generados.__ne__.assert_called_with(0)
+        dato = lineas[0]
+        self.assertEqual({k: dato[k] for k in ("conversaciones", "ancho_entrada", "tokens_entrada",
+                                              "tokens_generados", "vram_pico_gb", "vram_reservada_gb")},
+                         {"conversaciones": 1, "ancho_entrada": 10, "tokens_entrada": 9,
+                          "tokens_generados": 3, "vram_pico_gb": 12.5, "vram_reservada_gb": 14.0})
+        self.assertGreaterEqual(dato["segundos"], 0)
+
+    def test_entorno_activa_metricas(self):
+        with patch.dict("os.environ", {"MODELO_METRICAS": "/tmp/m.jsonl"}):
+            self.assertEqual(Configuracion.desde_entorno().metricas, "/tmp/m.jsonl")
+        with patch.dict("os.environ", {}, clear=True):
+            self.assertIsNone(Configuracion.desde_entorno().metricas)
+
     def test_factory_carga_una_vez_y_reutiliza_coordinador(self):
         import entrega
         from admision.ejemplo import AgenteJSON

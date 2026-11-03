@@ -34,6 +34,18 @@ y lo fusiona en memoria (`merge_and_unload`), así que la inferencia no suma cap
 - PEFT forma parte del grupo `inferencia`. Todavía no se probó con pesos reales
   ni en GPU.
 
+## Métricas por lote (probado con dobles)
+
+Con `MODELO_METRICAS=<ruta>`, `ModeloLocal` agrega una línea JSONL por micro-lote:
+`conversaciones`, `ancho_entrada` (con padding), `tokens_entrada` (sin padding),
+`tokens_generados`, `segundos` (de `generate` a decodificar) y la VRAM pico
+asignada y reservada de ese lote (`reset_peak_memory_stats` antes de cada uno).
+
+- Sin la variable no mide ni toca `torch.cuda`. La cátedra no la define.
+- `infra/modal_app.py` la define y devuelve `metricas.jsonl` junto a las trazas.
+  Con `tiempos.json` del kit alcanza para el antes/después del #4 y los recursos del #5.
+- La VRAM es la de PyTorch en ese proceso, no la de todo el dispositivo. No se midió todavía.
+
 ## Pruebas sin GPU ni build
 
 ```bash

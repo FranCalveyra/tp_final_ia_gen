@@ -25,6 +25,7 @@ solo se instalan en Linux: en macOS/Windows queda PyYAML. Los tests simulan el m
 | `WANDB_ENTITY`, `WANDB_PROJECT` | Destino de experimentos; ver [W&B](wandb.md) |
 | `MODELO_ID`, `MODELO_REVISION` | Modelo y commit HF exacto |
 | `MODELO_LOTE` | Micro-lote, por defecto 1 |
+| `MODELO_METRICAS` | Opcional: JSONL de tokens, segundos y VRAM por lote; ver [modelo](modelo-modal.md#métricas-por-lote-probado-con-dobles) |
 | `ADAPTER_REPO`, `ADAPTER_REVISION`, `ADAPTER_SUBCARPETA` | Adapter LoRA opcional; ver [modelo](modelo-modal.md#adapter-lora-probado-con-dobles) |
 | `BUSCADOR_VARIANTE` | `baseline` o candidato `sin_comunes` |
 

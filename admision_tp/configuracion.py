@@ -19,6 +19,8 @@ class Configuracion:
     adapter_repo: str | None = None
     adapter_revision: str | None = None
     adapter_subcarpeta: str = "final"
+    # JSONL con tokens, segundos y VRAM por lote. Solo para nuestras corridas; vacío = no mide.
+    metricas: str | None = None
 
     def __post_init__(self):
         if not COMMIT_HF.fullmatch(self.revision):
@@ -37,4 +39,5 @@ class Configuracion:
                    lote=int(os.getenv("MODELO_LOTE", "1")),
                    adapter_repo=os.getenv("ADAPTER_REPO", cls.adapter_repo) or None,
                    adapter_revision=os.getenv("ADAPTER_REVISION", cls.adapter_revision) or None,
-                   adapter_subcarpeta=os.getenv("ADAPTER_SUBCARPETA", cls.adapter_subcarpeta))
+                   adapter_subcarpeta=os.getenv("ADAPTER_SUBCARPETA", cls.adapter_subcarpeta),
+                   metricas=os.getenv("MODELO_METRICAS") or None)

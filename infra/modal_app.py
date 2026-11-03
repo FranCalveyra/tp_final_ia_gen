@@ -32,13 +32,17 @@ def jugar(casos: str, normas: dict[str, str]) -> dict[str, str]:
             (carpeta / nombre).write_text(texto, encoding="utf-8")
         (raiz / "casos.jsonl").write_text(casos, encoding="utf-8")
         salida = raiz / "salida"
+        metricas = raiz / "metricas.jsonl"  # Fuera de `salida`: el kit es dueño de esa carpeta.
         # Se conserva la salida del runner incluso cuando jugar_lote falla.
         resultado = subprocess.run([sys.executable, "-m", "admision.correr", "jugar",
             "--entrega", "/app/entrega.py", "--casos", str(raiz / "casos.jsonl"),
             "--normas", str(carpeta), "--salida", str(salida)],
-            cwd="/app", env={**__import__("os").environ, "PYTHONPATH": "/app"},
+            cwd="/app", env={**__import__("os").environ, "PYTHONPATH": "/app",
+                             "MODELO_METRICAS": str(metricas)},
             capture_output=True, text=True, check=False)
         archivos = {p.name: p.read_text(encoding="utf-8") for p in salida.iterdir()} if salida.exists() else {}
+        if metricas.exists():
+            archivos["metricas.jsonl"] = metricas.read_text(encoding="utf-8")
         archivos["runner.json"] = json.dumps({"returncode": resultado.returncode,
             "stdout": resultado.stdout, "stderr": resultado.stderr}, ensure_ascii=False, indent=2)
         from admision_tp.configuracion import Configuracion

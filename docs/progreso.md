@@ -148,6 +148,16 @@ Consultar Git para confirmar el estado de publicación remoto; no se cierran iss
   tests. El token de escritura debe poder descargar Gemma (licencia aceptada). Guía:
   [entrenamiento-modal.md](entrenamiento-modal.md#publicación-hf-opt-in-probada-con-dobles).
 
+### 2026-11-03: métricas de recursos por lote (issues #4 y #5)
+
+- **Decisión:** medir dentro de `ModeloLocal` solo si existe `MODELO_METRICAS`, para que la primera
+  corrida GPU de la línea de base ya deje VRAM pico, tokens y segundos por lote. No pagamos una
+  corrida extra solo para medir, y la cátedra no se ve afectada.
+- **Implementado y probado con dobles:** JSONL por micro-lote. El runner baseline lo devuelve como
+  `metricas.jsonl`. Suite: 71 corridos, 70 pasan y 1 opcional se saltea.
+- **Límites:** no se midió en GPU; la VRAM es la de PyTorch, no la del dispositivo.
+  Guía: [modelo-modal.md](modelo-modal.md#métricas-por-lote-probado-con-dobles).
+
 ## Próximos pasos y bloqueos
 
 1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
