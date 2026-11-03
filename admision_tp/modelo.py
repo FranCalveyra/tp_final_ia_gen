@@ -16,8 +16,10 @@ class ModeloLocal:
 
         if not torch.cuda.is_available():
             raise RuntimeError("El baseline requiere una GPU CUDA; no se carga en CPU")
-        from transformers import AutoModelForCausalLM, AutoProcessor
-        procesador = AutoProcessor.from_pretrained(
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+        # Tokenizer, no AutoProcessor: el agente es solo texto, usa el mismo chat template que el
+        # entrenamiento, y el procesador de Gemma 4 exige torchvision por su parte de video.
+        procesador = AutoTokenizer.from_pretrained(
             configuracion.modelo, revision=configuracion.revision, padding_side="left")
         modelo = AutoModelForCausalLM.from_pretrained(
             configuracion.modelo, revision=configuracion.revision,
@@ -76,7 +78,7 @@ class ModeloLocal:
 
     def _registrar(self, torch, entradas, generados, ancho, segundos):
         """Una línea por lote: alimenta la elección de MODELO_LOTE y el informe de recursos."""
-        pad = getattr(self.procesador, "tokenizer", self.procesador).pad_token_id
+        pad = self.procesador.pad_token_id
         gpus = range(torch.cuda.device_count())
         pico = [torch.cuda.max_memory_allocated(g) / 1e9 for g in gpus]
         reservada = [torch.cuda.max_memory_reserved(g) / 1e9 for g in gpus]

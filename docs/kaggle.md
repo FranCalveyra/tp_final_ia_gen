@@ -36,7 +36,12 @@ subprocess.run(["git", "-c", f"http.extraheader=AUTHORIZATION: basic {h}", "clon
                 "https://github.com/FranCalveyra/tp_final_ia_gen.git", "/kaggle/working/repo"], check=True)
 ```
 
-4. Celda 2, mirar el driver y las dependencias: `!nvidia-smi` y luego `!pip install -q -r /kaggle/working/repo/requirements-inferencia.txt`.
+4. Celda 2, mirar el driver y las dependencias: `!nvidia-smi`, luego
+   `!pip install -q -r /kaggle/working/repo/requirements-inferencia.txt` y luego
+   **`!pip uninstall -y torchvision torchaudio torchcodec torchao torchdata`**.
+   Esos paquetes de la imagen están compilados para otro torch/CUDA, y transformers los importa solo
+   si están instalados (`operator torchvision::nms does not exist`, CUDA 13.0 contra 13.2). No los usamos.
+   Los demás avisos de conflicto de pip son paquetes de la imagen que tampoco usamos.
 5. Celda 3, correr (carpeta nueva por corrida; si existe, falla):
 
 ```

@@ -69,7 +69,7 @@ class ModeloTest(unittest.TestCase):
         torch = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True), bfloat16="bf16")
         procesador, modelo = MagicMock(), MagicMock()
         with patch.dict(sys.modules, {"torch": torch, "transformers": SimpleNamespace(
-                AutoProcessor=procesador, AutoModelForCausalLM=modelo)}):
+                AutoTokenizer=procesador, AutoModelForCausalLM=modelo)}):
             adaptador = ModeloLocal.cargar(Configuracion())
         self.assertIs(adaptador.modelo, modelo.from_pretrained.return_value)
         self.assertEqual(procesador.from_pretrained.call_args.kwargs["padding_side"], "left")
@@ -79,7 +79,7 @@ class ModeloTest(unittest.TestCase):
 
     def _cargar_con_adapter(self, base=None, revision_base=None):
         torch = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True), bfloat16="bf16")
-        transformers = SimpleNamespace(AutoProcessor=MagicMock(), AutoModelForCausalLM=MagicMock())
+        transformers = SimpleNamespace(AutoTokenizer=MagicMock(), AutoModelForCausalLM=MagicMock())
         peft = SimpleNamespace(PeftConfig=MagicMock(), PeftModel=MagicMock())
         peft.PeftConfig.from_pretrained.return_value = SimpleNamespace(
             base_model_name_or_path=base or Configuracion.modelo,
@@ -109,7 +109,7 @@ class ModeloTest(unittest.TestCase):
     def test_sin_adapter_no_importa_peft(self):
         torch = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True), bfloat16="bf16")
         with patch.dict(sys.modules, {"torch": torch, "peft": None, "transformers": SimpleNamespace(
-                AutoProcessor=MagicMock(), AutoModelForCausalLM=MagicMock())}):
+                AutoTokenizer=MagicMock(), AutoModelForCausalLM=MagicMock())}):
             ModeloLocal.cargar(Configuracion())
 
     def test_adapter_exige_revision_inmutable(self):
@@ -145,7 +145,7 @@ class ModeloTest(unittest.TestCase):
         generados = MagicMock(shape=(1, 4))
         generados.__ne__.return_value.sum.return_value.item.return_value = 3
         self.modelo.generate.return_value.__getitem__.return_value = generados
-        self.procesador.tokenizer.pad_token_id = 0
+        self.procesador.pad_token_id = 0
         with tempfile.TemporaryDirectory() as carpeta, patch.dict(sys.modules, {"torch": torch}):
             ruta = Path(carpeta) / "metricas.jsonl"
             self.adaptador.configuracion = Configuracion(metricas=str(ruta))
@@ -171,7 +171,7 @@ class ModeloTest(unittest.TestCase):
         cuda.max_memory_allocated.side_effect = lambda g: (6e9, 4e9)[g]
         cuda.max_memory_reserved.side_effect = lambda g: (7e9, 5e9)[g]
         torch = SimpleNamespace(inference_mode=nullcontext, cuda=cuda)
-        self.procesador.tokenizer.pad_token_id = 0
+        self.procesador.pad_token_id = 0
         self.procesador.batch_decode.side_effect = [["x"]]
         self.entradas.to.return_value = {"input_ids": "ids", "attention_mask": MagicMock()}
         self.entradas.to.return_value["attention_mask"].sum.return_value.item.return_value = 9
@@ -209,7 +209,7 @@ class ModeloTest(unittest.TestCase):
         torch = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True), bfloat16="bf16", float16="fp16")
         modelo = MagicMock()
         with patch.dict(sys.modules, {"torch": torch, "transformers": SimpleNamespace(
-                AutoProcessor=MagicMock(), AutoModelForCausalLM=modelo)}):
+                AutoTokenizer=MagicMock(), AutoModelForCausalLM=modelo)}):
             ModeloLocal.cargar(Configuracion(dtype="float16", device_map="auto"))
         kwargs = modelo.from_pretrained.call_args.kwargs
         self.assertEqual((kwargs["dtype"], kwargs["device_map"]), ("fp16", "auto"))
@@ -218,7 +218,7 @@ class ModeloTest(unittest.TestCase):
         torch = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True), bfloat16="bf16")
         modelo = MagicMock()
         with patch.dict(sys.modules, {"torch": torch, "transformers": SimpleNamespace(
-                AutoProcessor=MagicMock(), AutoModelForCausalLM=modelo)}):
+                AutoTokenizer=MagicMock(), AutoModelForCausalLM=modelo)}):
             ModeloLocal.cargar(Configuracion())
         self.assertEqual(modelo.from_pretrained.call_args.kwargs["device_map"], "cuda:0")
 

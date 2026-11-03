@@ -168,6 +168,17 @@ Consultar Git para confirmar el estado de publicación remoto; no se cierran iss
 - **Límites:** no se ejecutó en Kaggle ni en GPU. Los resultados, tiempos y VRAM no son comparables con A100 y
   se reportan aparte. T4 no tiene bf16 nativo (fp16 puede fallar con Gemma); el torch fijado usa CUDA 13 y
   no sirve en P100; el driver de Kaggle no está verificado. Guía: [kaggle.md](kaggle.md).
+- **Primer intento real en Kaggle (commit `38aac31`):** driver 580.178.04 (CUDA 13.0), 2x T4 de 15 GB, Python 3.13.
+  `pip install -r requirements-inferencia.txt` dejó `torch 2.15.0+cu132` con CUDA disponible en 2 GPU.
+  La corrida `t4-original-01` (3 casos, original) **falló antes de cargar el modelo**: el torchvision de la imagen,
+  compilado para torch 2.11, rompe el import de `AutoProcessor` (`operator torchvision::nms does not exist`).
+  Solución: `pip uninstall -y torchvision`, agregado a la guía.
+- `t4-original-02` y `03` fallaron igual, por torchaudio y luego torchcodec de la imagen (CUDA 13.0 contra 13.2).
+  `t4-original-04` mostró un **bug real de la entrega**: `AutoProcessor` de Gemma 4 carga `Gemma4VideoProcessor`,
+  que exige torchvision, y torchvision no está en nuestro lock. En la A100 de la cátedra también habría fallado.
+- **Decisión:** `ModeloLocal` usa `AutoTokenizer`. El agente es solo texto, y así comparte con el entrenamiento
+  (`tokenizacion.py`) el mismo chat template, ya validado con el tokenizer real en CPU. No se agregan
+  dependencias de visión ni de audio. Tests: 82 corridos, 81 pasan y 1 opcional se saltea. Falta la corrida real.
 
 ## Próximos pasos y bloqueos
 
