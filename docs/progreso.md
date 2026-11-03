@@ -92,7 +92,7 @@ las que no mejoraban el candidato. El baseline de pacientes quedó pendiente.
 ### Trabajo posterior, al 2026-11-02
 
 Se implementaron Trainer LoRA, collator, auditoría de checkpoints y publicación HF opt-in
-en el entrenador; luego el runner Modal persistente. **El runner Modal aún no publica HF.**
+en el entrenador; luego el runner Modal persistente. El runner Modal publica HF solo con `--publicar` (ver 2026-11-03, publicación desde Modal).
 Se probaron con dobles y se importó la definición Modal sin crear recursos remotos.
 No hay prueba real de backward, memoria, persistencia o reanudación en A100.
 
@@ -135,11 +135,24 @@ Consultar Git para confirmar el estado de publicación remoto; no se cierran iss
 - `.env.example`: Fran agrega a mano las variables `ADAPTER_*` (archivo protegido para el agente).
   Guía: [modelo-modal.md](modelo-modal.md#adapter-lora-probado-con-dobles).
 
+### 2026-11-03: publicación HF desde el runner Modal (issue #3)
+
+- **Decisión:** opt-in, apagada por defecto. Una segunda función Modal (`ejecutar_publicando`)
+  adjunta el secreto separado `hf-write` (nombre propuesto, **no creado/verificado**) en lugar de
+  `huggingface`, para no depender del orden de los secretos de Modal. La función normal no lo necesita. La lógica de subida sigue solo en el entrenador; infra solo pasa `publicar`.
+- **Implementado y probado con dobles:** `ejecutar_persistente(..., publicar=)`; `--publicar` exige
+  `--online` y falla antes de tomar el lock o tocar el Volume. `hf_repo` es obligatorio en la
+  configuración validada. Tests nuevos: modo propagado, recibos en el Volume y conservados al
+  reanudar, y rechazo de cambiar el modo. Suite: 68 corridos, 67 pasan y 1 opcional se saltea.
+- **Límites:** no hay subida real, secreto real ni GPU; `entrenamiento_app.py` no se importa en
+  tests. El token de escritura debe poder descargar Gemma (licencia aceptada). Guía:
+  [entrenamiento-modal.md](entrenamiento-modal.md#publicación-hf-opt-in-probada-con-dobles).
+
 ## Próximos pasos y bloqueos
 
 1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
-2. Habilitar publicación opt-in desde Modal con un secreto HF de escritura separado
-   (`hf-write` es un nombre propuesto, **no un secreto creado/verificado**).
+2. Crear y verificar el secreto HF de escritura (`hf-write`, nombre propuesto) y probar una
+   subida real a un repo privado; el runner opt-in ya existe (probado con dobles).
 3. Coordinar conversaciones curadas y prompt final; no entrenar sobre práctica.
 4. Facturación de Modal bloqueada: pide tarjeta. Con eso resuelto y autorización de GPU: probar carga, entrenamiento mínimo,
    checkpoint y reanudación; luego baseline y lotes reales en A100-40GB.

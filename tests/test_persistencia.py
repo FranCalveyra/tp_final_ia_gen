@@ -133,6 +133,47 @@ class PersistenciaTests(unittest.TestCase):
                 ejecutar_persistente(alterado, "corrida", raiz, volume, locks,
                                     checkpoint="checkpoint-50", backend=backend)
 
+    def test_publicar_exige_online_antes_de_tocar_lock_o_volume(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            raiz = Path(temporal)
+            paquete, volume, locks = self.paquete(raiz), Volume(), Locks()
+            with self.assertRaises(ValueError):
+                ejecutar_persistente(paquete, "corrida", raiz, volume, locks, publicar=True,
+                                    backend=lambda *a: {})
+            self.assertEqual((volume.eventos, locks, list(raiz.glob("corrida*"))), ([], {}, []))
+
+    def test_publicar_llega_al_entrenador_y_la_reanudacion_conserva_recibos(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            raiz = Path(temporal)
+            paquete, volume, locks = self.paquete(raiz), Volume(), Locks()
+            recibo = [{"checkpoint": "checkpoint-50", "hf_repo": "o/r", "hf_revision": "a" * 40}]
+            def backend(*args):
+                auditoria, salida = args[-2], args[-3]
+                self.assertTrue(auditoria["publicar"])
+                (salida / "publicaciones.json").write_bytes(_canonical(recibo))
+                cp = salida / "checkpoint-50"
+                cp.mkdir()
+                for n in ("trainer_state.json", "optimizer.pt", "scheduler.pt", "rng_state.pth",
+                          "adapter_config.json", "adapter_model.safetensors"):
+                    (cp / n).write_bytes(b"simulado")
+                (cp / "corrida.json").write_bytes(_canonical(auditoria))
+                (cp / "integridad.json").write_bytes(_canonical({p.name: _sha(p.read_bytes()) for p in cp.iterdir()}))
+                return {"publicaciones": recibo}
+            estado = ejecutar_persistente(paquete, "corrida", raiz, volume, locks,
+                                         online=True, publicar=True, backend=backend)
+            self.assertEqual(estado["publicaciones"], recibo)
+            self.assertEqual(volume.eventos[-1], "commit")  # Recibos confirmados en el Volume.
+            self.assertEqual(json.loads((raiz / "corrida/entrenamiento/publicaciones.json").read_text()), recibo)
+            def reanuda(*args):
+                self.assertEqual(json.loads((args[-3] / "publicaciones.json").read_text()), recibo)
+                return {}
+            ejecutar_persistente(paquete, "corrida", raiz, volume, locks, online=True, publicar=True,
+                                checkpoint="checkpoint-50", backend=reanuda)
+            for modo in ({"online": True}, {"online": True, "publicar": False}):
+                with self.assertRaises(ValueError):  # No cambiar el modo al reanudar.
+                    ejecutar_persistente(paquete, "corrida", raiz, volume, locks,
+                                        checkpoint="checkpoint-50", backend=reanuda, **modo)
+
 
 if __name__ == "__main__":
     unittest.main()

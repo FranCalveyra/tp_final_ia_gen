@@ -67,14 +67,17 @@ def validar_paquete(paquete):
 
 
 def ejecutar_persistente(paquete, nombre, montaje, volumen, locks, *, checkpoint=None,
-                        online=False, backend=None):
-    """No publica HF. Dict excluye ejecuciones simultáneas incluso entre apps."""
+                        online=False, publicar=False, backend=None):
+    """Publica en HF solo con publicar=True (el entrenador lee HF_TOKEN y hf_repo de la config).
+    Dict excluye ejecuciones simultáneas incluso entre apps."""
     if not isinstance(nombre, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}", nombre):
         raise ValueError("nombre de corrida inválido")
     if checkpoint is not None and (not isinstance(checkpoint, str)
                                    or not re.fullmatch(r"checkpoint-\d+", checkpoint)):
         raise ValueError("checkpoint requiere nombre checkpoint-N, no una ruta")
-    validar_paquete(paquete)  # Antes de tocar Volume o tomar el lock remoto.
+    if publicar and not online:
+        raise ValueError("publicar requiere registro online explícito")
+    validar_paquete(paquete)  # Valida también hf_repo; antes de tocar Volume o tomar el lock remoto.
     propietario = uuid.uuid4().hex
     if not locks.put(nombre, propietario, skip_if_exists=True):
         raise ValueError("corrida bloqueada; no se elimina un lock existente automáticamente")
@@ -104,7 +107,7 @@ def ejecutar_persistente(paquete, nombre, montaje, volumen, locks, *, checkpoint
         salida = carpeta / "entrenamiento"
         resultado = entrenar(entradas / "preparacion", entradas / "tokens", salida,
             checkpoint=salida / checkpoint if checkpoint else None, online=online,
-            publicar=False, backend=backend, codigo=paquete["codigo"], persistir=volumen.commit)
+            publicar=publicar, backend=backend, codigo=paquete["codigo"], persistir=volumen.commit)
         return {"corrida": nombre, "ruta_volume": str(salida), **resultado}
     finally:
         # Un cierre abrupto no ejecuta finally: requiere inspección manual del lock.

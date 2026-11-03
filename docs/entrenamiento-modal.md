@@ -1,8 +1,9 @@
 # Entrenamiento durable en Modal — todavía sin ejecución GPU
 
 El runner conserva entradas, manifiestos, checkpoints y salida final en el Volume v2
-`tp-admision-entrenamiento`. No publica en HF: usa solamente los secretos existentes
-`huggingface` (lectura del modelo base) y `wandb-secret` (W&B, únicamente si `--online`).
+`tp-admision-entrenamiento`. Por defecto no publica en HF: usa solamente los secretos
+existentes `huggingface` (lectura del modelo base) y `wandb-secret` (W&B, únicamente si `--online`).
+La publicación es opt-in (ver [Publicación HF](#publicación-hf-opt-in-probada-con-dobles)).
 
 ## Comando futuro (NO ejecutado)
 
@@ -25,6 +26,25 @@ La imagen lleva los fuentes Python, `pyproject.toml`, `uv.lock` y el export cong
 de entrenamiento. Se comprueba su hash contra la procedencia enviada: el contenedor
 no necesita `.git`. El commit y `dirty` se conservan; fuentes sin commitear siguen sin
 ser reconstruibles desde el commit solo, aunque se registre su hash.
+
+## Publicación HF (opt-in, probada con dobles)
+
+```bash
+uv run --locked --no-build --group modal modal run infra/entrenamiento_app.py \
+  --preparacion corridas/preparada --tokens corridas/tokens --nombre corrida-001 \
+  --online --publicar
+```
+
+- `--publicar` exige `--online` y usa `ejecutar_publicando`, que adjunta el secreto
+  `hf-write` (**nombre propuesto, no creado ni verificado**; debe exponer `HF_TOKEN` de escritura)
+  **en lugar de** `huggingface`. Así hay un solo `HF_TOKEN` y no dependemos del orden de los secretos.
+  El mismo token descarga la base: su usuario debe haber aceptado la licencia de Gemma.
+  Sin `--publicar` no se necesita.
+- El repo sale de `hf_repo` de la configuración (obligatorio en el contrato) y debe existir y ser
+  privado; el entrenador lo comprueba antes de cada subida y guarda `publicacion-hf.json` por
+  checkpoint y `publicaciones.json` en la salida, con commit al Volume después de cada recibo.
+- Al reanudar hay que repetir `--online --publicar`: cambiar el modo se rechaza. Los recibos
+  previos se releen y no se vuelven a subir los checkpoints viejos.
 
 ## Persistencia y reanudación
 
@@ -53,9 +73,10 @@ no lo limpia. Los Dict de Modal tienen expiración propia de 7 días sin activid
 
 Los tests CPU con dobles verifican copia exacta, hashes, exclusión, recarga, commits,
 diagnóstico y reanudación. **No demuestran persistencia real de Modal ni entrenamiento.**
-Faltan prueba GPU y corte/reanudación reales, token HF de escritura y runner de
-publicación opt-in con secreto separado (`hf-write`, aún no creado), carga del adapter
-en inferencia y acceso de la cátedra. No agregar el token de escritura al agente.
+La publicación quedó **probada con dobles** (el modo llega al entrenador y los recibos se
+conservan al reanudar); la definición Modal de `ejecutar_publicando` no se importa en tests.
+Faltan prueba GPU y corte/reanudación reales, el secreto `hf-write` y una subida real,
+y acceso de la cátedra. No agregar el token de escritura al agente.
 
 Regenerar dependencias sin construir:
 
