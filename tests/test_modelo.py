@@ -138,6 +138,7 @@ class ModeloTest(unittest.TestCase):
         cuda = MagicMock()
         cuda.max_memory_allocated.return_value = 12.5e9
         cuda.max_memory_reserved.return_value = 14e9
+        cuda.device_count.return_value = 1
         torch = SimpleNamespace(inference_mode=nullcontext, cuda=cuda)
         self.entradas.to.return_value = {"input_ids": "ids", "attention_mask": MagicMock()}
         self.entradas.to.return_value["attention_mask"].sum.return_value.item.return_value = 9
@@ -159,6 +160,67 @@ class ModeloTest(unittest.TestCase):
                          {"conversaciones": 1, "ancho_entrada": 10, "tokens_entrada": 9,
                           "tokens_generados": 3, "vram_pico_gb": 12.5, "vram_reservada_gb": 14.0})
         self.assertGreaterEqual(dato["segundos"], 0)
+
+    def test_metricas_suman_vram_de_todas_las_gpu(self):
+        import json
+        import tempfile
+        from pathlib import Path
+
+        cuda = MagicMock()
+        cuda.device_count.return_value = 2
+        cuda.max_memory_allocated.side_effect = lambda g: (6e9, 4e9)[g]
+        cuda.max_memory_reserved.side_effect = lambda g: (7e9, 5e9)[g]
+        torch = SimpleNamespace(inference_mode=nullcontext, cuda=cuda)
+        self.procesador.tokenizer.pad_token_id = 0
+        self.procesador.batch_decode.side_effect = [["x"]]
+        self.entradas.to.return_value = {"input_ids": "ids", "attention_mask": MagicMock()}
+        self.entradas.to.return_value["attention_mask"].sum.return_value.item.return_value = 9
+        generados = MagicMock(shape=(1, 4))
+        generados.__ne__.return_value.sum.return_value.item.return_value = 3
+        self.modelo.generate.return_value.__getitem__.return_value = generados
+        with tempfile.TemporaryDirectory() as carpeta, patch.dict(sys.modules, {"torch": torch}):
+            ruta = Path(carpeta) / "m.jsonl"
+            self.adaptador.configuracion = Configuracion(metricas=str(ruta))
+            self.adaptador([[{}]])
+            dato = json.loads(ruta.read_text())
+        self.assertEqual((dato["vram_pico_gb"], dato["vram_reservada_gb"]), (10.0, 12.0))
+        self.assertEqual(dato["vram_pico_por_gpu_gb"], [6.0, 4.0])
+        self.assertEqual([c.args for c in cuda.reset_peak_memory_stats.call_args_list], [(0,), (1,)])
+
+    def test_defaults_a100_no_cambian(self):
+        config = Configuracion()
+        self.assertEqual((config.dtype, config.device_map), ("bfloat16", "cuda:0"))
+        with patch.dict("os.environ", {}, clear=True):
+            self.assertEqual(Configuracion.desde_entorno(), config)
+
+    def test_dtype_y_device_map_validados(self):
+        for kwargs in ({"dtype": "int8"}, {"dtype": "bf16"}, {"device_map": "cpu"}, {"device_map": "cuda:x"}):
+            with self.assertRaises(ValueError):
+                Configuracion(**kwargs)
+        for mapa in ("auto", "cuda", "cuda:1"):
+            Configuracion(device_map=mapa)
+
+    def test_entorno_configura_dtype_y_device_map(self):
+        with patch.dict("os.environ", {"MODELO_DTYPE": "float16", "MODELO_DEVICE_MAP": "auto"}):
+            config = Configuracion.desde_entorno()
+        self.assertEqual((config.dtype, config.device_map), ("float16", "auto"))
+
+    def test_carga_propaga_dtype_y_device_map(self):
+        torch = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True), bfloat16="bf16", float16="fp16")
+        modelo = MagicMock()
+        with patch.dict(sys.modules, {"torch": torch, "transformers": SimpleNamespace(
+                AutoProcessor=MagicMock(), AutoModelForCausalLM=modelo)}):
+            ModeloLocal.cargar(Configuracion(dtype="float16", device_map="auto"))
+        kwargs = modelo.from_pretrained.call_args.kwargs
+        self.assertEqual((kwargs["dtype"], kwargs["device_map"]), ("fp16", "auto"))
+
+    def test_carga_default_usa_cuda0(self):
+        torch = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True), bfloat16="bf16")
+        modelo = MagicMock()
+        with patch.dict(sys.modules, {"torch": torch, "transformers": SimpleNamespace(
+                AutoProcessor=MagicMock(), AutoModelForCausalLM=modelo)}):
+            ModeloLocal.cargar(Configuracion())
+        self.assertEqual(modelo.from_pretrained.call_args.kwargs["device_map"], "cuda:0")
 
     def test_entorno_activa_metricas(self):
         with patch.dict("os.environ", {"MODELO_METRICAS": "/tmp/m.jsonl"}):

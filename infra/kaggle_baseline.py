@@ -1,0 +1,116 @@
+"""Baseline sin entrenar en Kaggle (T4 x2) como respaldo de desarrollo. Ver docs/kaggle.md.
+
+Script común: una celda de notebook lo ejecuta con `python infra/kaggle_baseline.py ...`.
+Es independiente de `modal_app.py` a propósito: ese archivo importa `modal` al cargarse.
+La lógica del agente no conoce Kaggle; `kaggle_secrets` se importa solo acá y solo si hace falta.
+"""
+
+import argparse
+from dataclasses import asdict
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+RAIZ = Path(__file__).resolve().parents[1]
+VARIANTES = ("original", "b", "c")
+SALIDA_BASE = Path("/kaggle/working/corridas")
+
+
+def obtener_secreto(nombre: str) -> str:
+    from kaggle_secrets import UserSecretsClient  # Solo existe en Kaggle.
+
+    return UserSecretsClient().get_secret(nombre)
+
+
+def preparar_entorno(base: dict, dtype: str, device_map: str, metricas: Path, token: str | None) -> dict:
+    """Entorno del subproceso. T4 no tiene bf16 nativo: por defecto fp16 y reparto automático."""
+    if not token:
+        raise RuntimeError("Falta HF_TOKEN (variable de entorno o Kaggle Secret)")
+    return {**base, "PYTHONPATH": str(RAIZ), "HF_TOKEN": token, "MODELO_DTYPE": dtype,
+            "MODELO_DEVICE_MAP": device_map, "MODELO_METRICAS": str(metricas)}
+
+
+def crear_salida(destino: Path) -> Path:
+    if destino.exists():
+        raise FileExistsError("Elegí una salida nueva para no pisar una corrida")
+    destino.mkdir(parents=True)
+    return destino
+
+
+def preparar_insumos(variante: str, cantidad: int, destino: Path, raiz: Path = RAIZ) -> tuple[Path, Path]:
+    """Copia los primeros N casos y solo las normas (nunca las fichas esperadas)."""
+    if variante not in VARIANTES or not 1 <= cantidad <= 50:
+        raise ValueError("Variante original/b/c y cantidad entre 1 y 50")
+    casos = (raiz / "practica/casos.jsonl").read_text(encoding="utf-8").splitlines()[:cantidad]
+    archivo = destino / "casos.jsonl"
+    archivo.write_text("\n".join(casos) + "\n", encoding="utf-8")
+    normas = destino / "normas"
+    normas.mkdir()
+    for p in sorted((raiz / "normas" / variante).iterdir()):
+        if p.name == "parametros.yaml" or p.match("NOR-*.md"):
+            shutil.copy(p, normas / p.name)
+    return archivo, normas
+
+
+def _salida(comando: list[str], **kwargs) -> str:
+    try:
+        return subprocess.run(comando, capture_output=True, text=True, check=False, **kwargs).stdout.strip()
+    except OSError:
+        return ""
+
+
+def describir_maquina() -> dict:
+    """Commit, GPU y versiones. Se pregunta a subprocesos para no cargar torch acá."""
+    versiones = _salida([sys.executable, "-c",
+        "import json,torch;print(json.dumps({'torch':torch.__version__,'cuda':torch.version.cuda,"
+        "'gpus':torch.cuda.device_count(),'bf16_nativo':torch.cuda.is_bf16_supported(including_emulation=False)}))"])
+    return {"commit": _salida(["git", "rev-parse", "HEAD"], cwd=RAIZ),
+            "sucio": bool(_salida(["git", "status", "--porcelain"], cwd=RAIZ)),
+            "gpus": _salida(["nvidia-smi", "--query-gpu=name,memory.total,driver_version",
+                             "--format=csv,noheader"]).splitlines(),
+            "torch": json.loads(versiones) if versiones.startswith("{") else versiones or None,
+            "python": sys.version.split()[0]}
+
+
+def correr(variante: str, cantidad: int, destino: Path, dtype: str, device_map: str,
+           token: str | None) -> int:
+    sys.path.insert(0, str(RAIZ))
+    from admision_tp.configuracion import Configuracion
+    configuracion = Configuracion(dtype=dtype, device_map=device_map)  # Valida antes de gastar cuota.
+    crear_salida(destino)
+    metricas = destino / "metricas.jsonl"  # Fuera de `salida`: el kit es dueño de esa carpeta.
+    entorno = preparar_entorno(os.environ, dtype, device_map, metricas, token)
+    casos, normas = preparar_insumos(variante, cantidad, destino)
+    resultado = subprocess.run([sys.executable, "-m", "admision.correr", "jugar",
+        "--entrega", "entrega.py", "--casos", str(casos), "--normas", str(normas),
+        "--salida", str(destino / "salida")], cwd=RAIZ, env=entorno,
+        capture_output=True, text=True, check=False)
+    ocultar = lambda texto: texto.replace(token, "***") if token else texto  # noqa: E731
+    (destino / "runner.json").write_text(json.dumps({
+        "variante": variante, "cantidad": cantidad, "configuracion": asdict(configuracion),
+        "maquina": describir_maquina(), "returncode": resultado.returncode,
+        "stdout": ocultar(resultado.stdout), "stderr": ocultar(resultado.stderr)},
+        ensure_ascii=False, indent=2), encoding="utf-8")
+    return resultado.returncode
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--variante", default="original", choices=VARIANTES)
+    parser.add_argument("--cantidad", type=int, default=3)
+    parser.add_argument("--salida", type=Path, required=True,
+                        help=f"Carpeta nueva; se recomienda colgarla de {SALIDA_BASE}")
+    parser.add_argument("--dtype", default="float16")
+    parser.add_argument("--device-map", default="auto")
+    args = parser.parse_args(argv)
+    token = os.environ.get("HF_TOKEN") or obtener_secreto("HF_TOKEN")
+    codigo = correr(args.variante, args.cantidad, args.salida, args.dtype, args.device_map, token)
+    print(f"returncode={codigo}; resultados en {args.salida}. Puntuar es una fase local separada.")
+    return codigo
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

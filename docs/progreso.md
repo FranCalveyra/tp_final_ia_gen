@@ -1,6 +1,6 @@
 # Progreso y decisiones
 
-**Actualizado: 2026-11-02.** Hay implementación y pruebas CPU; **todavía no hubo generación
+**Actualizado: 2026-11-03.** Hay implementación y pruebas CPU; **todavía no hubo generación
 con Gemma completo ni entrenamiento real**. Esta bitácora centraliza el estado y enlaza
 las guías; no reemplaza el informe final ni implica cierre de issues.
 
@@ -158,13 +158,25 @@ Consultar Git para confirmar el estado de publicación remoto; no se cierran iss
 - **Límites:** no se midió en GPU; la VRAM es la de PyTorch, no la del dispositivo.
   Guía: [modelo-modal.md](modelo-modal.md#métricas-por-lote-probado-con-dobles).
 
+### 2026-11-03: Kaggle como respaldo temporal de desarrollo
+
+- **Decisión:** usar GPU gratuitas de Kaggle (2x T4) solo para desarrollo, porque Modal exige una tarjeta que
+  nadie del equipo puede cargar. La entrega sigue siendo A100-40GB y sus defaults no cambian.
+- **Implementado y probado con dobles:** `MODELO_DTYPE` y `MODELO_DEVICE_MAP` en `Configuracion` (validados),
+  VRAM por lote sumada sobre las GPU visibles y runner `infra/kaggle_baseline.py` (no pisa salidas, token solo
+  desde Kaggle Secrets, sin imprimirlo). Suite: 82 corridos, 81 pasan y 1 opcional se saltea.
+- **Límites:** no se ejecutó en Kaggle ni en GPU. Los resultados, tiempos y VRAM no son comparables con A100 y
+  se reportan aparte. T4 no tiene bf16 nativo (fp16 puede fallar con Gemma); el torch fijado usa CUDA 13 y
+  no sirve en P100; el driver de Kaggle no está verificado. Guía: [kaggle.md](kaggle.md).
+
 ## Próximos pasos y bloqueos
 
 1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
 2. Crear y verificar el secreto HF de escritura (`hf-write`, nombre propuesto) y probar una
    subida real a un repo privado; el runner opt-in ya existe (probado con dobles).
 3. Coordinar conversaciones curadas y prompt final; no entrenar sobre práctica.
-4. Facturación de Modal bloqueada: pide tarjeta. Con eso resuelto y autorización de GPU: probar carga, entrenamiento mínimo,
+4. Facturación de Modal bloqueada: pide tarjeta. Mientras tanto, probar el baseline en Kaggle T4 x2 ([kaggle.md](kaggle.md)),
+   con autorización explícita y resultados aparte. Con Modal resuelto y autorización de GPU: probar carga, entrenamiento mínimo,
    checkpoint y reanudación; luego baseline y lotes reales en A100-40GB.
 5. Completar accesos compartidos, mediciones de recursos y documentación final. Compartir el repo
    privado de HF y el proyecto W&B con la cátedra queda **para cerca de la entrega** (decisión del
@@ -187,6 +199,7 @@ reemplaza la ejecución final A100. El token HF actual es de lectura y no habili
 | Tokens y máscaras | [tokenizacion-entrenamiento.md](tokenizacion-entrenamiento.md) |
 | Trainer SFT | [entrenamiento-sft.md](entrenamiento-sft.md) |
 | Persistencia Modal | [entrenamiento-modal.md](entrenamiento-modal.md) |
+| Respaldo Kaggle (T4 x2) | [kaggle.md](kaggle.md) |
 
 ## Cómo mantener esta bitácora
 

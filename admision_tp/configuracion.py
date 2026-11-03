@@ -5,6 +5,8 @@ import os
 import re
 
 COMMIT_HF = re.compile(r"[0-9a-f]{40}")
+DTYPES = ("bfloat16", "float16", "float32")
+DEVICE_MAP = re.compile(r"auto|cuda(:\d+)?")
 
 
 @dataclass(frozen=True)
@@ -21,12 +23,19 @@ class Configuracion:
     adapter_subcarpeta: str = "final"
     # JSONL con tokens, segundos y VRAM por lote. Solo para nuestras corridas; vacío = no mide.
     metricas: str | None = None
+    # La entrega corre en A100 (bf16, una GPU). Otros valores son solo para desarrollo (p. ej. T4 x2).
+    dtype: str = "bfloat16"
+    device_map: str = "cuda:0"
 
     def __post_init__(self):
         if not COMMIT_HF.fullmatch(self.revision):
             raise ValueError("La revisión debe ser un commit HF de 40 caracteres")
         if min(self.max_tokens_nuevos, self.max_contexto, self.lote) <= 0:
             raise ValueError("Los límites deben ser positivos")
+        if self.dtype not in DTYPES:
+            raise ValueError(f"dtype debe ser uno de {', '.join(DTYPES)}")
+        if not DEVICE_MAP.fullmatch(self.device_map):
+            raise ValueError("device_map debe ser auto, cuda o cuda:N")
         if self.adapter_repo and not COMMIT_HF.fullmatch(self.adapter_revision or ""):
             raise ValueError("El adapter necesita una revisión HF inmutable de 40 caracteres")
         if self.adapter_revision and not self.adapter_repo:
@@ -40,4 +49,6 @@ class Configuracion:
                    adapter_repo=os.getenv("ADAPTER_REPO", cls.adapter_repo) or None,
                    adapter_revision=os.getenv("ADAPTER_REVISION", cls.adapter_revision) or None,
                    adapter_subcarpeta=os.getenv("ADAPTER_SUBCARPETA", cls.adapter_subcarpeta),
-                   metricas=os.getenv("MODELO_METRICAS") or None)
+                   metricas=os.getenv("MODELO_METRICAS") or None,
+                   dtype=os.getenv("MODELO_DTYPE", cls.dtype),
+                   device_map=os.getenv("MODELO_DEVICE_MAP", cls.device_map))

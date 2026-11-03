@@ -21,7 +21,8 @@ class ModeloLocal:
             configuracion.modelo, revision=configuracion.revision, padding_side="left")
         modelo = AutoModelForCausalLM.from_pretrained(
             configuracion.modelo, revision=configuracion.revision,
-            dtype=torch.bfloat16, device_map="cuda:0", attn_implementation="sdpa")
+            dtype=getattr(torch, configuracion.dtype),
+            device_map=configuracion.device_map, attn_implementation="sdpa")
         if configuracion.adapter_repo:
             modelo = cls._fusionar_adapter(modelo, configuracion)
         modelo.eval()
@@ -57,7 +58,8 @@ class ModeloLocal:
                 raise ValueError("Contexto excedido: no se recorta la conversación silenciosamente")
             medir = self.configuracion.metricas is not None
             if medir:
-                torch.cuda.reset_peak_memory_stats()
+                for gpu in range(torch.cuda.device_count()):
+                    torch.cuda.reset_peak_memory_stats(gpu)
                 inicio_lote = time.perf_counter()
             entradas = entradas.to(self.modelo.device)
             with torch.inference_mode():
@@ -75,11 +77,16 @@ class ModeloLocal:
     def _registrar(self, torch, entradas, generados, ancho, segundos):
         """Una línea por lote: alimenta la elección de MODELO_LOTE y el informe de recursos."""
         pad = getattr(self.procesador, "tokenizer", self.procesador).pad_token_id
+        gpus = range(torch.cuda.device_count())
+        pico = [torch.cuda.max_memory_allocated(g) / 1e9 for g in gpus]
+        reservada = [torch.cuda.max_memory_reserved(g) / 1e9 for g in gpus]
         dato = {"conversaciones": int(generados.shape[0]), "ancho_entrada": int(ancho),
                 "tokens_entrada": int(entradas["attention_mask"].sum().item()),
                 "tokens_generados": int((generados != pad).sum().item()),
                 "segundos": round(segundos, 4),
-                "vram_pico_gb": round(torch.cuda.max_memory_allocated() / 1e9, 3),
-                "vram_reservada_gb": round(torch.cuda.max_memory_reserved() / 1e9, 3)}
+                # Suma sobre las GPU visibles (con una sola GPU es el valor de siempre); los picos
+                # por GPU pueden no coincidir en el tiempo, así que la suma es una cota superior.
+                "vram_pico_gb": round(sum(pico), 3), "vram_reservada_gb": round(sum(reservada), 3),
+                "vram_pico_por_gpu_gb": [round(v, 3) for v in pico]}
         with open(self.configuracion.metricas, "a", encoding="utf-8") as archivo:
             archivo.write(json.dumps(dato) + "\n")
