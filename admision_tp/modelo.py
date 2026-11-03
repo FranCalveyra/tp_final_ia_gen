@@ -19,8 +19,24 @@ class ModeloLocal:
         modelo = AutoModelForCausalLM.from_pretrained(
             configuracion.modelo, revision=configuracion.revision,
             dtype=torch.bfloat16, device_map="cuda:0", attn_implementation="sdpa")
+        if configuracion.adapter_repo:
+            modelo = cls._fusionar_adapter(modelo, configuracion)
         modelo.eval()
         return cls(modelo, procesador, configuracion)
+
+    @staticmethod
+    def _fusionar_adapter(modelo, configuracion: Configuracion):
+        """Aplica el LoRA y lo fusiona en memoria: la inferencia no paga capas extra."""
+        from peft import PeftConfig, PeftModel
+
+        origen = {"revision": configuracion.adapter_revision,
+                  "subfolder": configuracion.adapter_subcarpeta or None}
+        config = PeftConfig.from_pretrained(configuracion.adapter_repo, **origen)
+        # `config.revision` es la revisión de la base con la que se entrenó el adapter.
+        if (config.base_model_name_or_path, config.revision) != (configuracion.modelo, configuracion.revision):
+            raise ValueError("El adapter fue entrenado sobre otra base o revisión")
+        peft = PeftModel.from_pretrained(modelo, configuracion.adapter_repo, config=config, **origen)
+        return peft.merge_and_unload()
 
     def __call__(self, conversaciones: list[list[dict]]) -> list[str]:
         if not conversaciones:

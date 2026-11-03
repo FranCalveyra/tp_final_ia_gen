@@ -16,6 +16,24 @@ el acceso de HF todavía no están verificados.
 - El coordinador conserva sus límites de referencia: 16 turnos y 3 respuestas
   sin JSON. Las herramientas no se ejecutan dentro del adaptador.
 
+## Adapter LoRA (probado con dobles)
+
+Si `adapter_repo` está definido, `ModeloLocal.cargar` aplica el LoRA sobre la base
+y lo fusiona en memoria (`merge_and_unload`), así que la inferencia no suma capas.
+
+| Campo | Entorno | Regla |
+|---|---|---|
+| `adapter_repo` | `ADAPTER_REPO` | Vacío = base sola (baseline). |
+| `adapter_revision` | `ADAPTER_REVISION` | Obligatorio con repo: commit HF de 40 caracteres. |
+| `adapter_subcarpeta` | `ADAPTER_SUBCARPETA` | Default `final`; el trainer publica cada checkpoint en su carpeta. |
+
+- Antes de aplicarlo se valida que `base_model_name_or_path` y `revision` del
+  `adapter_config.json` coincidan con la base configurada. Si no, falla.
+- La cátedra solo define `HF_TOKEN`, así que el adapter final se fija en los
+  defaults de `configuracion.py`. El entorno sirve solo para experimentar.
+- PEFT forma parte del grupo `inferencia`. Todavía no se probó con pesos reales
+  ni en GPU.
+
 ## Pruebas sin GPU ni build
 
 ```bash

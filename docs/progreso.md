@@ -120,13 +120,25 @@ El escaneo estático de 25 archivos nuevos/modificados no encontró patrones de 
 no reemplaza una auditoría de seguridad. `.atl/`, secretos y `corridas/` no se incluyen.
 Consultar Git para confirmar el estado de publicación remoto; no se cierran issues con estos commits.
 
+### 2026-11-03: carga de adapters en el agente
+
+- **Decisión:** publicar solo adapters LoRA (unos MB por checkpoint) y fusionarlos en memoria
+  al cargar. Se descartó publicar el modelo fusionado (~16 GB por checkpoint y un paso extra).
+- **Implementado y probado con dobles:** campos `adapter_*` en `Configuracion`, carga con
+  `subfolder` y una revisión inmutable, validación de base y revisión contra `adapter_config.json`,
+  y `merge_and_unload`. La API de PEFT 0.21.2 se verificó leyendo el código del wheel.
+- PEFT pasó al grupo `inferencia`. Lock regenerado (104 paquetes); `requirements-inferencia.txt`
+  re-exportado.
+- `.env.example`: Fran agrega a mano las variables `ADAPTER_*` (archivo protegido para el agente).
+  Guía: [modelo-modal.md](modelo-modal.md#adapter-lora-probado-con-dobles).
+
 ## Próximos pasos y bloqueos
 
-1. Cargar adapters LoRA desde el agente, o definir publicación de modelo fusionado.
+1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
 2. Habilitar publicación opt-in desde Modal con un secreto HF de escritura separado
    (`hf-write` es un nombre propuesto, **no un secreto creado/verificado**).
 3. Coordinar conversaciones curadas y prompt final; no entrenar sobre práctica.
-4. Con autorización de GPU y facturación habilitada: probar carga, entrenamiento mínimo,
+4. Facturación de Modal bloqueada: pide tarjeta. Con eso resuelto y autorización de GPU: probar carga, entrenamiento mínimo,
    checkpoint y reanudación; luego baseline y lotes reales en A100-40GB.
 5. Completar accesos compartidos, mediciones de recursos y documentación final.
 

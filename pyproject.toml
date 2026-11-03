@@ -21,6 +21,8 @@ inferencia = [
     "torch==2.15.0; sys_platform == 'linux'",
     "transformers==5.22.1; sys_platform == 'linux'",
     "accelerate==1.15.0; sys_platform == 'linux'",
+    # El agente fusiona el adapter LoRA al cargar.
+    "peft==0.21.2; sys_platform == 'linux'",
 ]
 modal = ["modal==1.6.3"]
 tracking = ["wandb==0.31.0"]
@@ -32,5 +34,4 @@ entrenamiento = [
     { include-group = "inferencia" },
     { include-group = "tracking" },
     { include-group = "tokenizacion" },
-    "peft==0.21.2; sys_platform == 'linux'",
 ]

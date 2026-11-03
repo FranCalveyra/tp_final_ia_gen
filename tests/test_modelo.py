@@ -77,6 +77,56 @@ class ModeloTest(unittest.TestCase):
         self.assertEqual(modelo.from_pretrained.call_args.kwargs["dtype"], "bf16")
         modelo.from_pretrained.return_value.eval.assert_called_once()
 
+    def _cargar_con_adapter(self, base=None, revision_base=None):
+        torch = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True), bfloat16="bf16")
+        transformers = SimpleNamespace(AutoProcessor=MagicMock(), AutoModelForCausalLM=MagicMock())
+        peft = SimpleNamespace(PeftConfig=MagicMock(), PeftModel=MagicMock())
+        peft.PeftConfig.from_pretrained.return_value = SimpleNamespace(
+            base_model_name_or_path=base or Configuracion.modelo,
+            revision=revision_base or Configuracion.revision)
+        config = Configuracion(adapter_repo="grupo/lora", adapter_revision="a" * 40)
+        with patch.dict(sys.modules, {"torch": torch, "transformers": transformers, "peft": peft}):
+            return ModeloLocal.cargar(config), transformers, peft
+
+    def test_carga_adapter_fijado_y_lo_fusiona(self):
+        adaptador, transformers, peft = self._cargar_con_adapter()
+        base = transformers.AutoModelForCausalLM.from_pretrained.return_value
+        origen = {"revision": "a" * 40, "subfolder": "final"}
+        peft.PeftConfig.from_pretrained.assert_called_once_with("grupo/lora", **origen)
+        args, kwargs = peft.PeftModel.from_pretrained.call_args
+        self.assertEqual(args, (base, "grupo/lora"))
+        self.assertIs(kwargs["config"], peft.PeftConfig.from_pretrained.return_value)
+        self.assertEqual({k: kwargs[k] for k in origen}, origen)
+        fusionado = peft.PeftModel.from_pretrained.return_value.merge_and_unload.return_value
+        self.assertIs(adaptador.modelo, fusionado)
+        fusionado.eval.assert_called_once()
+
+    def test_adapter_de_otra_base_falla_antes_de_aplicarse(self):
+        for kwargs in ({"base": "otro/modelo"}, {"revision_base": "b" * 40}):
+            with self.assertRaisesRegex(ValueError, "otra base"):
+                self._cargar_con_adapter(**kwargs)
+
+    def test_sin_adapter_no_importa_peft(self):
+        torch = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True), bfloat16="bf16")
+        with patch.dict(sys.modules, {"torch": torch, "peft": None, "transformers": SimpleNamespace(
+                AutoProcessor=MagicMock(), AutoModelForCausalLM=MagicMock())}):
+            ModeloLocal.cargar(Configuracion())
+
+    def test_adapter_exige_revision_inmutable(self):
+        for kwargs in ({"adapter_repo": "grupo/lora"}, {"adapter_repo": "grupo/lora", "adapter_revision": "main"},
+                       {"adapter_revision": "a" * 40}):
+            with self.assertRaises(ValueError):
+                Configuracion(**kwargs)
+
+    def test_entorno_configura_adapter(self):
+        entorno = {"ADAPTER_REPO": "grupo/lora", "ADAPTER_REVISION": "c" * 40, "ADAPTER_SUBCARPETA": "checkpoint-50"}
+        with patch.dict("os.environ", entorno):
+            config = Configuracion.desde_entorno()
+        self.assertEqual((config.adapter_repo, config.adapter_revision, config.adapter_subcarpeta),
+                         ("grupo/lora", "c" * 40, "checkpoint-50"))
+        with patch.dict("os.environ", {}, clear=True):
+            self.assertIsNone(Configuracion.desde_entorno().adapter_repo)
+
     def test_factory_carga_una_vez_y_reutiliza_coordinador(self):
         import entrega
         from admision.ejemplo import AgenteJSON
