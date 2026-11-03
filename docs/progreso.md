@@ -156,7 +156,9 @@ Consultar Git para confirmar el estado de publicación remoto; no se cierran iss
 3. Coordinar conversaciones curadas y prompt final; no entrenar sobre práctica.
 4. Facturación de Modal bloqueada: pide tarjeta. Con eso resuelto y autorización de GPU: probar carga, entrenamiento mínimo,
    checkpoint y reanudación; luego baseline y lotes reales en A100-40GB.
-5. Completar accesos compartidos, mediciones de recursos y documentación final.
+5. Completar accesos compartidos, mediciones de recursos y documentación final. Compartir el repo
+   privado de HF y el proyecto W&B con la cátedra queda **para cerca de la entrega** (decisión del
+   2026-11-03). La consigna no dice qué usuarios invitar: hay que preguntarle a la cátedra.
 
 Gemma comprimido en Mac es una posibilidad de desarrollo, no instalada ni medida; no
 reemplaza la ejecución final A100. El token HF actual es de lectura y no habilita publicación.

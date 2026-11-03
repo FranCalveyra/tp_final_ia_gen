@@ -10,7 +10,8 @@ uv run --locked --no-sync python -m unittest discover -s tests -v
 uv run --locked --no-sync python -m admision.evaluar_rag --entrega entrega.py --normas normas/original --consultas rag/consultas_dev.jsonl
 ```
 
-Solo se instala PyYAML. Los tests simulan el modelo: no demuestran calidad de Gemma.
+`uv sync` incluye por defecto el grupo `inferencia` (contrato de la cátedra), pero sus paquetes
+solo se instalan en Linux: en macOS/Windows queda PyYAML. Los tests simulan el modelo: no demuestran calidad de Gemma.
 `tool.uv.package = false` evita construir/instalar el proyecto local; ejecutamos desde el checkout. Se conserva la configuración setuptools del kit, pero no se usa en este flujo.
 
 ## Configuración sin secretos en Git
@@ -24,6 +25,7 @@ Solo se instala PyYAML. Los tests simulan el modelo: no demuestran calidad de Ge
 | `WANDB_ENTITY`, `WANDB_PROJECT` | Destino de experimentos; ver [W&B](wandb.md) |
 | `MODELO_ID`, `MODELO_REVISION` | Modelo y commit HF exacto |
 | `MODELO_LOTE` | Micro-lote, por defecto 1 |
+| `ADAPTER_REPO`, `ADAPTER_REVISION`, `ADAPTER_SUBCARPETA` | Adapter LoRA opcional; ver [modelo](modelo-modal.md#adapter-lora-probado-con-dobles) |
 | `BUSCADOR_VARIANTE` | `baseline` o candidato `sin_comunes` |
 
 ## Modal e inferencia (no ejecutar sin autorización)
