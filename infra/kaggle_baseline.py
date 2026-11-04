@@ -126,10 +126,22 @@ def correr(variante: str, cantidad: int, destino: Path, dtype: str, device_map: 
     codigo, cola = ejecutar_con_log([sys.executable, "-m", "admision.correr", "jugar",
         "--entrega", "entrega.py", "--casos", str(casos), "--normas", str(normas),
         "--salida", str(destino / "salida")], entorno, destino / "runner.log", token)
-    runner.update(estado="terminada", fin=time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-                  returncode=codigo, log_final=cola)
+    # El kit atrapa los errores de jugar_lote, los anota en tiempos.json y sale con 0:
+    # sin esto, una corrida que se cayó a mitad de camino parece exitosa.
+    error = error_del_kit(destino / "salida" / "tiempos.json")
+    if error and codigo == 0:
+        codigo = 1
+    runner.update(estado="fallida" if codigo else "terminada", fin=time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+                  returncode=codigo, error_agente=error, log_final=cola)
     escribir()
     return codigo
+
+
+def error_del_kit(tiempos: Path) -> str | None:
+    try:
+        return json.loads(tiempos.read_text(encoding="utf-8")).get("error") or None
+    except (OSError, ValueError):
+        return None
 
 
 def main(argv: list[str] | None = None) -> int:

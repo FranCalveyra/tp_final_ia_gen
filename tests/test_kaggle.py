@@ -60,7 +60,7 @@ class KaggleTest(unittest.TestCase):
                 kb.correr("original", 1, Path(carpeta) / "otra", "int8", "auto", "hf_secreto")
             self.assertFalse((Path(carpeta) / "otra").exists())
         self.assertEqual(codigo, 3)
-        self.assertEqual((runner["estado"], runner["returncode"]), ("terminada", 3))
+        self.assertEqual((runner["estado"], runner["returncode"]), ("fallida", 3))
         self.assertEqual(runner["configuracion"]["dtype"], "float16")
         self.assertNotIn("hf_secreto", json.dumps(runner))
         self.assertEqual(env["MODELO_METRICAS"], str(destino / "metricas.jsonl"))
@@ -78,6 +78,36 @@ class KaggleTest(unittest.TestCase):
             self.assertEqual(os.environ.get("MODELO_METRICAS"), None)  # No contamina el proceso.
         self.assertEqual((config["lote"], config["dtype"], config["device_map"]), (4, "float16", "auto"))
         self.assertEqual(config["metricas"], str(destino / "metricas.jsonl"))
+
+    def test_error_atrapado_por_el_kit_marca_la_corrida_fallida(self):
+        def jugar_con_error(comando, env, log, token):
+            salida = Path(comando[comando.index("--salida") + 1])
+            salida.mkdir()
+            (salida / "tiempos.json").write_text(json.dumps({"error": "AcceleratorError: CUDA"}))
+            return 0, ""
+        with tempfile.TemporaryDirectory() as carpeta, \
+                patch.object(kb, "ejecutar_con_log", side_effect=jugar_con_error), \
+                patch.object(kb, "describir_maquina", return_value={}):
+            destino = Path(carpeta) / "corrida"
+            codigo = kb.correr("original", 1, destino, "float16", "auto", "hf_secreto")
+            runner = json.loads((destino / "runner.json").read_text())
+        self.assertEqual(codigo, 1)
+        self.assertEqual((runner["estado"], runner["returncode"]), ("fallida", 1))
+        self.assertIn("CUDA", runner["error_agente"])
+
+    def test_corrida_sin_error_del_kit_queda_terminada(self):
+        def jugar_bien(comando, env, log, token):
+            salida = Path(comando[comando.index("--salida") + 1])
+            salida.mkdir()
+            (salida / "tiempos.json").write_text(json.dumps({"error": None}))
+            return 0, ""
+        with tempfile.TemporaryDirectory() as carpeta, \
+                patch.object(kb, "ejecutar_con_log", side_effect=jugar_bien), \
+                patch.object(kb, "describir_maquina", return_value={}):
+            destino = Path(carpeta) / "corrida"
+            self.assertEqual(kb.correr("original", 1, destino, "float16", "auto", "x"), 0)
+            runner = json.loads((destino / "runner.json").read_text())
+        self.assertEqual((runner["estado"], runner["error_agente"]), ("terminada", None))
 
     def test_corrida_cortada_queda_en_curso(self):
         with tempfile.TemporaryDirectory() as carpeta, \

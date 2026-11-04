@@ -1,17 +1,17 @@
 # Progreso y decisiones
 
-**Actualizado: 2026-11-03.** Hay implementación y pruebas CPU; **todavía no hubo generación
-con Gemma completo ni entrenamiento real**. Esta bitácora centraliza el estado y enlaza
-las guías; no reemplaza el informe final ni implica cierre de issues.
+**Actualizado: 2026-11-04.** Hay generación real con Gemma completo **en Kaggle T4** (línea de base
+y lotes), no en A100. **Todavía no hubo entrenamiento real.** Esta bitácora centraliza el estado y
+enlaza las guías; no reemplaza el informe final.
 
 ## Estado de nuestra parte
 
 | Issue | Implementado / validado | Falta para cerrar |
 |---|---|---|
-| #1 Baseline | Fábricas, buscador, adaptador CUDA y prueba de flujo con modelo guionado | Carga real y 50 casos × normas original/b/c, con trazas y puntuación |
-| #2 Infraestructura | Lock, entorno CPU, plantilla de variables, definición A100-40GB; W&B online verificado | Validación GPU, permisos compartidos con equipo/cátedra y publicación HF |
+| #1 Baseline | **Cerrado (2026-11-04).** 50 casos × original/b/c en Kaggle T4: 10, 10 y 7 contra la referencia 12, 15 y 12 | Repetir en A100 si Modal se destraba |
+| #2 Infraestructura | **Cerrado (2026-11-04).** Lock, `uv sync` con inferencia, plantilla de variables, app A100-40GB, W&B, repo HF privado | Invitar a la cátedra a HF y W&B pasó al #16 |
 | #3 SFT | Validación de conversaciones, preparación, tokenización, Trainer LoRA y runner persistente; tokenizador real probado | Entrenar y probar corte/reanudación reales; publicación desde Modal y datos/prompt finales |
-| #4 Lotes | Coordinador del kit y adaptador admiten lotes; orden probado con dobles | Medir concurrencia, tiempos y memoria con modelo real |
+| #4 Lotes | Coordinador del kit y adaptador admiten lotes; orden probado con dobles. Medido en T4 (2026-11-04): lote 1 y 4 válidos, **8 y 16 fallan con error CUDA** | Medir en A100-40GB; investigar el fallo de lotes grandes en T4 |
 | #5 Recursos | Infraestructura para corridas auditables | Mediciones antes/después, costos y proyección en `INFORME.md` |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
@@ -238,6 +238,46 @@ Artefactos en `corridas/kaggle/base-{original,b,c}-l4` (no versionados).
 - **Bug de trazabilidad:** `runner.json` de estas corridas dice `lote: 1`, pero el agente usó lote 4
   (65 lotes para ~245 llamadas). El runner guardaba los defaults en vez de la configuración del entorno.
   Corregido con test: suite de 85 corridos, 84 pasan y 1 opcional se saltea.
+
+### 2026-11-04: efecto del tamaño de lote en T4 (issue #4, **no comparable con A100**)
+
+**Corrida:** versión 3 del notebook `franciscocalveyra/tp-admision-baseline` (SaveAndRunAll, 2x T4), commit
+`11bf3d6` limpio, Gemma 4 E4B sin entrenar, fp16, `device_map=auto`, normas **original**, 50 casos de práctica.
+Una celda con `for l in 1 8 16; do MODELO_LOTE=$l python infra/kaggle_baseline.py --variante original --cantidad 50 ...`
+(carpetas `corridas/kaggle/lote-original-l{1,8,16}`, no versionadas). Puntuado local con `admision.correr puntuar`
+contra `practica/esperadas-original.jsonl`. Cuota GPU consumida: ~2.690 s (~45 min). Una sola corrida por lote.
+`runner.json` ahora registra el lote real (1, 8 y 16): el bug del 2026-11-03 quedó corregido.
+
+| Lote | Resueltos | Parcial medio | s/caso | `construir_agente` | VRAM pico (suma / por GPU) | Tokens/s | Micro-lotes | Estado |
+|---|---|---|---|---|---|---|---|---|
+| 1 | **10/50** | 0,831 | **33,3** | 156 s | 16,7 GB (9,6 + 7,1) | 8,2 | 246 | ok |
+| 4 (otra sesión) | **10/50** | 0,831 | **15,6** | 146 s | 19,1 GB (10,9 + 8,2) | 17,4 | 65 | ok |
+| 8 | 1/50 (inválido) | 0,247 | 7,6 (inválido) | 50 s | 20,2 GB (11,5 + 8,7) | 25,3 | 28 | **cayó** |
+| 16 | 0/50 (inválido) | 0,0 | 3,0 (inválido) | 40 s | 22,7 GB (12,8 + 9,8) | 34,5 | 10 | **cayó** |
+
+- **Lotes 8 y 16 no terminaron.** `jugar_lote` falló con `AcceleratorError: CUDA error: unspecified launch failure`
+  dentro del forward de Gemma 4 (`project_per_layer_inputs`/`_norm`), no con un OOM explícito. El lote 8 cayó tras
+  28 micro-lotes (379 s) y dejó decisión solo en 16 casos (34 sin decisión); el 16 cayó tras 10 micro-lotes
+  (152 s) y no dejó ninguna. El proceso devolvió `returncode=0` porque el kit captura el error y lo escribe en
+  `tiempos.json` (`error`): **mirar siempre `error` y `sin_decision`, no solo el returncode**.
+  Los s/caso y resueltos de 8 y 16 son de una corrida cortada y no sirven para comparar. Causa no diagnosticada
+  (no se probó con `CUDA_LAUNCH_BLOCKING=1`); el pico por GPU (12,8 de 15 GB) no apunta a falta de memoria.
+- **Lote 1 contra 4: sin regresiones por padding.** Mismos 10 casos resueltos (pev-010, 011, 012, 017, 021, 024,
+  027, 030, 049, 050), cero cambios por caso, parcial idéntico, la primera respuesta del modelo es idéntica en los
+  50 casos y la conversación completa es idéntica en 49 de 50 (solo difiere pev-023, sin cambiar el resultado).
+  Para los 16 casos que el lote 8 alcanzó a decidir, la decisión coincide con la del lote 1 en los 16.
+- **Tiempo:** pasar de lote 1 a 4 baja de 33,3 a 15,6 s/caso (2,1x), a costa de +2,4 GB de VRAM. Mismo patrón por
+  micro-lote completo (s por conversación): 6,8 (1), 3,1 (4), 1,8 (8), 1,1 (16); los lotes grandes serían más
+  rápidos si no fallaran. El lote 4 vino de otra sesión de Kaggle (variación de hardware posible).
+- **Recomendación para desarrollo en Kaggle T4:** `MODELO_LOTE=4`. Es el mayor lote validado de punta a punta,
+  da 2,1x de velocidad, no cambia resultados y deja ~10 GB libres por GPU. No usar 8 ni 16 hasta entender el
+  fallo. Los defaults del código **no cambian**: la entrega en A100-40GB sigue en lote 1 hasta decidirlo con
+  medición en esa GPU.
+- **Limitaciones:** T4 fp16, no comparable con A100; una corrida por lote; lote 4 de otra sesión; vLLM queda fuera
+  de alcance (posible trabajo futuro si hace falta más throughput). Pendiente del issue #4: repetir en A100-40GB.
+- **Corrección del runner (probada con dobles):** si `salida/tiempos.json` trae `error`, el runner marca la corrida
+  `fallida`, devuelve 1 y guarda `error_agente` en `runner.json`. Así un fallo como el de los lotes 8 y 16 ya no
+  parece exitoso. Suite: 87 corridos, 86 pasan y 1 opcional se saltea.
 
 ## Próximos pasos y bloqueos
 

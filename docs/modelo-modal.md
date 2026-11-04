@@ -13,7 +13,8 @@ el acceso de HF todavía no están verificados.
   SDPA en el texto y eager en las torres que no lo soportan (forzar SDPA rompe el audio de Gemma 4). No se
   recorta contexto; al superar el presupuesto falla explícitamente.
 - Micro-lotes de 1 por defecto para limitar VRAM. El adaptador admite un tamaño
-  configurable con `MODELO_LOTE`; todavía no se midió rendimiento en GPU.
+  configurable con `MODELO_LOTE`. En Kaggle T4 (fp16, no comparable con A100) lote 4 fue 2,1x más rápido que 1
+  sin cambiar resultados; 8 y 16 fallaron con error CUDA (ver [progreso](progreso.md), 2026-11-04). En A100 sin medir.
 - El coordinador conserva sus límites de referencia: 16 turnos y 3 respuestas
   sin JSON. Las herramientas no se ejecutan dentro del adaptador.
 
