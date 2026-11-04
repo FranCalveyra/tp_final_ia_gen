@@ -325,6 +325,23 @@ no calidad. La subida real a HF y W&B tampoco se probó. Modal no cambió (A100 
   (`re.fullmatch` en PEFT, verificado en `peft/utils/other.py:1521`; nombres en `modeling_gemma4.py:2166`).
   Test de regresión. Suite: 106 corridos, 105 pasan y 1 opcional se saltea. Ningún checkpoint llegó a publicarse.
 
+**Humo validado en GPU real (versiones 6 y 7, commit `acc95b2`, Kaggle 2x T4, fp16, `device_map=auto`).**
+Datos sintéticos de `scripts.datos_humo` (4 conversaciones, 8 pasos, checkpoint cada 2). Artefactos en
+`corridas/kaggle/humo-entrena-1-v6` y `humo-entrena-2-v7` (no versionados).
+
+| Corrida | Resultado | Publicado en `FranCalveyra/tp-admision` (revisión) | Pérdida pasos 1→8 |
+|---|---|---|---|
+| v6, desde cero | `terminada`, 7 min | checkpoint-2 `f11b081`, 4 `70808f8`, 6 `3932007`, 8 `0d6d84a`, final `2fa71b9` | 2,679 → 2,178 |
+| v7, reanuda desde checkpoint-2 bajado de HF | `terminada`, 9 min | checkpoint-4 `32363aa`, 6 `f88db48`, 8 `79121d5`, final `391c3eb` | pasos 3–8 iguales a v6 hasta el 4.º decimal |
+
+- fp16 en T4 entrena sin NaN; la norma del gradiente queda entre 1,08 y 1,74. W&B online registró las dos corridas.
+- La reanudación restaura bien optimizador, scheduler, RNG y `scaler.pt`: la curva reanudada reproduce la
+  original (2,5196/2,4173/2,3468 contra 2,5196/2,4179/2,3464).
+- **Queda probado en GPU (T4):** recibe conversaciones, configuración y semilla; publica cada checkpoint con
+  revisión; registra en W&B; reanuda desde un checkpoint publicado. **Falta:** datos reales (Eze/Yas), prompt
+  final (Martu), medir VRAM de entrenamiento con secuencias reales y la ruta Modal/A100.
+- `snapshot_download` deja una carpeta `.cache` dentro del run; no afectó la reanudación.
+
 ## Próximos pasos y bloqueos
 
 1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
