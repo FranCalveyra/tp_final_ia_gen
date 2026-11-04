@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import traceback
 from admision_tp.entrenamiento import DISPOSITIVOS, PRECISIONES, entrenar
 
 
@@ -24,6 +25,9 @@ def main():
                              online=a.online, publicar=a.publicar, precision=a.precision,
                              dispositivos=a.dispositivos, guardar_cada=a.guardar_cada)
     except Exception as error:
+        # estado.json (persistido y publicable) guarda solo el tipo; el traceback va a stderr para poder
+        # diagnosticar. En Kaggle pasa por el runner, que tapa los secretos antes de escribir el log.
+        traceback.print_exc()
         p.exit(1, f"Entrenamiento no completado ({type(error).__name__}); revisar manifiestos y estado local.\n")
     print(json.dumps(resultado, indent=2))
 
