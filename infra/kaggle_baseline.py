@@ -13,6 +13,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import time
 
 RAIZ = Path(__file__).resolve().parents[1]
 VARIANTES = ("original", "b", "c")
@@ -75,6 +76,22 @@ def describir_maquina() -> dict:
             "python": sys.version.split()[0]}
 
 
+def ejecutar_con_log(comando: list[str], entorno: dict, log: Path, token: str | None) -> tuple[int, str]:
+    """Vuelca la salida línea a línea (token tapado): si el proceso muere, el log queda hasta ahí."""
+    ocultar = (lambda texto: texto.replace(token, "***")) if token else (lambda texto: texto)
+    cola: list[str] = []
+    with subprocess.Popen(comando, cwd=RAIZ, env=entorno, stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT, text=True) as proceso, \
+            open(log, "w", encoding="utf-8") as archivo:
+        for linea in proceso.stdout:
+            linea = ocultar(linea)
+            archivo.write(linea)
+            archivo.flush()
+            cola = (cola + [linea])[-200:]
+        codigo = proceso.wait()
+    return codigo, "".join(cola)
+
+
 def correr(variante: str, cantidad: int, destino: Path, dtype: str, device_map: str,
            token: str | None) -> int:
     sys.path.insert(0, str(RAIZ))
@@ -84,17 +101,19 @@ def correr(variante: str, cantidad: int, destino: Path, dtype: str, device_map: 
     metricas = destino / "metricas.jsonl"  # Fuera de `salida`: el kit es dueño de esa carpeta.
     entorno = preparar_entorno(os.environ, dtype, device_map, metricas, token)
     casos, normas = preparar_insumos(variante, cantidad, destino)
-    resultado = subprocess.run([sys.executable, "-m", "admision.correr", "jugar",
+    runner = {"variante": variante, "cantidad": cantidad, "configuracion": asdict(configuracion),
+              "maquina": describir_maquina(), "estado": "en_curso",
+              "inicio": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
+    escribir = lambda: (destino / "runner.json").write_text(  # noqa: E731
+        json.dumps(runner, ensure_ascii=False, indent=2), encoding="utf-8")
+    escribir()  # Si el proceso muere, queda `en_curso`: la corrida no terminó.
+    codigo, cola = ejecutar_con_log([sys.executable, "-m", "admision.correr", "jugar",
         "--entrega", "entrega.py", "--casos", str(casos), "--normas", str(normas),
-        "--salida", str(destino / "salida")], cwd=RAIZ, env=entorno,
-        capture_output=True, text=True, check=False)
-    ocultar = lambda texto: texto.replace(token, "***") if token else texto  # noqa: E731
-    (destino / "runner.json").write_text(json.dumps({
-        "variante": variante, "cantidad": cantidad, "configuracion": asdict(configuracion),
-        "maquina": describir_maquina(), "returncode": resultado.returncode,
-        "stdout": ocultar(resultado.stdout), "stderr": ocultar(resultado.stderr)},
-        ensure_ascii=False, indent=2), encoding="utf-8")
-    return resultado.returncode
+        "--salida", str(destino / "salida")], entorno, destino / "runner.log", token)
+    runner.update(estado="terminada", fin=time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+                  returncode=codigo, log_final=cola)
+    escribir()
+    return codigo
 
 
 def main(argv: list[str] | None = None) -> int:

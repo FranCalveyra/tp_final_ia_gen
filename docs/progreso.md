@@ -187,7 +187,35 @@ Consultar Git para confirmar el estado de publicación remoto; no se cierran iss
   `modelo.py` y `entrenamiento.py`, con tests de regresión. Las torres de audio y visión se cargan
   igual y ocupan VRAM; sacarlas es una optimización pendiente.
 - **Incidente:** una celda de clonado pasaba el token de GitHub como argumento de git y, al fallar,
-  lo imprimió en base64. Se pidió revocarlo; la guía ahora lo pasa por variables de entorno.
+  lo imprimió en base64. Fran lo revocó; la guía ahora lo pasa por variables de entorno.
+
+### 2026-11-03: primera corrida real del agente (Kaggle T4, **no comparable con A100**)
+
+`t4-original-09`: commit `2dc0545` limpio, Gemma 4 E4B sin entrenar, fp16, `device_map=auto` en 2x T4,
+torch 2.15.0+cu132, lote 1, primeros 3 casos de práctica, normas original. Puntuado local con
+`admision.correr puntuar` contra `practica/esperadas-original.jsonl`. Artefactos en `corridas/kaggle/` (no versionados).
+
+| Métrica | Valor |
+|---|---|
+| Resueltos | 0/3 (parcial medio 0,852: 0,889, 0,889 y 0,778) |
+| Controles flojos | `registro` 0,33, `box_antes_del_registro` 0,67, `cobertura` 0,67; el resto 1,0 |
+| Llamadas y búsquedas por caso | 4 y 1 |
+| Cargar agente / jugar por caso | 63,6 s / 30,1 s |
+| Tokens por llamada | entrada 651–1614, generados 28–145; ~8 tokens/s |
+| VRAM pico (suma de GPU) | 16,3 GB (9,4 + 6,9) de 30 GB |
+
+- 3 casos no alcanzan para comparar con la referencia (12/50 sin entrenar): es una prueba de punta a punta.
+- fp16 en T4 no dio NaN ni salidas vacías en estos casos.
+- Sobra VRAM para probar `MODELO_LOTE` > 1.
+
+### 2026-11-03/04: línea de base de 50 casos en Kaggle (en curso)
+
+- `base-original-l4` (50 casos, lote 4) terminó con `returncode 0`; falta puntuarla.
+- Dos corridas de 50 casos y las primeras de b y c se cortaron sin dejar rastro. La causa más probable
+  es haber ejecutado otras celdas o reejecutado la misma: el runner recién escribía `runner.json` al terminar.
+- **Corrección (probada con dobles y un subproceso real mínimo):** `runner.json` se escribe al arrancar con
+  `estado: en_curso`, y `runner.log` registra la salida línea a línea con el token tapado. Suite: 84 corridos,
+  83 pasan y 1 opcional se saltea. b y c se relanzaron como `base-{b,c}-l4-2` con el código anterior.
 
 ## Próximos pasos y bloqueos
 

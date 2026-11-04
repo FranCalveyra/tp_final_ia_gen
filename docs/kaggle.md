@@ -50,15 +50,26 @@ subprocess.run(["git", "-C", repo, "log", "--oneline", "-1"])
    Esos paquetes de la imagen están compilados para otro torch/CUDA, y transformers los importa solo
    si están instalados (`operator torchvision::nms does not exist`, CUDA 13.0 contra 13.2). No los usamos.
    Los demás avisos de conflicto de pip son paquetes de la imagen que tampoco usamos.
-5. Celda 3, correr (carpeta nueva por corrida; si existe, falla):
+5. Celda 3, correr. Para varias variantes, **una sola celda** con un loop, ejecutada una vez y sin
+   tocar el notebook hasta que termine: volver a ejecutarla o interrumpirla corta la corrida en curso
+   (pasó el 2026-11-03). La carpeta debe ser nueva; si existe, falla.
 
 ```
-!cd /kaggle/working/repo && python infra/kaggle_baseline.py --variante original --cantidad 3 --salida /kaggle/working/corridas/t4-original-01
+!cd /kaggle/working/repo && for v in original b c; do MODELO_LOTE=4 python infra/kaggle_baseline.py --variante $v --cantidad 50 --salida /kaggle/working/corridas/base-$v-l4; done
 ```
 
-Resultado en la salida: `salida/` (trazas del kit), `metricas.jsonl`, `casos.jsonl`, `normas/` y `runner.json`
-(config, commit, si el árbol está sucio, GPU, versiones de torch/CUDA, returncode, stdout/stderr con el token tapado).
-Descargá la carpeta desde Output. Puntuar es una fase local aparte (ver [modelo-modal.md](modelo-modal.md)).
+Resultado en la salida: `salida/` (trazas del kit), `metricas.jsonl`, `casos.jsonl`, `normas/`, `runner.log` y
+`runner.json`. `runner.json` se escribe **al arrancar** con `estado: en_curso` (config, commit, si el árbol está
+sucio, GPU, versiones de torch/CUDA) y se completa al terminar con `estado: terminada`, `returncode` y las
+últimas 200 líneas en `log_final`. `runner.log` se escribe línea a línea. Los dos tapan el token.
+Si una corrida quedó `en_curso` sin proceso vivo, se cortó: mirar el final de `runner.log`.
+
+```
+!python -c "import json;d=json.load(open('/kaggle/working/corridas/<carpeta>/runner.json'));print(d['estado'],d.get('returncode'));print(d.get('log_final','')[-3000:])"
+```
+
+Para analizar: `zip -qr` de las carpetas, descargar desde el panel de archivos (no ejecuta celdas) y
+puntuar local con `admision.correr puntuar` (ver [modelo-modal.md](modelo-modal.md)).
 
 ## Dependencias: riesgo conocido
 

@@ -49,23 +49,46 @@ class KaggleTest(unittest.TestCase):
                     kb.preparar_insumos(*args, destino, raiz)
 
     def test_correr_guarda_runner_sin_token_y_no_gasta_con_dtype_invalido(self):
-        proceso = SimpleNamespace(returncode=3, stdout="", stderr="falló con hf_secreto")
         with tempfile.TemporaryDirectory() as carpeta, \
-                patch.object(kb.subprocess, "run", return_value=proceso) as run, \
+                patch.object(kb, "ejecutar_con_log", return_value=(3, "falló con ***")) as ejecutar, \
                 patch.object(kb, "describir_maquina", return_value={"gpus": ["T4", "T4"]}):
             destino = Path(carpeta) / "corrida"
             codigo = kb.correr("original", 1, destino, "float16", "auto", "hf_secreto")
             runner = json.loads((destino / "runner.json").read_text())
-            env = run.call_args.kwargs["env"]
+            comando, env, log, token = ejecutar.call_args.args
             with self.assertRaises(ValueError):
                 kb.correr("original", 1, Path(carpeta) / "otra", "int8", "auto", "hf_secreto")
             self.assertFalse((Path(carpeta) / "otra").exists())
         self.assertEqual(codigo, 3)
-        self.assertEqual(runner["returncode"], 3)
+        self.assertEqual((runner["estado"], runner["returncode"]), ("terminada", 3))
         self.assertEqual(runner["configuracion"]["dtype"], "float16")
         self.assertNotIn("hf_secreto", json.dumps(runner))
         self.assertEqual(env["MODELO_METRICAS"], str(destino / "metricas.jsonl"))
-        self.assertEqual(run.call_args.args[0][1:4], ["-m", "admision.correr", "jugar"])
+        self.assertEqual(comando[1:4], ["-m", "admision.correr", "jugar"])
+        self.assertEqual((log, token), (destino / "runner.log", "hf_secreto"))
+
+    def test_corrida_cortada_queda_en_curso(self):
+        with tempfile.TemporaryDirectory() as carpeta, \
+                patch.object(kb, "ejecutar_con_log", side_effect=KeyboardInterrupt), \
+                patch.object(kb, "describir_maquina", return_value={}):
+            destino = Path(carpeta) / "corrida"
+            with self.assertRaises(KeyboardInterrupt):
+                kb.correr("original", 1, destino, "float16", "auto", "hf_secreto")
+            runner = json.loads((destino / "runner.json").read_text())
+        self.assertEqual(runner["estado"], "en_curso")
+        self.assertNotIn("returncode", runner)
+
+    def test_log_incremental_tapa_el_token(self):
+        import sys
+        programa = "import sys; print('cargando hf_secreto'); print('error', file=sys.stderr); sys.exit(2)"
+        with tempfile.TemporaryDirectory() as carpeta:
+            log = Path(carpeta) / "runner.log"
+            codigo, cola = kb.ejecutar_con_log([sys.executable, "-c", programa], {}, log, "hf_secreto")
+            texto = log.read_text()
+        self.assertEqual(codigo, 2)
+        self.assertIn("cargando ***", texto)
+        self.assertIn("error", texto)
+        self.assertNotIn("hf_secreto", texto + cola)
 
 
 if __name__ == "__main__":
