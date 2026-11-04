@@ -8,8 +8,12 @@ import uuid
 from .conversaciones import _json, validar_registro
 from .preparacion import _canonical, _codigo, _sha, validar_configuracion
 
+# Solo la atención del modelo de lenguaje. Gemma 4 es multimodal: sus torres de visión y audio también
+# tienen q_proj/v_proj, pero son Gemma4ClippableLinear y PEFT no los soporta (falló en Kaggle). PEFT
+# aplica un string con re.fullmatch sobre el nombre completo del módulo (peft/utils/other.py:1521).
+LORA_OBJETIVO = r"(.*\.)?language_model\.layers\.\d+\.self_attn\.(q_proj|v_proj)"
 LORA = {"r": 8, "lora_alpha": 16, "lora_dropout": 0.0,
-        "target_modules": ["q_proj", "v_proj"], "task_type": "CAUSAL_LM"}
+        "target_modules": LORA_OBJETIVO, "task_type": "CAUSAL_LM"}
 POLITICA = {"save_steps": 50, "bf16": True, "gradient_checkpointing": True,
             "gradient_checkpointing_kwargs": {"use_reentrant": False}, "save_only_model": False}
 # Defaults de la entrega (A100 de 40 GB). fp16 y "auto" existen para T4 x2 (Kaggle, desarrollo):

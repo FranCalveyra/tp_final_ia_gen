@@ -314,6 +314,17 @@ no se midió la VRAM de entrenamiento en 2 T4 (el pico de inferencia fue ~19 GB)
 que `device_map="auto"` deje margen en la GPU 0 para activaciones. Los datos de humo son sintéticos: prueban pipeline,
 no calidad. La subida real a HF y W&B tampoco se probó. Modal no cambió (A100 40 GB sigue siendo la entrega).
 
+**Primeros intentos reales (versiones 4 y 5 del notebook, commits `6f9abc0` y `5e1837e`).**
+- Funcionó: Secrets en versión guardada, instalación de `requirements-entrenamiento.txt`, datos de humo,
+  preparación, tokenización, W&B online (las corridas fallidas quedan registradas) y carga del modelo en 2 T4.
+- v4 falló con un `ValueError` sin mensaje: el CLI solo mostraba el tipo. Ahora imprime el traceback por stderr
+  (el runner tapa los secretos). `estado.json` sigue guardando solo el tipo, porque se puede publicar.
+- v5 mostró **un bug que también rompía la A100**: `target_modules=["q_proj","v_proj"]` alcanzaba también a las
+  torres de visión y audio de Gemma 4, cuyas capas son `Gemma4ClippableLinear` y PEFT no las soporta.
+  **Decisión:** LoRA solo sobre la atención del modelo de lenguaje, con el patrón `LORA_OBJETIVO`
+  (`re.fullmatch` en PEFT, verificado en `peft/utils/other.py:1521`; nombres en `modeling_gemma4.py:2166`).
+  Test de regresión. Suite: 106 corridos, 105 pasan y 1 opcional se saltea. Ningún checkpoint llegó a publicarse.
+
 ## Próximos pasos y bloqueos
 
 1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.

@@ -1,7 +1,9 @@
 # Entrenador SFT LoRA (implementado, todavía no validado en GPU)
 
 Entrena únicamente las respuestas marcadas por la tokenización. Usa el modelo base
-con revisión fija y LoRA `q_proj/v_proj`, rango 8, alpha 16, dropout 0. Son parámetros
+con revisión fija y LoRA `q_proj/v_proj` **solo del modelo de lenguaje** (patrón `LORA_OBJETIVO`:
+las torres de visión y audio de Gemma 4 usan `Gemma4ClippableLinear`, que PEFT no soporta), rango 8,
+alpha 16, dropout 0. Son parámetros
 iniciales, **no una demostración de que Gemma entre en A100 de 40 GB**.
 
 ## Qué está probado

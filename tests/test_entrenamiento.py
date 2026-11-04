@@ -280,3 +280,18 @@ class EntrenamientoTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ObjetivoLoraTest(unittest.TestCase):
+    def test_solo_atencion_del_modelo_de_lenguaje(self):
+        import re
+        from admision_tp.entrenamiento import LORA
+        patron = LORA["target_modules"]
+        for nombre in ("model.language_model.layers.0.self_attn.q_proj",
+                       "model.language_model.layers.41.self_attn.v_proj"):
+            self.assertTrue(re.fullmatch(patron, nombre), nombre)
+        for nombre in ("model.vision_tower.encoder.layers.0.self_attn.q_proj",
+                       "model.audio_tower.layers.3.self_attn.v_proj",
+                       "model.language_model.layers.0.self_attn.k_proj",
+                       "model.language_model.layers.0.self_attn.q_proj.linear"):
+            self.assertIsNone(re.fullmatch(patron, nombre), nombre)
