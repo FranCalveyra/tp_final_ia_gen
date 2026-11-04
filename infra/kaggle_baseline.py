@@ -6,6 +6,7 @@ La lógica del agente no conoce Kaggle; `kaggle_secrets` se importa solo acá y 
 """
 
 import argparse
+from contextlib import contextmanager
 from dataclasses import asdict
 import json
 import os
@@ -32,6 +33,18 @@ def preparar_entorno(base: dict, dtype: str, device_map: str, metricas: Path, to
         raise RuntimeError("Falta HF_TOKEN (variable de entorno o Kaggle Secret)")
     return {**base, "PYTHONPATH": str(RAIZ), "HF_TOKEN": token, "MODELO_DTYPE": dtype,
             "MODELO_DEVICE_MAP": device_map, "MODELO_METRICAS": str(metricas)}
+
+
+@contextmanager
+def patch_entorno(entorno: dict):
+    anterior = dict(os.environ)
+    os.environ.clear()
+    os.environ.update(entorno)
+    try:
+        yield
+    finally:
+        os.environ.clear()
+        os.environ.update(anterior)
 
 
 def crear_salida(destino: Path) -> Path:
@@ -96,10 +109,13 @@ def correr(variante: str, cantidad: int, destino: Path, dtype: str, device_map: 
            token: str | None) -> int:
     sys.path.insert(0, str(RAIZ))
     from admision_tp.configuracion import Configuracion
-    configuracion = Configuracion(dtype=dtype, device_map=device_map)  # Valida antes de gastar cuota.
+    Configuracion(dtype=dtype, device_map=device_map)  # Valida antes de gastar cuota.
     crear_salida(destino)
     metricas = destino / "metricas.jsonl"  # Fuera de `salida`: el kit es dueño de esa carpeta.
     entorno = preparar_entorno(os.environ, dtype, device_map, metricas, token)
+    # Se registra la configuración que leerá el agente (incluye MODELO_LOTE), no los defaults.
+    with patch_entorno(entorno):
+        configuracion = Configuracion.desde_entorno()
     casos, normas = preparar_insumos(variante, cantidad, destino)
     runner = {"variante": variante, "cantidad": cantidad, "configuracion": asdict(configuracion),
               "maquina": describir_maquina(), "estado": "en_curso",

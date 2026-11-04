@@ -208,14 +208,36 @@ torch 2.15.0+cu132, lote 1, primeros 3 casos de práctica, normas original. Punt
 - fp16 en T4 no dio NaN ni salidas vacías en estos casos.
 - Sobra VRAM para probar `MODELO_LOTE` > 1.
 
-### 2026-11-03/04: línea de base de 50 casos en Kaggle (en curso)
+### 2026-11-03/04: línea de base de 50 casos (Kaggle T4, **no comparable con A100**)
 
-- `base-original-l4` (50 casos, lote 4) terminó con `returncode 0`; falta puntuarla.
-- Dos corridas de 50 casos y las primeras de b y c se cortaron sin dejar rastro. La causa más probable
-  es haber ejecutado otras celdas o reejecutado la misma: el runner recién escribía `runner.json` al terminar.
-- **Corrección (probada con dobles y un subproceso real mínimo):** `runner.json` se escribe al arrancar con
-  `estado: en_curso`, y `runner.log` registra la salida línea a línea con el token tapado. Suite: 84 corridos,
-  83 pasan y 1 opcional se saltea. b y c se relanzaron como `base-{b,c}-l4-2` con el código anterior.
+**Intentos fallidos:** dos corridas interactivas de 50 casos y las primeras de b y c se cortaron sin dejar
+rastro; `base-original-l4` terminó, pero sus archivos se perdieron cuando la sesión interactiva se apagó.
+Desde entonces `runner.json` se escribe al arrancar (`estado: en_curso`), `runner.log` registra la salida
+línea a línea y las corridas se lanzan por el MCP de Kaggle como **versión guardada** (persiste el output).
+
+**Corrida válida:** versión 2 del notebook `franciscocalveyra/tp-admision-baseline`, lanzada con
+`save_notebook` (SaveAndRunAll, `NvidiaTeslaT4`, 2x T4). Commit `a89f5b9` limpio, Gemma 4 E4B sin entrenar,
+fp16, `device_map=auto`, `MODELO_LOTE=4`, 50 casos de práctica por variante, normas completas.
+Puntuado local con `admision.correr puntuar` contra `practica/esperadas-{v}.jsonl`.
+Artefactos en `corridas/kaggle/base-{original,b,c}-l4` (no versionados).
+
+| Normas | Resueltos | Referencia cátedra | Parcial medio | Segundos por caso |
+|---|---|---|---|---|
+| original | **10/50** | 12/50 | 0,831 | 15,6 |
+| b | **10/50** | 15/50 | 0,820 | 15,8 |
+| c | **7/50** | 12/50 | 0,816 | 16,1 |
+
+- Todas sin decisiones faltantes ni errores; ~4,9 llamadas y ~1,3 búsquedas por caso, ~19.800 caracteres
+  de contexto por caso. VRAM pico 19,1 GB (suma de 2 GPU), ~17 tokens generados/s por lote.
+- Controles más flojos en las tres: `box_antes_del_registro` y `aviso_al_voluntariado` (0,72), `registro`
+  (0,68–0,78) y `verificacion` (0,74–0,76). `numero_documento` es perfecto y `circuito` está en 0,98.
+- Quedamos **por debajo de la referencia** (27 contra 39 casos en total). Diferencias conocidas: fp16 en T4
+  contra (probablemente) bf16 en A100, lote 4 con padding y nuestro buscador. Sin una corrida en A100 no se
+  puede separar cuánto aporta cada una.
+- Cargar el agente tardó 146 s en original (incluye bajar el modelo) y 34–47 s en b y c.
+- **Bug de trazabilidad:** `runner.json` de estas corridas dice `lote: 1`, pero el agente usó lote 4
+  (65 lotes para ~245 llamadas). El runner guardaba los defaults en vez de la configuración del entorno.
+  Corregido con test: suite de 85 corridos, 84 pasan y 1 opcional se saltea.
 
 ## Próximos pasos y bloqueos
 

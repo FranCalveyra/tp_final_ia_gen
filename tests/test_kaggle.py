@@ -1,9 +1,9 @@
 import json
+import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from infra import kaggle_baseline as kb
@@ -66,6 +66,18 @@ class KaggleTest(unittest.TestCase):
         self.assertEqual(env["MODELO_METRICAS"], str(destino / "metricas.jsonl"))
         self.assertEqual(comando[1:4], ["-m", "admision.correr", "jugar"])
         self.assertEqual((log, token), (destino / "runner.log", "hf_secreto"))
+
+    def test_runner_registra_el_lote_del_entorno(self):
+        with tempfile.TemporaryDirectory() as carpeta, \
+                patch.dict("os.environ", {"MODELO_LOTE": "4"}), \
+                patch.object(kb, "ejecutar_con_log", return_value=(0, "")), \
+                patch.object(kb, "describir_maquina", return_value={}):
+            destino = Path(carpeta) / "corrida"
+            kb.correr("original", 1, destino, "float16", "auto", "hf_secreto")
+            config = json.loads((destino / "runner.json").read_text())["configuracion"]
+            self.assertEqual(os.environ.get("MODELO_METRICAS"), None)  # No contamina el proceso.
+        self.assertEqual((config["lote"], config["dtype"], config["device_map"]), (4, "float16", "auto"))
+        self.assertEqual(config["metricas"], str(destino / "metricas.jsonl"))
 
     def test_corrida_cortada_queda_en_curso(self):
         with tempfile.TemporaryDirectory() as carpeta, \
