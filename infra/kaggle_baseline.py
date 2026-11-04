@@ -89,9 +89,17 @@ def describir_maquina() -> dict:
             "python": sys.version.split()[0]}
 
 
-def ejecutar_con_log(comando: list[str], entorno: dict, log: Path, token: str | None) -> tuple[int, str]:
-    """Vuelca la salida línea a línea (token tapado): si el proceso muere, el log queda hasta ahí."""
-    ocultar = (lambda texto: texto.replace(token, "***")) if token else (lambda texto: texto)
+def ejecutar_con_log(comando: list[str], entorno: dict, log: Path,
+                     token: str | list[str] | None) -> tuple[int, str]:
+    """Vuelca la salida línea a línea (secretos tapados): si el proceso muere, el log queda hasta ahí.
+
+    `token` es un secreto o una lista de secretos (por ejemplo HF y W&B)."""
+    secretos = [token] if isinstance(token, str) else list(token or [])
+
+    def ocultar(texto: str) -> str:
+        for secreto in filter(None, secretos):
+            texto = texto.replace(secreto, "***")
+        return texto
     cola: list[str] = []
     with subprocess.Popen(comando, cwd=RAIZ, env=entorno, stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT, text=True) as proceso, \

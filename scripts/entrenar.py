@@ -2,7 +2,7 @@
 
 import argparse
 import json
-from admision_tp.entrenamiento import entrenar
+from admision_tp.entrenamiento import DISPOSITIVOS, PRECISIONES, entrenar
 
 
 def main():
@@ -13,10 +13,16 @@ def main():
     p.add_argument("--reanudar", help="checkpoint-N local completo dentro de salida")
     p.add_argument("--online", action="store_true", help="autoriza escribir métricas en W&B")
     p.add_argument("--publicar", action="store_true", help="autoriza subir checkpoints a HF privado")
+    p.add_argument("--precision", choices=sorted(PRECISIONES), default="bf16",
+                   help="bf16 (A100, default) o fp16 (T4, sin bf16 nativo)")
+    p.add_argument("--dispositivos", choices=DISPOSITIVOS, default="unico",
+                   help="unico (una GPU, default) o auto (reparte el modelo entre GPU)")
+    p.add_argument("--guardar-cada", type=int, default=50, help="pasos entre checkpoints (default 50)")
     a = p.parse_args()
     try:
         resultado = entrenar(a.preparacion, a.tokens, a.salida, checkpoint=a.reanudar,
-                             online=a.online, publicar=a.publicar)
+                             online=a.online, publicar=a.publicar, precision=a.precision,
+                             dispositivos=a.dispositivos, guardar_cada=a.guardar_cada)
     except Exception as error:
         p.exit(1, f"Entrenamiento no completado ({type(error).__name__}); revisar manifiestos y estado local.\n")
     print(json.dumps(resultado, indent=2))

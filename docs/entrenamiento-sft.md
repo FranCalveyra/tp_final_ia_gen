@@ -35,6 +35,15 @@ Necesita `WANDB_API_KEY` y, para publicar, un token HF con escritura en ese repo
 secreto de escritura separado del secreto `huggingface`; nunca pegarlo en código,
 manifiestos ni chat. El secreto W&B existente se llama `wandb-secret`.
 
+## Precisión y dispositivos (T4, desarrollo)
+
+Los defaults no cambian: `--precision bf16 --dispositivos unico --guardar-cada 50` (A100 de 40 GB).
+Para T4 x2: `--precision fp16 --dispositivos auto` (base en fp16, adapter fp32, `GradScaler`; el modelo se
+reparte entre GPU con `device_map="auto"`). `--guardar-cada` fija los pasos entre checkpoints. Los tres valores
+quedan en `corrida.json` (`ejecucion`) y en la política de la identidad: reanudar con otros valores falla, y en
+fp16 el checkpoint debe traer `scaler.pt`. Una auditoría anterior sin `ejecucion` se lee como los defaults.
+Solo probado con dobles. Ver [kaggle.md](kaggle.md#entrenamiento-sft-humo-en-kaggle).
+
 ## Reanudar
 
 ```bash

@@ -279,6 +279,41 @@ contra `practica/esperadas-original.jsonl`. Cuota GPU consumida: ~2.690 s (~45 m
   `fallida`, devuelve 1 y guarda `error_agente` en `runner.json`. Así un fallo como el de los lotes 8 y 16 ya no
   parece exitoso. Suite: 87 corridos, 86 pasan y 1 opcional se saltea.
 
+### 2026-11-04: entrenamiento SFT en Kaggle T4 x2, humo (issue #3, **implementado, probado con dobles, sin GPU**)
+
+**Qué se hizo.** El entrenador acepta `precision` (`bf16` default, `fp16`), `dispositivos` (`unico` default, `auto`) y
+`guardar_cada` (50 default). Se guardan en `corrida.json` (`ejecucion`) y la política de la identidad se deriva de ellos,
+con los defaults es exactamente `POLITICA`: la identidad A100/Modal no cambió. Nuevo runner `infra/kaggle_entrenamiento.py`
+(reusa `scripts.entrenar`/`entrenar`, sin duplicar entrenamiento ni publicación) y `scripts/datos_humo.py` (conversaciones
+sintéticas). Guía en [kaggle.md](kaggle.md#entrenamiento-sft-humo-en-kaggle).
+
+**Decisiones y motivos.**
+- Precisión/dispositivos como parámetros de `entrenar`, no campos de la configuración: el contrato de configuración es
+  cerrado y se comparte con preparación y tokenización; esto es una decisión de máquina, no de datos.
+- `auto` + fp16 verificado **leyendo** las ruedas fijadas (transformers 5.22.1, peft 0.21.2, accelerate 1.15.0): Trainer marca
+  paralelismo de modelo por `hf_device_map` y fuerza `_n_gpu=1` (`trainer.py:459-465,507`); PEFT reenvía `hf_device_map`
+  (`peft_model.py:979-986`) y sube el adapter a fp32 por defecto (`mapping_func.py:110`, `tuners_utils.py:2705-2745`);
+  Accelerate solo rechaza `device_map` multi-GPU en modo distribuido (`accelerator.py:1814-1821`), y un lanzamiento con
+  `python` no lo es; bf16 en T4 lo rechaza Transformers (`training_args.py:1741-1746`); Gemma 4 declara
+  `_no_split_modules` y gradient checkpointing (`modeling_gemma4.py:1451-1457`).
+- Publicación siempre activa en el runner de Kaggle (HF es el único almacenamiento durable: una versión cortada pierde sus
+  archivos), por lo tanto W&B online es obligatorio (la guardia existente `publicar` exige `online`). **Conflicto con "W&B
+  opcional":** sin `WANDB_API_KEY` el runner falla antes de gastar GPU; el modo offline solo existe con `--sin-publicar`.
+- fp16 exige `scaler.pt` en el checkpoint para reanudar (Trainer lo guarda en `trainer.py:3542-3560`).
+- Los tokens van por entorno al subproceso; `ejecutar_con_log` ahora tapa una lista de secretos (HF y W&B).
+- Reanudar desde HF baja solo `checkpoint-N/*` en una revisión de 40 hex y valida integridad e identidad antes de cargar el modelo.
+
+**Evidencia.** `rtk proxy uv run --no-sync python -m unittest discover -s tests`: 104 corridos, 103 pasan y 1 opcional se
+saltea (antes 87/86/1; +4 del entrenador, +13 del runner y los datos de humo). Tests con dobles: defaults A100 sin
+cambios, fp16/`device_map` llegan a `from_pretrained` y `TrainingArguments`, identidad y reanudación incluyen los campos
+nuevos, secretos fuera de argv/`runner.json`/log, publicación forzada y falla temprana, descarga con revisión y
+`allow_patterns`, salida protegida.
+
+**Limitaciones.** No se corrió en GPU ni en Kaggle. fp16 con Gemma 4 para **entrenar** no está probado (overflow posible);
+no se midió la VRAM de entrenamiento en 2 T4 (el pico de inferencia fue ~19 GB); no se verificó el reparto de capas ni
+que `device_map="auto"` deje margen en la GPU 0 para activaciones. Los datos de humo son sintéticos: prueban pipeline,
+no calidad. La subida real a HF y W&B tampoco se probó. Modal no cambió (A100 40 GB sigue siendo la entrega).
+
 ## Próximos pasos y bloqueos
 
 1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
@@ -309,7 +344,7 @@ reemplaza la ejecución final A100. El token HF actual es de lectura y no habili
 | Tokens y máscaras | [tokenizacion-entrenamiento.md](tokenizacion-entrenamiento.md) |
 | Trainer SFT | [entrenamiento-sft.md](entrenamiento-sft.md) |
 | Persistencia Modal | [entrenamiento-modal.md](entrenamiento-modal.md) |
-| Respaldo Kaggle (T4 x2) | [kaggle.md](kaggle.md) |
+| Respaldo Kaggle (T4 x2), inferencia y entrenamiento humo | [kaggle.md](kaggle.md) |
 
 ## Cómo mantener esta bitácora
 

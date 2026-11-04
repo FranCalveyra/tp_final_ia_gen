@@ -12,9 +12,30 @@ LORA = {"r": 8, "lora_alpha": 16, "lora_dropout": 0.0,
         "target_modules": ["q_proj", "v_proj"], "task_type": "CAUSAL_LM"}
 POLITICA = {"save_steps": 50, "bf16": True, "gradient_checkpointing": True,
             "gradient_checkpointing_kwargs": {"use_reentrant": False}, "save_only_model": False}
+# Defaults de la entrega (A100 de 40 GB). fp16 y "auto" existen para T4 x2 (Kaggle, desarrollo):
+# la T4 no tiene bf16 nativo y "auto" reparte el modelo entre GPU (paralelismo de modelo en un proceso).
+PRECISIONES = {"bf16": "bfloat16", "fp16": "float16"}
+DISPOSITIVOS = ("unico", "auto")
+EJECUCION = {"precision": "bf16", "dispositivos": "unico", "guardar_cada": 50}
 
 
-def cargar_entradas(preparacion, tokenizacion):
+def _ejecucion(precision, dispositivos, guardar_cada):
+    if precision not in PRECISIONES or dispositivos not in DISPOSITIVOS:
+        raise ValueError("precisión o dispositivos no soportados")
+    if type(guardar_cada) is not int or guardar_cada <= 0:
+        raise ValueError("guardar_cada requiere entero positivo")
+    return {"precision": precision, "dispositivos": dispositivos, "guardar_cada": guardar_cada}
+
+
+def _politica(ejecucion):
+    """Con los defaults devuelve exactamente POLITICA: la identidad de la entrega no cambia."""
+    politica = {**POLITICA, "save_steps": ejecucion["guardar_cada"]}
+    if ejecucion["precision"] == "fp16":
+        politica.update(bf16=False, fp16=True)
+    return politica
+
+
+def cargar_entradas(preparacion, tokenizacion, ejecucion=EJECUCION):
     """Valida snapshots y estructura antes de importar bibliotecas de entrenamiento."""
     p, t = Path(preparacion), Path(tokenizacion)
     archivos = {n: (p / n).read_bytes() for n in
@@ -58,7 +79,7 @@ def cargar_entradas(preparacion, tokenizacion):
             or tokens.get("supervisados") != sum(v != -100 for x in ejemplos for v in x["labels"])):
         raise ValueError("conteos tokenizados incompatibles")
     identidad = {"archivos": {n: _sha(b) for n, b in archivos.items()},
-                 "configuracion": config, "lora": LORA, "politica": POLITICA,
+                 "configuracion": config, "lora": LORA, "politica": _politica(ejecucion),
                  "uv_lock_sha256": _sha((Path(__file__).resolve().parents[1] / "uv.lock").read_bytes())}
     return config, registros, ejemplos, tokens, identidad, archivos
 
@@ -80,6 +101,8 @@ def validar_reanudacion(salida, checkpoint, identidad):
         raise ValueError("checkpoint de datos/configuración distintos")
     requeridos = ("trainer_state.json", "optimizer.pt", "scheduler.pt", "rng_state.pth",
                   "adapter_config.json", "adapter_model.safetensors")
+    if auditoria.get("ejecucion", EJECUCION)["precision"] == "fp16":
+        requeridos += ("scaler.pt",)  # Estado del GradScaler: sin él la escala de pérdida reinicia.
     if not all((checkpoint / n).is_file() for n in requeridos):
         raise ValueError("checkpoint incompleto: faltan pesos o estado de entrenamiento")
     hashes = _json((checkpoint / "integridad.json").read_text())
@@ -104,9 +127,12 @@ def publicar_checkpoint(carpeta, nombre, api, repo, run):
 
 
 def entrenar(preparacion, tokenizacion, salida, *, checkpoint=None, online=False,
-             publicar=False, backend=None, codigo=None, persistir=None):
+             publicar=False, backend=None, codigo=None, persistir=None,
+             precision="bf16", dispositivos="unico", guardar_cada=50):
     """Ejecuta solo por llamada explícita. backend inyectable para tests sin entrenar."""
-    config, registros, ejemplos, tokens, identidad, archivos = cargar_entradas(preparacion, tokenizacion)
+    ejecucion = _ejecucion(precision, dispositivos, guardar_cada)
+    config, registros, ejemplos, tokens, identidad, archivos = cargar_entradas(
+        preparacion, tokenizacion, ejecucion)
     destino = Path(salida)
     codigo = _codigo() if codigo is None else codigo
     if (not isinstance(codigo, dict) or not re.fullmatch(r"[0-9a-f]{40}", str(codigo.get("commit")))
@@ -120,11 +146,14 @@ def entrenar(preparacion, tokenizacion, salida, *, checkpoint=None, online=False
             raise ValueError("no cambiar modo al reanudar")
         if auditoria["codigo"] != codigo:
             raise ValueError("no cambiar código al reanudar")
+        if auditoria.get("ejecucion", EJECUCION) != ejecucion:
+            raise ValueError("no cambiar precisión ni dispositivos al reanudar")
     else:
         if destino.exists() or destino.is_symlink():
             raise ValueError("salida existente; usá reanudación explícita")
         auditoria = {"version": 1, "run_id": uuid.uuid4().hex[:16], "identidad": identidad,
-                     "codigo": codigo, "online": online, "publicar": publicar}
+                     "codigo": codigo, "online": online, "publicar": publicar,
+                     "ejecucion": ejecucion}
     # Backend comprueba CUDA y plantilla/máscaras reales antes de cargar pesos.
     ejecutar = backend or _ejecutar_cuda
     destino.mkdir(exist_ok=bool(checkpoint), parents=False)
@@ -187,8 +216,12 @@ def _ejecutar_cuda(config, registros, ejemplos, tokens, destino, auditoria, chec
             api = HfApi()
             if api.repo_info(repo_id=config["hf_repo"], repo_type="model").private is not True:
                 raise ValueError("repositorio HF no privado")
+        ejecucion = auditoria.get("ejecucion", EJECUCION)
+        # "auto" reparte las capas entre las GPU; Trainer lo detecta (hf_device_map) y no usa DataParallel.
+        reparto = {"device_map": "auto"} if ejecucion["dispositivos"] == "auto" else {}
         modelo = AutoModelForCausalLM.from_pretrained(config["modelo"], revision=config["revision"],
-                                                     dtype=torch.bfloat16)
+                                                     dtype=getattr(torch, PRECISIONES[ejecucion["precision"]]),
+                                                     **reparto)
         # Sin attn_implementation: forzar "sdpa" rompe la torre de audio de Gemma 4 (ver modelo.py).
         modelo.config.use_cache = False
         modelo = get_peft_model(modelo, LoraConfig(**LORA, revision=config["revision"]))
@@ -219,7 +252,7 @@ def _ejecutar_cuda(config, registros, ejemplos, tokens, destino, auditoria, chec
             learning_rate=config["learning_rate"], num_train_epochs=config["epochs"],
             per_device_train_batch_size=config["batch_size"],
             gradient_accumulation_steps=config["gradient_accumulation_steps"],
-            **POLITICA, save_strategy="steps", logging_steps=1,
+            **_politica(ejecucion), save_strategy="steps", logging_steps=1,
             report_to="none", push_to_hub=False, remove_unused_columns=False)
         def collator(filas):
             return {k: torch.tensor(v, dtype=torch.long) for k, v in formar_lote(filas, tokenizer.pad_token_id).items()}

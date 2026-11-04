@@ -1,6 +1,6 @@
 # Respaldo de desarrollo: Kaggle (T4 x2)
 
-Estado: **probado con dobles** (tests del runner, config y métricas). No se ejecutó nada en Kaggle ni en GPU.
+Estado: **probado con dobles** (tests del runner, config y métricas; el entrenamiento humo se describe al final). No se ejecutó nada en Kaggle ni en GPU.
 Es un respaldo temporal porque Modal exige una tarjeta que nadie del equipo puede cargar.
 La entrega final sigue siendo A100 de 40 GB con los defaults (`bfloat16`, `cuda:0`), que no cambiaron.
 
@@ -72,6 +72,92 @@ Los dos tapan el token. Si una corrida quedó `en_curso` sin proceso vivo, se co
 
 Para analizar: `zip -qr` de las carpetas, descargar desde el panel de archivos (no ejecuta celdas) y
 puntuar local con `admision.correr puntuar` (ver [modelo-modal.md](modelo-modal.md)).
+
+## Entrenamiento SFT (humo) en Kaggle
+
+Estado: **implementado y probado con dobles**. No se ejecutó en GPU. fp16 en T4 con Gemma no está probado
+para entrenar (puede dar NaN/overflow: el `GradScaler` lo atenúa, no lo descarta). Modal queda como está.
+Es una **prueba de pipeline** con datos sintéticos: no dice nada de la calidad del modelo.
+
+**Qué hace.** `infra/kaggle_entrenamiento.py` llama a `scripts.entrenar` (el mismo `entrenar` de siempre) en
+un subproceso con `--precision fp16 --dispositivos auto` y **siempre** `--online --publicar`: en Kaggle los
+archivos de una versión cortada se pueden perder, así que cada checkpoint sube a HF (repo privado `hf_repo` de
+la configuración, `FranCalveyra/tp-admision`) y W&B registra la corrida. Con `auto` el modelo se reparte entre
+las 2 T4 en un solo proceso: Transformers lo detecta por `hf_device_map` y no usa DataParallel
+(`trainer.py:459-465,507`). El adapter LoRA queda en fp32 y la base en fp16 (PEFT castea con
+`autocast_adapter_dtype=True`). bf16 en T4 falla en Transformers (`training_args.py:1741-1746`): por eso fp16.
+Cada checkpoint de fp16 incluye `scaler.pt` y la reanudación lo exige.
+
+**Secrets de Kaggle** (Add-ons > Secrets): `GITHUB_TOKEN` (igual que arriba), `HF_WRITE_TOKEN` (escritura en el
+repo `hf_repo`; el mismo token baja el modelo base si la cuenta aceptó la licencia de Gemma) y `WANDB_API_KEY`.
+El runner también acepta esas variables de entorno. Los tokens viajan **solo por entorno** al subproceso: nunca
+por argumentos, ni en `runner.json`, ni en `runner.log` (se tapan con `***`). Falla antes de gastar GPU si falta
+`HF_WRITE_TOKEN` o `WANDB_API_KEY` (publicar exige W&B online). `--sin-publicar` existe solo para ensayos sin
+durabilidad; ahí W&B queda offline y `runner.json` lo dice.
+
+**Evidencia.** `runner.json` (al arrancar `en_curso`; al terminar `terminada`/`fallida`, `returncode`,
+`log_final`, `publicaciones` con repo y revisión inmutable de cada checkpoint), `runner.log` línea a línea,
+y `entrenamiento/` con `corrida.json` (incluye `ejecucion`: precisión, dispositivos, `guardar_cada`), `estado.json`
+y checkpoints. Registra commit, `sucio`, GPU, torch/CUDA. La salida debe ser nueva; si existe, falla.
+**No escribas salidas dentro del repo clonado:** un archivo sin trackear marca `dirty=true` y la reanudación
+exige el mismo código.
+
+**Datos de humo.** `scripts.datos_humo` genera 4 conversaciones **sintéticas** (de la forma de
+`tests/test_conversaciones.py`, sin práctica ni esperadas) y una configuración copiada de
+`configuraciones/sft-ejemplo.json` con `batch_size=1`, `gradient_accumulation_steps=1`, `epochs=2`: son 8 pasos.
+Con `--guardar-cada 2` salen checkpoints en 2, 4, 6 y 8, más `final`. Luego los CLI de siempre preparan y tokenizan.
+Son deterministas: en otra sesión, con el mismo commit, dan los mismos hashes (hace falta para reanudar).
+
+**Celdas (versión guardada, T4 x2, Internet activado).** Celda 1: la misma de clonado de arriba. Celda 2:
+
+```
+!nvidia-smi
+!pip install -q -r /kaggle/working/repo/requirements-entrenamiento.txt
+!pip uninstall -y torchvision torchaudio torchcodec torchao torchdata
+```
+
+Celda 3, entradas (el tokenizador de Gemma está gateado: el token va por entorno, y solo se descargan archivos del tokenizador):
+
+```python
+import os, subprocess
+from kaggle_secrets import UserSecretsClient
+repo, base = "/kaggle/working/repo", "/kaggle/working/corridas"
+env = {**os.environ, "HF_TOKEN": UserSecretsClient().get_secret("HF_WRITE_TOKEN")}
+pasos = [["python", "-m", "scripts.datos_humo", "--salida", f"{base}/humo-datos"],
+         ["python", "-m", "scripts.preparar_entrenamiento", "--datos", f"{base}/humo-datos/conversaciones.jsonl",
+          "--configuracion", f"{base}/humo-datos/configuracion.json", "--salida", f"{base}/humo-preparada"],
+         ["python", "-m", "scripts.tokenizar_entrenamiento", "--preparacion", f"{base}/humo-preparada",
+          "--salida", f"{base}/humo-tokens"]]
+os.makedirs(base, exist_ok=True)
+for cmd in pasos:
+    r = subprocess.run(cmd, cwd=repo, env=env)
+    print(cmd[2], "returncode", r.returncode)
+    if r.returncode: break
+```
+
+Celda 4, entrenar (una sola celda, sin tocar el notebook hasta que termine):
+
+```
+!cd /kaggle/working/repo && python infra/kaggle_entrenamiento.py --preparacion /kaggle/working/corridas/humo-preparada --tokens /kaggle/working/corridas/humo-tokens --salida /kaggle/working/corridas/humo-entrena-1 --guardar-cada 2
+```
+
+Celda 5, evidencia: `!python -c "import json;d=json.load(open('/kaggle/working/corridas/humo-entrena-1/runner.json'));print(d['estado'],d.get('returncode'));print(d.get('publicaciones'));print(d.get('log_final','')[-2000:])"`
+
+**Prueba de reanudación** (otra versión guardada, simula el corte). Celdas 1 a 3 iguales (mismo commit, árbol limpio,
+mismas carpetas de entradas). La revisión sale de `publicaciones` en el `runner.json` anterior (o del historial de commits
+del repo HF; nunca `main`). Celda 4, con la revisión real en lugar de `<revision>`:
+
+```
+!cd /kaggle/working/repo && python infra/kaggle_entrenamiento.py --preparacion /kaggle/working/corridas/humo-preparada --tokens /kaggle/working/corridas/humo-tokens --salida /kaggle/working/corridas/humo-entrena-2 --guardar-cada 2 --reanudar-checkpoint checkpoint-2 --reanudar-revision <revision>
+```
+
+El runner baja solo `checkpoint-2/*` en esa revisión (`snapshot_download` con `revision` y `allow_patterns`), copia su
+`corrida.json` a la raíz y valida hashes e identidad (`validar_reanudacion`) **antes** de cargar el modelo; después
+`entrenar` retoma desde el checkpoint (mismo run de W&B, `resume="must"`). No puede cambiar nada de modo, precisión,
+dispositivos, `--guardar-cada`, datos ni código. Éxito esperado: pasos 3 a 8 y checkpoints 4, 6, 8 nuevos en HF.
+
+**GPU estimada** (sin medir): primera corrida unos 5 a 8 min (bajar y cargar el modelo domina; 8 pasos de ~300 tokens y
+subidas de adapter chicas) y la reanudación otros 4 a 6 min: ~15 min de la cuota en total.
 
 ## Dependencias: riesgo conocido
 

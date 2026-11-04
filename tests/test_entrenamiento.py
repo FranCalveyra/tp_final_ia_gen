@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from admision_tp.entrenamiento import (cargar_entradas, entrenar, formar_lote,
+from admision_tp.entrenamiento import (EJECUCION, POLITICA, cargar_entradas, entrenar, formar_lote,
                                       publicar_checkpoint, validar_reanudacion)
 from admision_tp.preparacion import _canonical, _sha, preparar_corrida
 from admision_tp.tokenizacion import tokenizar_preparacion
@@ -132,72 +132,150 @@ class EntrenamientoTests(unittest.TestCase):
         self.assertEqual(dato["hf_revision"], "a" * 40)
         self.assertEqual(logs, [dato])
 
+    def dobles(self):
+        """Reemplaza torch/transformers/peft/wandb/HF; devuelve los módulos y lo que observan."""
+        tokenizer = TokenizadorArtificial()
+        tokenizer.pad_token_id = 0
+        tokenizer.save_pretrained = lambda ruta: (ruta / "tokenizer.json").write_text("artificial")
+        obs = SimpleNamespace(finales=[], logs=[], opciones=[], carga={})
+        run = SimpleNamespace(id="run", url="https://example.invalid/run", log=obs.logs.append,
+                              finish=lambda **kw: obs.finales.append(kw))
+        modelo = SimpleNamespace(config=SimpleNamespace(), enable_input_require_grads=lambda: None)
+        class API:
+            def repo_info(self, **kw):
+                return SimpleNamespace(private=True)
+            def upload_folder(self, **kw):
+                return SimpleNamespace(oid="b" * 40)
+        class Trainer:
+            falla = False
+            def __init__(self, **kw):
+                self.kw = kw
+                obs.opciones.append(kw)
+            def train(self, **kw):
+                if self.falla:
+                    raise RuntimeError("simulado")
+                self.kw["data_collator"](self.kw["train_dataset"])
+                cp = Path(self.kw["args"].output_dir) / "checkpoint-50"
+                cp.mkdir()
+                for nombre in ("trainer_state.json", "optimizer.pt", "scheduler.pt", "rng_state.pth",
+                               "adapter_config.json", "adapter_model.safetensors", "scaler.pt"):
+                    (cp / nombre).write_text("simulado")
+                callback = self.kw["callbacks"][0]
+                callback.on_log(None, SimpleNamespace(global_step=50), None, logs={"loss": 1.0})
+                callback.on_save(None, SimpleNamespace(global_step=50), None)
+            def save_model(self, ruta):
+                ruta = Path(ruta)
+                ruta.mkdir()
+                (ruta / "adapter_model.safetensors").write_text("simulado")
+        obs.Trainer = Trainer
+        modulos = {
+            "torch": SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True),
+                bfloat16="bf16", float16="fp16", long="long", tensor=lambda x, **kw: x),
+            "transformers": SimpleNamespace(Trainer=Trainer, TrainerCallback=object,
+                TrainingArguments=lambda **kw: SimpleNamespace(**kw), set_seed=lambda x: None,
+                AutoTokenizer=SimpleNamespace(from_pretrained=lambda *a, **kw: tokenizer),
+                AutoModelForCausalLM=SimpleNamespace(
+                    from_pretrained=lambda *a, **kw: (obs.carga.update(kw), modelo)[1])),
+            "peft": SimpleNamespace(LoraConfig=lambda **kw: kw, get_peft_model=lambda m, c: m),
+            "wandb": SimpleNamespace(init=lambda **kw: run, Settings=lambda **kw: kw),
+            "huggingface_hub": SimpleNamespace(HfApi=API),
+        }
+        return modulos, obs
+
     def test_trainer_simulado_checkpoint_publicacion_y_cierre_fallido(self):
         """Recorre el backend real, reemplazando todas las bibliotecas pesadas."""
         with tempfile.TemporaryDirectory() as temporal:
             raiz = Path(temporal)
             p, t = self.entradas(raiz)
-            tokenizer = TokenizadorArtificial()
-            tokenizer.pad_token_id = 0
-            tokenizer.save_pretrained = lambda ruta: (ruta / "tokenizer.json").write_text("artificial")
-            finales, logs, opciones = [], [], []
-            run = SimpleNamespace(id="run", url="https://example.invalid/run", log=logs.append,
-                                  finish=lambda **kw: finales.append(kw))
-            modelo = SimpleNamespace(config=SimpleNamespace(), enable_input_require_grads=lambda: None)
-            class API:
-                def repo_info(self, **kw):
-                    return SimpleNamespace(private=True)
-                def upload_folder(self, **kw):
-                    return SimpleNamespace(oid="b" * 40)
-            class Trainer:
-                falla = False
-                def __init__(self, **kw):
-                    self.kw = kw
-                    opciones.append(kw)
-                def train(self, **kw):
-                    if self.falla:
-                        raise RuntimeError("simulado")
-                    self.kw["data_collator"](self.kw["train_dataset"])
-                    cp = Path(self.kw["args"].output_dir) / "checkpoint-50"
-                    cp.mkdir()
-                    for nombre in ("trainer_state.json", "optimizer.pt", "scheduler.pt", "rng_state.pth",
-                                   "adapter_config.json", "adapter_model.safetensors"):
-                        (cp / nombre).write_text("simulado")
-                    callback = self.kw["callbacks"][0]
-                    callback.on_log(None, SimpleNamespace(global_step=50), None, logs={"loss": 1.0})
-                    callback.on_save(None, SimpleNamespace(global_step=50), None)
-                def save_model(self, ruta):
-                    ruta = Path(ruta)
-                    ruta.mkdir()
-                    (ruta / "adapter_model.safetensors").write_text("simulado")
-            carga = {}
-            modulos = {
-                "torch": SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True),
-                    bfloat16="bf16", long="long", tensor=lambda x, **kw: x),
-                "transformers": SimpleNamespace(Trainer=Trainer, TrainerCallback=object,
-                    TrainingArguments=lambda **kw: SimpleNamespace(**kw), set_seed=lambda x: None,
-                    AutoTokenizer=SimpleNamespace(from_pretrained=lambda *a, **kw: tokenizer),
-                    AutoModelForCausalLM=SimpleNamespace(from_pretrained=lambda *a, **kw: (carga.update(kw), modelo)[1])),
-                "peft": SimpleNamespace(LoraConfig=lambda **kw: kw, get_peft_model=lambda m, c: m),
-                "wandb": SimpleNamespace(init=lambda **kw: run, Settings=lambda **kw: kw),
-                "huggingface_hub": SimpleNamespace(HfApi=API),
-            }
+            modulos, obs = self.dobles()
             with patch.dict("sys.modules", modulos):
                 commits = []
                 estado = entrenar(p, t, raiz / "exito", online=True, publicar=True,
                                   persistir=lambda: commits.append("commit"))
                 self.assertEqual(len(estado["publicaciones"]), 2)
-                self.assertNotIn("attn_implementation", carga)  # Forzar SDPA rompe el audio de Gemma 4.
+                self.assertNotIn("attn_implementation", obs.carga)  # Forzar SDPA rompe el audio de Gemma 4.
                 self.assertEqual(len(commits), 6)  # Entradas, cp+recibo, final+recibo, cierre.
-                args = opciones[0]["args"]
+                args = obs.opciones[0]["args"]
                 self.assertFalse(args.save_only_model)
                 self.assertFalse(args.push_to_hub)
+                # Defaults de la entrega (A100): bf16, una GPU, sin device_map, checkpoint cada 50.
+                self.assertEqual((obs.carga["dtype"], "device_map" in obs.carga), ("bf16", False))
+                self.assertEqual((args.bf16, hasattr(args, "fp16"), args.save_steps), (True, False, 50))
                 identidad = cargar_entradas(p, t)[4]
+                self.assertEqual(identidad["politica"], POLITICA)
                 validar_reanudacion(raiz / "exito", raiz / "exito/checkpoint-50", identidad)
-                Trainer.falla = True
+                auditoria = json.loads((raiz / "exito/corrida.json").read_text())
+                self.assertEqual(auditoria["ejecucion"], EJECUCION)
+                obs.Trainer.falla = True
                 with self.assertRaises(RuntimeError):
                     entrenar(p, t, raiz / "fallo", online=True)
-            self.assertEqual(finales, [{"exit_code": 0}, {"exit_code": 1}])
+            self.assertEqual(obs.finales, [{"exit_code": 0}, {"exit_code": 1}])
+
+    def test_fp16_y_reparto_automatico_llegan_a_modelo_y_trainer(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            raiz = Path(temporal)
+            p, t = self.entradas(raiz)
+            modulos, obs = self.dobles()
+            with patch.dict("sys.modules", modulos):
+                entrenar(p, t, raiz / "t4", online=True, precision="fp16", dispositivos="auto",
+                         guardar_cada=2)
+            args = obs.opciones[0]["args"]
+            self.assertEqual((obs.carga["dtype"], obs.carga["device_map"]), ("fp16", "auto"))
+            self.assertEqual((args.fp16, args.bf16, args.save_steps), (True, False, 2))
+            self.assertTrue(args.gradient_checkpointing)
+            self.assertFalse(args.save_only_model)  # Optimizador y scaler van en cada checkpoint.
+            ejecucion = {"precision": "fp16", "dispositivos": "auto", "guardar_cada": 2}
+            auditoria = json.loads((raiz / "t4/corrida.json").read_text())
+            self.assertEqual(auditoria["ejecucion"], ejecucion)
+            self.assertEqual(auditoria["identidad"]["politica"]["fp16"], True)
+            self.assertNotEqual(auditoria["identidad"], cargar_entradas(p, t)[4])  # No es la identidad A100.
+
+    def test_reanudacion_exige_misma_precision_dispositivos_y_scaler(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            raiz = Path(temporal)
+            p, t = self.entradas(raiz)
+            modulos, obs = self.dobles()
+            with patch.dict("sys.modules", modulos):
+                entrenar(p, t, raiz / "t4", online=True, precision="fp16", dispositivos="auto")
+            salida, cp = raiz / "t4", raiz / "t4/checkpoint-50"
+            ejecucion = {"precision": "fp16", "dispositivos": "auto", "guardar_cada": 50}
+            identidad = cargar_entradas(p, t, ejecucion)[4]
+            validar_reanudacion(salida, cp, identidad)
+            for cambio in ({"precision": "bf16"}, {"dispositivos": "unico"}, {"guardar_cada": 10}):
+                with self.subTest(cambio=cambio), self.assertRaises(ValueError):
+                    entrenar(p, t, salida, checkpoint=cp, online=True, backend=lambda *a: {},
+                             **{"precision": "fp16", "dispositivos": "auto", **cambio})
+            # fp16 exige scaler.pt en el checkpoint, con hash íntegro.
+            (cp / "scaler.pt").unlink()
+            with self.assertRaises(ValueError):
+                validar_reanudacion(salida, cp, identidad)
+
+    def test_valores_de_ejecucion_invalidos_fallan_antes_de_crear_salida(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            raiz = Path(temporal)
+            p, t = self.entradas(raiz)
+            for kw in ({"precision": "fp8"}, {"dispositivos": "cuda:1"}, {"guardar_cada": 0}):
+                with self.subTest(kw=kw), self.assertRaises(ValueError):
+                    entrenar(p, t, raiz / "no", backend=lambda *a: self.fail("backend"), **kw)
+            self.assertFalse((raiz / "no").exists())
+
+    def test_auditoria_anterior_sin_ejecucion_se_lee_como_default_a100(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            raiz = Path(temporal)
+            p, t = self.entradas(raiz)
+            salida = raiz / "vieja"
+            entrenar(p, t, salida, backend=lambda *a: {})
+            auditoria = json.loads((salida / "corrida.json").read_text())
+            del auditoria["ejecucion"]
+            (salida / "corrida.json").write_bytes(_canonical(auditoria))
+            cp = salida / "checkpoint-50"
+            cp.mkdir()
+            for nombre in ("trainer_state.json", "optimizer.pt", "scheduler.pt", "rng_state.pth",
+                           "adapter_config.json", "adapter_model.safetensors"):
+                (cp / nombre).write_bytes(b"x")
+            (cp / "corrida.json").write_bytes(_canonical(auditoria))
+            (cp / "integridad.json").write_bytes(_canonical({f.name: _sha(f.read_bytes()) for f in cp.iterdir()}))
+            entrenar(p, t, salida, checkpoint=cp, backend=lambda *a: {})
 
 
 if __name__ == "__main__":
