@@ -1,6 +1,6 @@
 # Progreso y decisiones
 
-**Actualizado: 2026-11-04.** Hay generación real con Gemma completo **en Kaggle T4** (línea de base
+**Actualizado: 2026-11-05.** Hay generación real con Gemma completo **en Kaggle T4** (línea de base
 y lotes), no en A100. **Todavía no hubo entrenamiento real.** Esta bitácora centraliza el estado y
 enlaza las guías; no reemplaza el informe final.
 
@@ -13,6 +13,7 @@ enlaza las guías; no reemplaza el informe final.
 | #3 SFT | Validación de conversaciones, preparación, tokenización, Trainer LoRA y runner persistente; tokenizador real probado | Entrenar y probar corte/reanudación reales; publicación desde Modal y datos/prompt finales |
 | #4 Lotes | Coordinador del kit y adaptador admiten lotes; orden probado con dobles. Medido en T4 (2026-11-04): lote 1 y 4 válidos, **8 y 16 fallan con error CUDA** | Medir en A100-40GB; investigar el fallo de lotes grandes en T4 |
 | #5 Recursos | Infraestructura para corridas auditables | Mediciones antes/después, costos y proyección en `INFORME.md` |
+| #13 Prompt | `PromptSpec`, baseline versionado y coordinador configurable, compatibles con `AgenteJSON` mediante dobles CPU | Dataset independiente, oráculo, métrica, runner reproducible y DSPy/GEPA |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
 El formato de conversaciones es **propuesto**, pendiente de coordinación con Eze/Yas.
@@ -406,8 +407,11 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
   los textos mediante `PromptSpec`. Con el baseline, sus conversaciones, llamadas y entradas
   al modelo simulado coinciden exactamente con `AgenteJSON`; otras variantes pueden cambiar
   system, inicio, observaciones y corrección sin tocar el kit.
-- Verificación CPU: 10 tests focalizados, todos pasan. Solo se usaron modelos y entornos
-  simulados: no se cargó un modelo real, no se generaron datos y no se implementó DSPy/GEPA.
+- Verificación CPU focalizada: 10 tests, todos pasan. Suite completa: 119 ejecutados,
+  118 pasan y uno se omite porque requiere un snapshot local explícito del tokenizer real.
+  Solo se usaron modelos y entornos simulados para el código nuevo: no se cargó un modelo
+  real, no se generaron datos y no se implementó DSPy/GEPA. Diseño y comandos:
+  [optimización de prompt](optimizacion-prompt.md).
 
 ## Próximos pasos y bloqueos
 
@@ -441,6 +445,7 @@ reemplaza la ejecución final A100. El token HF actual es de lectura y no habili
 | Persistencia Modal | [entrenamiento-modal.md](entrenamiento-modal.md) |
 | Respaldo Kaggle (T4 x2), inferencia y entrenamiento humo | [kaggle.md](kaggle.md) |
 | Parte 5 del informe (recursos y producción), borrador con mediciones T4 | [informe-parte5.md](informe-parte5.md) |
+| Optimización de prompt, infraestructura inicial | [optimizacion-prompt.md](optimizacion-prompt.md) |
 
 ## Cómo mantener esta bitácora
 
