@@ -1,19 +1,19 @@
 # Entrenador SFT LoRA: implementado y validado con humo en T4
 
-**La infraestructura de #3 está implementada. No está validada en A100-40GB/Modal ni con datos reales.**
-El humo sintético en Kaggle probó backward, checkpoints HF, W&B y reanudación desde un checkpoint publicado.
-El siguiente paso propio es validar la ruta A100/Modal con autorización; datos/curación/prompt corresponden
-al equipo. No hace falta agregar otro entrenador para hacer el handoff a Martu.
+**La infraestructura genérica de #3 está implementada y tiene humo/reanudación HF reales en T4.**
+Desde la decisión del 2026-11-05, **Modal está descartado definitivamente**: no se incorporará tarjeta.
+Kaggle es la ruta operativa de desarrollo. La entrega sigue exigiendo A100-40GB, aún sin validar y por una
+vía alternativa **a determinar**. Datos/curación/prompt finales corresponden al equipo.
 
 ## Criterios de #3 y evidencia
 
 | Criterio | Implementado / CPU con dobles | Dependencia real / GPU |
 |---|---|---|
-| SFT LoRA para A100-40GB | `entrenamiento.py`, defaults bf16/una GPU, runner Modal A100-40GB | LoRA/backward en 2 T4 fp16; **A100 sin validar** |
+| SFT LoRA para A100-40GB | `entrenamiento.py`, defaults bf16/una GPU para hardware final; Modal conservado como legacy | LoRA/backward en 2 T4 fp16; **A100 sin validar** |
 | Conversaciones, configuración y semilla | snapshots/hash en preparación, tokenización y `corrida.json`; validación antes de cargar pesos | tokenizador real CPU validado; humo T4 con semilla/config fijadas |
 | Cada checkpoint HF con revisión | repo privado obligatorio, recibo `publicacion-hf.json`, índice `publicaciones.json`; fallar si upload falla | v6 publicó 2/4/6/8/final con commits inmutables |
 | W&B con linaje | `wandb.init(config=auditoria)` incluye hashes de entradas, config/semilla, LoRA/política/código; `run.log` agrega checkpoint/revisión | v6/v7 online, mismo run_id; comprobado en artefactos locales, sin consultar W&B en esta auditoría |
-| Retomar tras corte | exige optimizer/scheduler/RNG/Trainer/adapter/manifiestos; fp16 exige scaler; Modal confirma Volume por checkpoint | v7 descargó checkpoint-2 HF y continuó pasos 3–8; **no equivale a corte abrupto real en Modal** |
+| Retomar tras corte | exige optimizer/scheduler/RNG/Trainer/adapter/manifiestos; fp16 exige scaler; recuperación HF con revisión fijada en Kaggle | v7 descargó checkpoint-2 HF y continuó pasos 3–8; valida recuperar el último checkpoint completo, no pasos posteriores o escrituras parciales |
 | Martu puede operarlo | comandos y contratos debajo, validación CPU disponible | falta que lo use con datos/prompt acordados; no se ejecutó ese experimento |
 
 **Artefactos reales locales, no versionados:** `corridas/kaggle/humo-entrena-1-v6` y `humo-entrena-2-v7`:
@@ -100,23 +100,26 @@ Repetir precisión/dispositivos/cadencia originales si no fueron defaults. Conse
 `resume="must"`. Offline produce segmentos locales que hay que conciliar. No promete recuperar pasos
 posteriores al último checkpoint íntegro, ni salvar una escritura parcial. La CLI directa no descarga por sí sola
 un checkpoint HF: para recuperación desde HF usar [runner Kaggle](kaggle.md#entrenamiento-sft-humo-en-kaggle),
-que fija revisión y valida integridad, o la ruta Volume de [Modal](entrenamiento-modal.md).
+que fija revisión y valida integridad. [Modal](entrenamiento-modal.md) queda solo como referencia legacy, no usar.
 
-## Lo propio que falta validar para cierre completo
+## Estado de cierre de infraestructura y límites restantes
 
-1. Humo autorizado en **A100-40GB/Modal**: cargar/backward, confirmar checkpoint/Volume y publicación HF/W&B.
-2. Corte y recuperación reales en esa ruta: registrar último checkpoint completo, reanudar y conservar evidencia.
-3. Entregar evidencia a Martu; después el entrenamiento real depende de datos/prompt del equipo, no de otro trainer.
+Los cuatro criterios técnicos del pipeline genérico están respaldados: conversaciones/config/semilla,
+checkpoints HF versionados, linaje W&B y recuperación real desde HF tienen evidencia de humo T4.
+**#3 sigue pendiente de aceptación/accesos y uso efectivo por Martu**: confirmar `--help` sin pesos es
+preflight, no un experimento. Ver [pasos de aceptación](handoff-equipo.md#pendientes-por-persona-y-aceptación-operativa).
+No se exige una nueva prueba de corte en Modal: esa plataforma fue descartada. Esta afirmación no cierra
+el issue automáticamente ni certifica entrenamiento final, calidad o ajuste en A100-40GB.
 
-Modal sigue con bloqueo de facturación según la bitácora. `hf-write` es un Secret propuesto **solo para Modal**,
-no creado/verificado; no confundir con `HF_WRITE_TOKEN` ya usado en Kaggle. Cargar un adapter en inferencia
-**sí está implementado**, pero el adapter final/revisión aún debe fijarse cuando exista; ver `configuracion.py`.
-Accesos de cátedra pertenecen a #16, no invalidan el humo de publicación ya registrado.
+- **Fran / hardware final:** determinar una vía alternativa de A100-40GB; validar carga/backward/memoria y
+  medir recursos/lotes allí antes de afirmar compatibilidad final. No hay plataforma, tarifa ni plazo confirmados.
+- **Equipo:** acordar procedencia/curación y prompt antes del entrenamiento final; Martu puede usar el pipeline
+  en Kaggle con sus accesos y autorización de consumo, sin esperar otro entrenador.
+- **Inferencia:** la carga del adapter está implementada; fijar adapter/revisión final cuando exista.
+  Accesos de cátedra quedan en #16.
 
-**Gotcha del humo Modal:** su entrypoint usa cadencia50, no expone `--guardar-cada`. El humo habitual de 8 pasos
-no garantiza un checkpoint-50. Para el ensayo futuro se puede preparar humo de 4 conversaciones×20épocas=80 pasos
-(`scripts.datos_humo --registros 4 --epochs 20`) y elegir un checkpoint-50 confirmado; no es un dataset real ni se
-ejecutó. Antes hay que acordar recursos/timeout/costo. Alternativamente la CLI directa sí permite cadencia2.
+Los nombres de Secrets y comandos de [Modal](entrenamiento-modal.md) son históricos: no crearlos ni ejecutarlos.
+El código/dependencias legacy se conservan sin migraciones ni borrados en esta decisión.
 
 ## Verificación de esta auditoría CPU
 

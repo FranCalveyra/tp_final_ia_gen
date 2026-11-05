@@ -1,6 +1,6 @@
 # Kit del TP final: la ficha de admisión de guardia
 
-**Equipo:** para el entorno reproducible del proyecto (CPU, variables y Modal), seguir [Preparar el entorno del equipo](docs/entorno-equipo.md). El resto de este documento conserva el manual original del kit.
+**Equipo:** para el entorno reproducible del proyecto (CPU, variables y Kaggle; Modal legacy), seguir [Preparar el entorno del equipo](docs/entorno-equipo.md). El resto de este documento conserva el manual original del kit.
 
 **Seguimiento:** [progreso y decisiones](docs/progreso.md) · [estándares compartidos](AGENTS.md).
 
@@ -152,3 +152,28 @@ normas.
   respaldan.
 
 Instrumentación: [configurar W&B y probar sin conexión](docs/wandb.md).
+
+
+## Known Issues — añadido del equipo (no modifica la consigna)
+
+### KI-A100-001 — Entrenamiento, evaluación y recursos sin validar en A100-40GB
+
+**Estado: deuda abierta. Responsable: Fran, en coordinación con el equipo y la cátedra.**
+Seguimos probando en **Kaggle T4 x2 para desarrollo**; esto no acredita cumplimiento en A100.
+La consigna exige **A100 de 40 GB también para entrenar**, no solo para la evaluación final
+([mission.md, línea 98](mission.md#modelo-y-cómputo)); además exige recursos/costos/tiempos en ese hardware
+([línea 220, Parte 5](mission.md#el-informe)). **No hay una excepción acordada con la cátedra.**
+Modal fue descartado por el equipo; la vía A100 sigue por determinar. El menú del notebook baseline de Fran
+no ofrece A100 ([evidencia y alcance](docs/kaggle.md)); no se generaliza a todas las cuentas/contextos.
+
+- **Impacto:** faltan pruebas A100 de entrenamiento, inferencia/evaluación y mediciones de VRAM, tiempos,
+  lotes y costos. Humo y resultados T4 se conservan como desarrollo, separados de esa validación.
+- **Seguimiento:** [#3 SFT](https://github.com/FranCalveyra/tp_final_ia_gen/issues/3),
+  [#4 lotes](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4),
+  [#5 recursos](https://github.com/FranCalveyra/tp_final_ia_gen/issues/5).
+- **Resolver:** obtener acceso A100-40GB y registrar entrenamiento, inferencia/evaluación y recursos con
+  comandos/config/checkpoint/prompt y artefactos; **o** documentar aceptación explícita de una alternativa por
+  la cátedra y ejecutar/documentar la validación que acuerden. No cerrar la deuda solo por pasar tests CPU/T4.
+- **Próximo alcance GPU:** T4 autorizado en principio para continuar desarrollo; la corrida concreta,
+  datos/configuración, timeout y consumo todavía deben confirmarse antes de ejecutarla. Este aviso no inicia
+  ni autoriza automáticamente un entrenamiento adicional.

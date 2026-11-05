@@ -1,11 +1,15 @@
-# Entrenamiento durable en Modal — todavía sin ejecución GPU
+# LEGACY: entrenamiento en Modal — NO USAR
+
+> **Decisión 2026-11-05:** Modal descartado definitivamente, sin tarjeta. Este documento conserva el diseño
+> histórico, no una ruta activa ni tareas de setup/validación pendientes. No ejecutar sus comandos ni crear Secrets.
+> Ruta operativa: [Kaggle](kaggle.md); A100-40GB final por vía alternativa a determinar. Código/dependencias conservados.
 
 El runner conserva entradas, manifiestos, checkpoints y salida final en el Volume v2
 `tp-admision-entrenamiento`. Por defecto no publica en HF: usa solamente los secretos
 existentes `huggingface` (lectura del modelo base) y `wandb-secret` (W&B, únicamente si `--online`).
 La publicación es opt-in (ver [Publicación HF](#publicación-hf-opt-in-probada-con-dobles)).
 
-## Comando futuro (NO ejecutado)
+## Comando histórico (NO ejecutar)
 
 ```bash
 uv run --locked --no-build --group modal modal run infra/entrenamiento_app.py \
