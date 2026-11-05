@@ -188,6 +188,15 @@ def entrenar(preparacion, tokenizacion, salida, *, checkpoint=None, online=False
     return estado
 
 
+def _vram(torch) -> dict:
+    """VRAM pico desde el arranque del proceso, sumada sobre las GPU visibles (#5 la pide)."""
+    gpus = range(torch.cuda.device_count())
+    pico = [round(torch.cuda.max_memory_allocated(i) / 1e9, 3) for i in gpus]
+    reservada = [round(torch.cuda.max_memory_reserved(i) / 1e9, 3) for i in gpus]
+    return {"vram_pico_gb": round(sum(pico), 3), "vram_reservada_gb": round(sum(reservada), 3),
+            "vram_pico_por_gpu_gb": pico}
+
+
 def _ejecutar_cuda(config, registros, ejemplos, tokens, destino, auditoria, checkpoint, persistir=None):
     import torch
     if not torch.cuda.is_available():
@@ -233,7 +242,7 @@ def _ejecutar_cuda(config, registros, ejemplos, tokens, destino, auditoria, chec
 
         class Auditor(TrainerCallback):
             def on_log(self, args, state, control, logs=None, **kwargs):
-                run.log({**(logs or {}), "trainer_step": state.global_step})
+                run.log({**(logs or {}), **_vram(torch), "trainer_step": state.global_step})
 
             def guardar(self, carpeta, nombre):
                 (carpeta / "corrida.json").write_bytes(_canonical(auditoria))
@@ -267,6 +276,7 @@ def _ejecutar_cuda(config, registros, ejemplos, tokens, destino, auditoria, chec
         tokenizer.save_pretrained(destino / "final")
         callback.guardar(destino / "final", "final")
         exitoso = True
-        return {"run_id": run.id, "wandb_url": run.url, "publicaciones": publicaciones}
+        # Pico de toda la corrida (carga + entrenamiento); va a estado.json para el informe de recursos.
+        return {"run_id": run.id, "wandb_url": run.url, "publicaciones": publicaciones, **_vram(torch)}
     finally:
         run.finish(exit_code=0 if exitoso else 1)

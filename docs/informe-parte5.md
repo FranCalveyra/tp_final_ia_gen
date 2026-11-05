@@ -14,7 +14,7 @@
 | VRAM de inferencia | 16,7 GB (lote 1) a 19,1 GB (lote 4), suma de 2 T4 | validado en GPU (T4) |
 | Casos a la vez al evaluar | 1 y 4 válidos; **8 y 16 se caen** (CUDA, sin diagnosticar) | validado en GPU (T4) |
 | Casos a la vez al entrenar | 1 conversación por paso (`batch_size=1`, acumulación 1) en el humo | validado en GPU (T4), solo humo |
-| Tiempo y VRAM de entrenamiento | humo de 8 pasos: 17,4 s; **VRAM de entrenamiento no registrada** | humo en T4; real: PENDIENTE |
+| Tiempo y VRAM de entrenamiento | humo de 8 pasos: 17,4 s; VRAM de entrenamiento no registrada en el humo (ya se registra) | humo en T4; real: PENDIENTE |
 | Costo | Kaggle: 0 USD. A100: fórmula, sin medición | PENDIENTE (A100) |
 | Simultáneos en producción | proyección cualitativa, ver sección 5 | hipótesis, A100: PENDIENTE |
 | Antes/después con el modelo final | no existe aún | PENDIENTE |
@@ -135,10 +135,10 @@ El tiempo del runner excluye la instalación de dependencias; la carga de pesos 
 - **Casos a la vez al entrenar:** `batch_size=1`, `gradient_accumulation_steps=1`, 2 épocas,
   `max_seq_length=8192` (`entrenamiento/corrida.json`). O sea, **1 conversación por paso**. Es la
   configuración del humo, no una decisión de la corrida final.
-- **VRAM de entrenamiento: no se registró.** `corrida.json` y `runner.log` no traen ningún pico de
-  memoria, y `metricas.jsonl` solo existe en inferencia. Lo único cercano es el pico de inferencia
-  (19,1 GB en 2 T4). **PENDIENTE:** registrar el pico (`torch.cuda.max_memory_allocated` por GPU)
-  en la corrida real con secuencias reales.
+- **VRAM de entrenamiento: no se registró en el humo.** Desde 2026-11-05 el entrenador la registra
+  (pico y reservada, sumadas y por GPU) en cada log de W&B, en `estado.json` y en `runner.json` (`vram`).
+  Lo único medido hasta ahora es el pico de inferencia (19,1 GB en 2 T4). **PENDIENTE:** el valor real
+  sale de la primera corrida con secuencias reales.
 - **Checkpoints y publicación:** cada checkpoint se sube a HF con revisión, y la reanudación
   reprodujo la curva (2,5196/2,4173/2,3468 contra 2,5196/2,4179/2,3464). Pasa en T4, no en A100.
 - **Tiempo total del entrenamiento real: PENDIENTE.** Depende de cuántas conversaciones tenga el
@@ -249,7 +249,7 @@ Sin s/caso en A100 no se publica un número. **PENDIENTE.**
 | Pendiente | Depende de | Issue |
 |---|---|---|
 | Tiempo de entrenamiento real y su costo | dataset final, prompt final, A100/Modal | #3, #5 |
-| VRAM de entrenamiento con secuencias reales | corrida real; hoy no se registra | #3, #5 |
+| VRAM de entrenamiento con secuencias reales | corrida real (ya se registra en `estado.json` y `runner.json`) | #3, #5 |
 | s/caso, carga y VRAM de inferencia en A100-40GB | Modal habilitado | #4, #5 |
 | Lote máximo estable en A100-40GB | idem | #4 |
 | Antes/después con el modelo final (resueltos, s/caso, VRAM, costo) | modelo entrenado y comparación con los mismos 50 casos | #5 |
@@ -270,7 +270,6 @@ tablas con el adapter entrenado, mismo comando, mismos 50 casos y normas origina
 | vLLM u otro servidor con batching continuo | más rendimiento y mejor latencia | no probado; chequear Gemma 4 y LoRA |
 | Medir en A100-40GB | todos los números finales | bloqueado por facturación de Modal |
 | Reducir el mensaje de sistema y el contexto de búsquedas | menos cómputo y VRAM por llamada y por entrenamiento | sistema = 2.232 caracteres (~35 % de la conversación mediana); búsqueda: la consigna dice que es más de la mitad en la referencia |
-| Registrar VRAM de entrenamiento | cerrar el dato faltante de la sección 3 | no registrado hoy |
 | Repetir cada medición varias veces | intervalos en vez de una sola corrida | hoy una sola por configuración |
 
 ---

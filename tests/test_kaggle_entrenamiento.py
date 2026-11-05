@@ -86,6 +86,24 @@ class KaggleEntrenamientoTest(unittest.TestCase):
         self.assertEqual((runner["hf_repo"], runner["ejecucion"], runner["commit"]),
                          ("FranCalveyra/tp-admision", T4, "a" * 40))
 
+    def test_runner_copia_la_vram_del_estado_del_entrenamiento(self):
+        def entrenar_con_estado(comando, env, log, secretos):
+            salida = Path(comando[comando.index("--salida") + 1])
+            salida.mkdir(parents=True, exist_ok=True)
+            (salida / "estado.json").write_text(json.dumps(
+                {"estado": "finalizada", "vram_pico_gb": 18.2, "vram_reservada_gb": 22.0,
+                 "vram_pico_por_gpu_gb": [10.1, 8.1], "run_id": "r"}))
+            return 0, ""
+        with tempfile.TemporaryDirectory() as temporal:
+            raiz = Path(temporal)
+            p, t = self.entradas(raiz)
+            with patch.object(ke.kb, "describir_maquina", return_value={"commit": "a" * 40, "sucio": False}), \
+                    patch.object(ke.kb, "ejecutar_con_log", side_effect=entrenar_con_estado):
+                self.assertEqual(ke.correr(p, t, raiz / "corrida", T4, HF, WANDB), 0)
+            runner = json.loads((raiz / "corrida/runner.json").read_text())
+        self.assertEqual(runner["vram"], {"vram_pico_gb": 18.2, "vram_reservada_gb": 22.0,
+                                          "vram_pico_por_gpu_gb": [10.1, 8.1]})
+
     def test_main_publica_salvo_pedido_explicito(self):
         with patch.object(ke, "secreto", side_effect=lambda n: {"HF_WRITE_TOKEN": HF, "WANDB_API_KEY": WANDB}[n]), \
                 patch.object(ke, "correr", return_value=0) as correr:

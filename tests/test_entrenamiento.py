@@ -169,7 +169,8 @@ class EntrenamientoTests(unittest.TestCase):
                 (ruta / "adapter_model.safetensors").write_text("simulado")
         obs.Trainer = Trainer
         modulos = {
-            "torch": SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True),
+            "torch": SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True, device_count=lambda: 2,
+                    max_memory_allocated=lambda i: (9.5e9, 7.25e9)[i], max_memory_reserved=lambda i: 1.2e10),
                 bfloat16="bf16", float16="fp16", long="long", tensor=lambda x, **kw: x),
             "transformers": SimpleNamespace(Trainer=Trainer, TrainerCallback=object,
                 TrainingArguments=lambda **kw: SimpleNamespace(**kw), set_seed=lambda x: None,
@@ -193,6 +194,12 @@ class EntrenamientoTests(unittest.TestCase):
                 estado = entrenar(p, t, raiz / "exito", online=True, publicar=True,
                                   persistir=lambda: commits.append("commit"))
                 self.assertEqual(len(estado["publicaciones"]), 2)
+                # VRAM para el #5: sumada sobre GPU, en estado.json y en cada log de W&B.
+                vram = {"vram_pico_gb": 16.75, "vram_reservada_gb": 24.0, "vram_pico_por_gpu_gb": [9.5, 7.25]}
+                self.assertEqual({k: estado[k] for k in vram}, vram)
+                guardado = json.loads((raiz / "exito/estado.json").read_text())
+                self.assertEqual(guardado["vram_pico_gb"], 16.75)
+                self.assertEqual(obs.logs[0]["vram_pico_gb"], 16.75)
                 self.assertNotIn("attn_implementation", obs.carga)  # Forzar SDPA rompe el audio de Gemma 4.
                 self.assertEqual(len(commits), 6)  # Entradas, cp+recibo, final+recibo, cierre.
                 args = obs.opciones[0]["args"]

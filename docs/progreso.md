@@ -365,6 +365,14 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
   cuota sin garantía).
 - Cuota de esta corrida: ~40 min, más lenta por el bloqueo.
 
+### 2026-11-05: VRAM de entrenamiento registrada (issue #5)
+
+- El entrenador agrega la VRAM pico y la reservada (sumadas sobre las GPU visibles y por GPU, desde el arranque
+  del proceso) a cada log de W&B y al resultado final en `estado.json`. El runner de Kaggle la copia a
+  `runner.json` (`vram`). La ruta A100/Modal la recibe igual.
+- Probado con dobles: 107 corridos, 106 pasan y 1 opcional se saltea. Todavía no hay medición real; sale
+  de la primera corrida con datos reales.
+
 ## Próximos pasos y bloqueos
 
 1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.

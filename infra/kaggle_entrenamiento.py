@@ -126,9 +126,12 @@ def correr(preparacion, tokens, destino: Path, ejecucion: dict, token_hf, wandb_
         escribir()
         raise
     publicaciones = salida / "publicaciones.json"
+    estado = json.loads((salida / "estado.json").read_text()) if (salida / "estado.json").exists() else {}
     runner.update(estado="fallida" if codigo else "terminada", fin=time.strftime("%Y-%m-%dT%H:%M:%S%z"),
                   returncode=codigo, log_final=cola,
-                  publicaciones=(json.loads(publicaciones.read_text()) if publicaciones.exists() else []))
+                  publicaciones=(json.loads(publicaciones.read_text()) if publicaciones.exists() else []),
+                  vram={k: estado[k] for k in ("vram_pico_gb", "vram_reservada_gb", "vram_pico_por_gpu_gb")
+                        if k in estado})
     escribir()
     return codigo
 
