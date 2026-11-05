@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.clasificar_historial import ejecutar
+from scripts.clasificar_historial import ejecutar, registro_esperado
 
 
 RAIZ = Path(__file__).resolve().parents[1]
@@ -28,19 +28,33 @@ class ClasificacionHistorialTest(unittest.TestCase):
         self.assertEqual(list(filas[0]), ["id", "tipo"])
         self.assertEqual({fila["id"] for fila in filas}, {f"H-{i:04d}" for i in range(1, 2001)})
         self.assertTrue({fila["tipo"] for fila in filas} <= {"correcta", "error", "ruido"})
-        self.assertEqual(sum(resultado["conteo"].values()), 2000)
+        self.assertEqual(resultado["conteo"], {"correcta": 1631, "error": 279, "ruido": 90})
 
-    def test_reglas_normativas_y_costumbre_tienen_casos_observables(self):
+    def test_reglas_costumbres_y_preferencia_credenciales(self):
         carpeta, resultado = self.ejecutar_en_temporal()
         with (carpeta / "historial_clasificado.csv").open(encoding="utf-8", newline="") as archivo:
             tipos = {fila["id"]: fila["tipo"] for fila in csv.DictReader(archivo)}
-        self.assertEqual(tipos["H-0014"], "error")  # registro incompatible con pasaporte y nivel urgente
-        self.assertEqual(tipos["H-0040"], "error")  # box de paciente mayor antes del registro
-        self.assertEqual(tipos["H-0010"], "error")  # verificación de la credencial equivocada
-        self.assertEqual(tipos["H-0005"], "ruido")  # apartamiento etario de la costumbre observada
-        self.assertEqual(resultado["costumbre"]["umbral_edad"], 75)
-        self.assertEqual(resultado["costumbre"]["muestra_menores"], 1614)
-        self.assertEqual(resultado["costumbre"]["no_menores"], 1494)
+        self.assertEqual(tipos["H-0014"], "error")
+        self.assertEqual(tipos["H-0040"], "error")
+        self.assertEqual(tipos["H-0010"], "error")
+        self.assertEqual(tipos["H-0011"], "correcta")
+        self.assertEqual(tipos["H-0005"], "ruido")
+
+        costumbres = resultado["costumbres"]
+        edad = next(c for c in costumbres if c["tipo"] == "aviso_al_voluntariado")
+        credenciales = next(c for c in costumbres if c["tipo"] == "seleccion_credencial")
+        self.assertEqual(edad["umbral_edad"], 75)
+        self.assertEqual(edad["situacion_fields"], ["motivo", "cobertura"])
+        self.assertEqual(len(edad["estratos_comparables"]), 8)
+        self.assertNotIn("H-0140", edad["ids_ruido"])
+        self.assertEqual(credenciales["preferido"], "prepaga")
+        self.assertEqual(credenciales["muestra"], 171)
+        self.assertEqual(credenciales["frecuencias"], {"obra_social": 9, "prepaga": 162})
+
+    def test_parametro_adm3_y_documento_se_aplican(self):
+        row = {"documento_tipo": "pasaporte", "nivel": "3"}
+        self.assertEqual(registro_esperado(row, {"P-ADM-3": 3}), "provisorio")
+        self.assertEqual(registro_esperado(row, {"P-ADM-3": 2}), "definitivo")
 
     def test_segunda_ejecucion_es_identica(self):
         carpeta_a, resultado_a = self.ejecutar_en_temporal()
