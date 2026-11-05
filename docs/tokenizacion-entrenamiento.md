@@ -4,7 +4,7 @@ Convierte una preparación validada a `input_ids`, `attention_mask` y `labels`.
 Las etiquetas de contexto (system, user, resultados de herramientas y encabezados)
 son `-100`: no contribuyen a la pérdida. Se supervisan todas las respuestas
 assistant, incluido el cierre del turno. No hay padding ni empaquetado todavía;
-un futuro collator deberá poner `-100` en las etiquetas del padding.
+el collator de entrenamiento implementado pone `-100` en las etiquetas del padding.
 
 ## Uso futuro con el tokenizador real
 

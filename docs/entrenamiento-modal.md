@@ -71,11 +71,17 @@ no lo limpia. Los Dict de Modal tienen expiración propia de 7 días sin activid
 
 ## Qué está probado y qué falta
 
+El trainer compartido sí tiene humo y reanudación HF reales en Kaggle T4; ver la
+[matriz de evidencia y handoff](entrenamiento-sft.md). Esa prueba no valida el Volume, locks ni GPU A100 de Modal.
+
+El entrypoint usa checkpoints cada 50 pasos: el humo habitual de 8 pasos no garantiza
+un checkpoint reanudable. Planificar suficientes pasos y verificar un checkpoint completo; `final/` no basta.
+
 Los tests CPU con dobles verifican copia exacta, hashes, exclusión, recarga, commits,
 diagnóstico y reanudación. **No demuestran persistencia real de Modal ni entrenamiento.**
 La publicación quedó **probada con dobles** (el modo llega al entrenador y los recibos se
 conservan al reanudar); la definición Modal de `ejecutar_publicando` no se importa en tests.
-Faltan prueba GPU y corte/reanudación reales, el secreto `hf-write` y una subida real,
+Faltan prueba GPU y corte/reanudación reales **en Modal/A100**, el secreto `hf-write` de Modal y una subida desde esa ruta,
 y acceso de la cátedra. No agregar el token de escritura al agente.
 
 Regenerar dependencias sin construir:

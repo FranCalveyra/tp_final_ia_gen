@@ -1,8 +1,8 @@
 # Progreso y decisiones
 
-**Actualizado: 2026-11-04.** Hay generación real con Gemma completo **en Kaggle T4** (línea de base
-y lotes), no en A100. **Todavía no hubo entrenamiento real.** Esta bitácora centraliza el estado y
-enlaza las guías; no reemplaza el informe final.
+**Actualizado: 2026-11-05.** Hay generación y humo de entrenamiento LoRA con publicación/reanudación HF
+**en Kaggle T4**, no en A100. **Todavía no hubo entrenamiento con datos reales curados.** La carga solo texto
+está validada en T4. Esta bitácora centraliza evidencia y enlaza guías; no reemplaza el informe final.
 
 ## Estado de nuestra parte
 
@@ -10,7 +10,7 @@ enlaza las guías; no reemplaza el informe final.
 |---|---|---|
 | #1 Baseline | **Cerrado (2026-11-04).** 50 casos × original/b/c en Kaggle T4: 10, 10 y 7 contra la referencia 12, 15 y 12 | Repetir en A100 si Modal se destraba |
 | #2 Infraestructura | **Cerrado (2026-11-04).** Lock, `uv sync` con inferencia, plantilla de variables, app A100-40GB, W&B, repo HF privado | Invitar a la cátedra a HF y W&B pasó al #16 |
-| #3 SFT | Validación de conversaciones, preparación, tokenización, Trainer LoRA y runner persistente; tokenizador real probado | Entrenar y probar corte/reanudación reales; publicación desde Modal y datos/prompt finales |
+| #3 SFT | Conversor, validación, snapshots/tokenización, Trainer LoRA y runner persistente; humo GPU T4 con HF/W&B y reanudación desde checkpoint HF | A100-40GB/Modal y corte/recuperación reales; datos curados/prompt del equipo y entrenamiento final |
 | #4 Lotes | Coordinador del kit y adaptador admiten lotes; orden probado con dobles. Medido en T4 (2026-11-04): lote 1 y 4 válidos, **8 y 16 fallan con error CUDA** | Medir en A100-40GB; investigar el fallo de lotes grandes en T4 |
 | #5 Recursos | Infraestructura para corridas auditables | Mediciones antes/después, costos y proyección en `INFORME.md` |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
@@ -400,8 +400,8 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
 ## Próximos pasos y bloqueos
 
 1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
-2. Crear y verificar el secreto HF de escritura (`hf-write`, nombre propuesto) y probar una
-   subida real a un repo privado; el runner opt-in ya existe (probado con dobles).
+2. Crear y verificar el secreto HF de escritura **de Modal** (`hf-write`, nombre propuesto) y probar
+   publicación desde esa ruta; Kaggle ya publicó checkpoints reales con `HF_WRITE_TOKEN`.
 3. Coordinar conversaciones curadas y prompt final; no entrenar sobre práctica.
 4. Facturación de Modal bloqueada: pide tarjeta. Mientras tanto, probar el baseline en Kaggle T4 x2 ([kaggle.md](kaggle.md)),
    con autorización explícita y resultados aparte. Con Modal resuelto y autorización de GPU: probar carga, entrenamiento mínimo,
@@ -411,7 +411,8 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
    2026-11-03). La consigna no dice qué usuarios invitar: hay que preguntarle a la cátedra.
 
 Gemma comprimido en Mac es una posibilidad de desarrollo, no instalada ni medida; no
-reemplaza la ejecución final A100. El token HF actual es de lectura y no habilita publicación.
+reemplaza la ejecución final A100. El token HF de inferencia es de lectura y no habilita publicación; no confundirlo con el token de escritura
+usado en Kaggle ni asumir que el Secret de escritura de Modal ya existe.
 
 ## Guías específicas
 
@@ -436,3 +437,62 @@ Después de cada unidad: actualizar fecha y estado; agregar decisión/motivo o e
 (también fallido); citar comando, artefacto y limitación; renovar bloqueos y próximo paso.
 No convertir métricas de desarrollo en resultados finales ni marcar validado lo que solo
 está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
+
+
+## 2026-11-05 — Importación de trazas nuevas de la cátedra
+
+- Importados por API desde `austral-ing-ai/talksmith-ing`, carpeta `missions/TPFinal`, commit inmutable `876d8894c1cd339ffb968f12754a21f460ffb393`. El fetch no respondió y se canceló; no se mezclaron historiales Git ni se modificó `admision/`.
+- `entrenamiento/trazas.jsonl`: 800 registros, SHA-256 `adc42d2769cdb90e8509ab4fc71daf02f8c8934137315d06e9f87bd402ff7290`.
+- `historial/trazas.jsonl`: 2.000 registros, SHA-256 `02a7a25bb73bfa199fe0a8a74d5a8332815b786e37056692a58167c9ec69cda8`.
+- Verificación CPU: cada línea parsea como JSON y los cuatro archivos importados coinciden con el hash Git blob publicado por GitHub. Esto NO valida corrección de decisiones, compatibilidad con el conversor ni ausencia de contaminación. Sin GPU, pesos, builds, commits ni push.
+- README y consigna originales actualizados conservados en `docs/referencias/kit-876d889/`; no reemplazan nuestros documentos. Sus enlaces relativos remiten a la estructura del kit original. La cátedra especifica conversión de pasos a mensajes y confirma que su referencia entrenó con las 800 trazas.
+- Triage del subagente: asignados a Fran siguen abiertos #3 (SFT real), #4 (lotes A100/adapter final), #5 (recursos finales); #16 entrega es compartido. El humo sintético T4 no cierra SFT real ni demuestra funcionamiento A100-40GB.
+- Próximo paso recomendado: #3, auditar procedencia, separación de datos y compatibilidad de las trazas con el pipeline, coordinando conversaciones curadas con Eze/Yas y prompt con Martu antes de entrenar. No se ejecutó entrenamiento.
+
+### 2026-11-05: auditoría CPU de trazas nuevas (issue #3)
+
+- Auditadas las 800 trazas de referencia y las 2.000 del historial importadas de upstream `876d889`:
+  [informe y límites](auditoria-trazas.md). **No entrenan directamente:** el esquema crudo no satisface
+  conversaciones v1; una transformación exploratoria en memoria sí pasa su estructura en 2.800/2.800.
+- Las 2.000 trazas alinean con el CSV en ids, fecha, operador y los ocho campos de ficha. No se evaluó
+  corrección normativa: el historial sigue requiriendo clasificación/curación. Las 800 varían parámetros
+  entre casos; no deben reemplazarse sus búsquedas por las normas originales fijas.
+- Validación CPU: `rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest test_conversaciones test_preparacion test_tokenizacion -q`:
+  18 ejecutados, 17 pasan y 1 opcional omitido. Sin GPU, tokenizador, pesos, entrenamiento ni publicaciones.
+- Próximo mínimo: acordar procedencia y prompt; conversor determinista de trazas a v1 que conserve acciones/
+  observaciones y excluya la observación terminal. No implementado en esta auditoría.
+
+### 2026-11-05: conversor determinista de trazas a conversaciones v1 (issue #3)
+
+- Implementadas las interfaces públicas acordadas `convertir_traza` y `convertir_archivo`, con CLI CPU,
+  origen/prompt obligatorios y referencias a fuente/id. Conserva acciones y observaciones; solo omite el
+  resultado terminal. Valida secuencia, ficha y contrato v1 antes de publicar; rechaza ids duplicados y no
+  sobrescribe salidas (tampoco symlinks). [Guía y comandos](conversaciones-entrenamiento.md#conversor-cpu-de-trazas-implementado).
+- TDD red→green por unidad, sin mocks internos. Comando CPU completo:
+  `rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest discover -s tests -q`:
+  **116 ejecutados, 115 pasan y 1 opcional omitido**. Suite pertinente: 25/24/1.
+  Los rojos esperados y un fallo inicial del propio test de rechazo (contexto `assertRaises` fuera del subtest)
+  se corrigieron antes del verde; no hubo builds, instalaciones ni GPU.
+- Exploración de fuentes: 800 + 2.000 conversiones válidas en memoria usando el prompt actual, sin escribir
+  conversaciones finales. Sigue pendiente acordar procedencia de referencia, curar historial y recibir el
+  prompt final; convertir estructura no valida decisiones ni contaminación. No se cerró #3 ni se entrenó.
+
+
+### 2026-11-05: auditoría final de infraestructura #3 y handoff del equipo
+
+- Criterios revisados contra trainer, persistencia, tests y artefactos locales reales: mecanismos implementados;
+  humo T4 v6/v7 terminado, HF con revisiones y mismo run_id W&B al reanudar. **No cierra #3 completamente:**
+  A100-40GB/Modal y corte/recuperación reales siguen sin validar; datos/prompt finales son dependencias externas.
+  [Matriz y comandos para Martu](entrenamiento-sft.md), sin agregar otro trainer ni nuevas seams de tests.
+- Corregidas afirmaciones obsoletas en la guía: sí hubo humo GPU y publicación HF en Kaggle, sí se carga adapter
+  en inferencia y el collator ya preserva padding `-100`. El Secret `hf-write` pendiente es específico de Modal.
+- Ergonomía pendiente, no bloqueo del trainer: Modal no expone cadencia de checkpoints; usa50. Para humo con
+  checkpoint temprano existe CLI directa `--guardar-cada 2`; en Modal hay que planificar suficientes pasos
+  y comprobar un checkpoint confirmado. No se autorizó ni ejecutó ese ensayo.
+- Verificación: `rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest test_entrenamiento test_persistencia test_kaggle_entrenamiento test_cli_entrenar test_preparacion test_tokenizacion test_conversion_trazas -q`:
+  **52 ejecutados, 51 pasan y 1 opcional omitido**. `--help` de entrenar/preparar/tokenizar correcto sin GPU.
+- Asignaciones GitHub realizadas y verificadas por la sesión principal: Eze `ezequielrickert` #6–9,
+  Yas `Yasmindesivo` #10–12, Martu `MartuGiordanelli` #13–15 y los cuatro #16.
+  [Handoff por persona](handoff-equipo.md): contratos, outputs, accesos propios y dependencias inevitables.
+  Paquete preparado para `feat/training-handoff`; commit/push autorizados posteriormente por el usuario.
+  Verificar publicación y hash comunicado por chat; no está integrado en `main` ni basta actualizar esa rama.
