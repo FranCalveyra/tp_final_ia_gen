@@ -627,3 +627,13 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - Verificación final de esta unidad: `rtk git diff --check` limpio y enlaces a archivos locales existentes
   en Parte 4 infra/Parte 5/bitácora. Sin pruebas GPU ni tests nuevos; criterio trabajos futuros listo para integrar,
   no cumplimiento total #5 ni entrega #16 terminada.
+
+
+### 2026-11-05: integración autorizada en main
+
+- Usuario autorizó integrar y publicar todo en `main`. Sesión principal verificó `origin/main=fb74ce9`
+  como ancestro (0/5 de divergencia), cambió a `main` y realizó fast-forward local hasta `1353cce`.
+- [Handoff](handoff-equipo.md) actualizado para `main`, árbol limpio y `pull --ff-only`; rama feature/hash
+  inicial conservados como historia. El commit de esta actualización y el push deben verificarse por la
+  sesión principal antes de informar éxito remoto; usar el hash comunicado por chat, no uno autorreferente.
+- Esta unidad solo cambió los dos documentos; diffcheck limpio. Sin tests, GPU, builds ni operaciones Git/cloud propias.

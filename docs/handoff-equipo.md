@@ -5,23 +5,25 @@
 Asignaciones realizadas y verificadas por la sesión principal el 2026-11-05:
 Eze `ezequielrickert` #6–9; Yas `Yasmindesivo` #10–12; Martu `MartuGiordanelli` #13–15; los cuatro #16.
 
-> **Rama de entrega:** `feat/training-handoff`, paquete inicial publicado en `3d7da60`, no integrado en `main`.
-> Verificar el hash indicado por chat para actualizaciones posteriores; la publicación de código no confirma accesos externos.
-> No alcanza con actualizar `main`. Nunca compartir `.env`, tokens, cachés, pesos ni `corridas/`.
+> **Rama vigente: `main`.** El paquete se integró localmente por fast-forward desde `feat/training-handoff`;
+> la publicación de esta integración debe confirmarse con el hash comunicado por chat.
+> El commit inicial `3d7da60` y la rama feature quedan como historia, no como ruta operativa actual.
+> Publicar código no confirma accesos externos. Nunca compartir `.env`, tokens, cachés, pesos ni `corridas/`.
 
-### Obtener el paquete publicado
+### Obtener el paquete en main tras confirmarse la publicación
 
 Primero `rtk git status --short`: si muestra cambios, **detenete** y preservalos antes de cambiar de rama;
-no hagas reset, limpieza ni stash automático. Con árbol limpio, para crear la rama local por primera vez:
+no hagas reset, limpieza ni stash automático. Con árbol limpio:
 
 ```bash
-rtk git fetch origin
-rtk git switch --track origin/feat/training-handoff
+rtk git switch main
+rtk git pull --ff-only origin main
 rtk git rev-parse HEAD
 ```
 
-Compará el hash con el commit comunicado por chat. Si la rama local ya existe, el comando `--track` falla sin
-reemplazarla: revisar su estado antes de actualizarla. Estos pasos no integran el paquete en `main`.
+Compará el hash con el commit comunicado por chat. Si no existe `main` local, primero hacé `rtk git fetch origin`
+y `rtk git switch --track origin/main`; luego actualizá con `pull --ff-only`. Si falla por divergencia, detenete:
+no forzar ni reescribir trabajo local.
 
 **Ruta actual (decisión 2026-11-05): Kaggle para desarrollo. Modal descartado definitivamente.**
 A100-40GB se exige **para entrenamiento y evaluación**, no solo para la entrega final; T4 no lo reemplaza.
@@ -71,7 +73,8 @@ No describe los permisos de otras cuentas/notebooks: ver [evidencia y alcance](k
 
 **Hecho en GitHub** (no implica acceso a otros servicios):
 
-- [x] Código publicado en `feat/training-handoff`, commit inicial `3d7da60` (no `main`).
+- [x] Paquete inicial publicado en `feat/training-handoff`, commit `3d7da60` (histórico).
+- [x] Integración local fast-forward en `main`; verificar publicación del commit indicado por chat antes de obtenerlo.
 - [x] Issues asignados a los usuarios de la tabla inicial.
 - [ ] Cada integrante confirma que puede obtener esa rama con su propia cuenta/permisos de lectura del repo.
 
@@ -95,7 +98,7 @@ persona; no marcar estos ítems por tener acceso desde la cuenta de Fran.
 **No compartir tokens ni exportar Secrets del notebook de Fran.** Registrar solo persona/recurso/permiso y
 confirmación de acceso, nunca valores. Obtener/validar credenciales y ejecutar GPU son alcances separados:
 una invitación o copia de notebook no autoriza consumir cuota. Las celdas de clonado deben seleccionar la rama
-indicada arriba y verificar el commit; clonar o actualizar `main` no incorpora este paquete.
+vigente `main` y verificar el commit publicado indicado por chat; no usar una copia antigua del notebook/repo.
 
 ## Pendientes por persona y aceptación operativa
 
