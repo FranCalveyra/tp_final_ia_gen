@@ -29,6 +29,13 @@ reemplaza esos entregables. `INFORME.md` todavía no existe.
 
 ## Evidencia disponible
 
+### 2026-11-05: auditoria y correccion de issue #10
+
+- Se corrigio la seleccion de cobertura con dos credenciales: ya no se asume la primera; se usa la credencial efectivamente verificada y se conserva la preferencia observada por prepaga como costumbre separada.
+- La deteccion de costumbres excluye errores normativos y compara estratos `motivo x cobertura`. Se conservaron 8 estratos comparables para la costumbre etaria y se documento la preferencia por prepaga en 162/171 filas limpias.
+- Nueva salida: 1.631 `correcta`, 279 `error`, 90 `ruido`. Cambiaron 115 filas respecto de `959838a`: 71 error->correcta, 34 ruido->correcta, 5 error->ruido y 5 correcta->ruido.
+- Pruebas especificas: 4/4. La suite completa sigue teniendo fallas ajenas en Kaggle/entrenamiento, integracion CPU, persistencia, preparacion y variantes del buscador.
+
 ### Buscador: conjunto de desarrollo, 60 consultas, normas originales
 
 | Experimento | Completas | Recall | Precisión | Tokens/consulta | Decisión |
