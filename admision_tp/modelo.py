@@ -16,17 +16,17 @@ class ModeloLocal:
 
         if not torch.cuda.is_available():
             raise RuntimeError("El baseline requiere una GPU CUDA; no se carga en CPU")
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+        import transformers
+        from .carga import cargar_solo_texto
         # Tokenizer, no AutoProcessor: el agente es solo texto, usa el mismo chat template que el
         # entrenamiento, y el procesador de Gemma 4 exige torchvision por su parte de video.
-        procesador = AutoTokenizer.from_pretrained(
+        procesador = transformers.AutoTokenizer.from_pretrained(
             configuracion.modelo, revision=configuracion.revision, padding_side="left")
-        modelo = AutoModelForCausalLM.from_pretrained(
-            configuracion.modelo, revision=configuracion.revision,
-            dtype=getattr(torch, configuracion.dtype),
-            device_map=configuracion.device_map)
-        # Sin attn_implementation: transformers usa SDPA donde se soporta (el texto) y eager en el
-        # resto. Forzar "sdpa" rompe Gemma 4, porque su torre de audio no lo soporta.
+        modelo = cargar_solo_texto(transformers, configuracion.modelo, configuracion.revision,
+                                   dtype=getattr(torch, configuracion.dtype),
+                                   device_map=configuracion.device_map)
+        # Sin attn_implementation: transformers elige SDPA donde se soporta. Forzarlo rompía la torre
+        # de audio de Gemma 4 (hoy ya no se carga, pero el default sigue siendo lo correcto).
         if configuracion.adapter_repo:
             modelo = cls._fusionar_adapter(modelo, configuracion)
         modelo.eval()

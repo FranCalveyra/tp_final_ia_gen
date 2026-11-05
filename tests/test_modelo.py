@@ -69,7 +69,7 @@ class ModeloTest(unittest.TestCase):
         torch = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True), bfloat16="bf16")
         procesador, modelo = MagicMock(), MagicMock()
         with patch.dict(sys.modules, {"torch": torch, "transformers": SimpleNamespace(
-                AutoTokenizer=procesador, AutoModelForCausalLM=modelo)}):
+                AutoTokenizer=procesador, AutoConfig=SimpleNamespace(from_pretrained=lambda *a, **kw: SimpleNamespace(vision_config={}, audio_config={})), AutoModelForCausalLM=modelo)}):
             adaptador = ModeloLocal.cargar(Configuracion())
         self.assertIs(adaptador.modelo, modelo.from_pretrained.return_value)
         self.assertEqual(procesador.from_pretrained.call_args.kwargs["padding_side"], "left")
@@ -80,7 +80,7 @@ class ModeloTest(unittest.TestCase):
 
     def _cargar_con_adapter(self, base=None, revision_base=None):
         torch = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True), bfloat16="bf16")
-        transformers = SimpleNamespace(AutoTokenizer=MagicMock(), AutoModelForCausalLM=MagicMock())
+        transformers = SimpleNamespace(AutoTokenizer=MagicMock(), AutoConfig=SimpleNamespace(from_pretrained=lambda *a, **kw: SimpleNamespace(vision_config={}, audio_config={})), AutoModelForCausalLM=MagicMock())
         peft = SimpleNamespace(PeftConfig=MagicMock(), PeftModel=MagicMock())
         peft.PeftConfig.from_pretrained.return_value = SimpleNamespace(
             base_model_name_or_path=base or Configuracion.modelo,
@@ -110,7 +110,7 @@ class ModeloTest(unittest.TestCase):
     def test_sin_adapter_no_importa_peft(self):
         torch = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True), bfloat16="bf16")
         with patch.dict(sys.modules, {"torch": torch, "peft": None, "transformers": SimpleNamespace(
-                AutoTokenizer=MagicMock(), AutoModelForCausalLM=MagicMock())}):
+                AutoTokenizer=MagicMock(), AutoConfig=SimpleNamespace(from_pretrained=lambda *a, **kw: SimpleNamespace(vision_config={}, audio_config={})), AutoModelForCausalLM=MagicMock())}):
             ModeloLocal.cargar(Configuracion())
 
     def test_adapter_exige_revision_inmutable(self):
@@ -210,7 +210,7 @@ class ModeloTest(unittest.TestCase):
         torch = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True), bfloat16="bf16", float16="fp16")
         modelo = MagicMock()
         with patch.dict(sys.modules, {"torch": torch, "transformers": SimpleNamespace(
-                AutoTokenizer=MagicMock(), AutoModelForCausalLM=modelo)}):
+                AutoTokenizer=MagicMock(), AutoConfig=SimpleNamespace(from_pretrained=lambda *a, **kw: SimpleNamespace(vision_config={}, audio_config={})), AutoModelForCausalLM=modelo)}):
             ModeloLocal.cargar(Configuracion(dtype="float16", device_map="auto"))
         kwargs = modelo.from_pretrained.call_args.kwargs
         self.assertEqual((kwargs["dtype"], kwargs["device_map"]), ("fp16", "auto"))
@@ -219,7 +219,7 @@ class ModeloTest(unittest.TestCase):
         torch = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True), bfloat16="bf16")
         modelo = MagicMock()
         with patch.dict(sys.modules, {"torch": torch, "transformers": SimpleNamespace(
-                AutoTokenizer=MagicMock(), AutoModelForCausalLM=modelo)}):
+                AutoTokenizer=MagicMock(), AutoConfig=SimpleNamespace(from_pretrained=lambda *a, **kw: SimpleNamespace(vision_config={}, audio_config={})), AutoModelForCausalLM=modelo)}):
             ModeloLocal.cargar(Configuracion())
         self.assertEqual(modelo.from_pretrained.call_args.kwargs["device_map"], "cuda:0")
 

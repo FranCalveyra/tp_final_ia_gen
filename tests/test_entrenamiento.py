@@ -175,7 +175,7 @@ class EntrenamientoTests(unittest.TestCase):
             "transformers": SimpleNamespace(Trainer=Trainer, TrainerCallback=object,
                 TrainingArguments=lambda **kw: SimpleNamespace(**kw), set_seed=lambda x: None,
                 AutoTokenizer=SimpleNamespace(from_pretrained=lambda *a, **kw: tokenizer),
-                AutoModelForCausalLM=SimpleNamespace(
+                AutoConfig=SimpleNamespace(from_pretrained=lambda *a, **kw: SimpleNamespace(vision_config={}, audio_config={})), AutoModelForCausalLM=SimpleNamespace(
                     from_pretrained=lambda *a, **kw: (obs.carga.update(kw), modelo)[1])),
             "peft": SimpleNamespace(LoraConfig=lambda **kw: kw, get_peft_model=lambda m, c: m),
             "wandb": SimpleNamespace(init=lambda **kw: run, Settings=lambda **kw: kw),

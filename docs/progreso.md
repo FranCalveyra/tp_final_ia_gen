@@ -373,6 +373,17 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
 - Probado con dobles: 107 corridos, 106 pasan y 1 opcional se saltea. Todavía no hay medición real; sale
   de la primera corrida con datos reales.
 
+### 2026-11-05: Gemma 4 solo con el modelo de lenguaje (issues #4 y #5)
+
+- **Decisión:** inferencia y entrenamiento cargan Gemma 4 con `vision_config` y `audio_config` en `None`
+  (`admision_tp/carga.py`). El agente es solo texto: así no se crean las torres de visión y audio ni sus
+  embedders, y sus pesos no ocupan VRAM. Verificado en transformers 5.22.1: ambas configuraciones son
+  opcionales (`configuration_gemma4.py:339-340`), `Gemma4Model` no crea esas partes si son `None`
+  (`modeling_gemma4.py:2164-2180`) y el `forward` solo las usa con `pixel_values` o `input_features`.
+  El LoRA apunta a `language_model`, que no cambia.
+- Probado con dobles: 109 corridos, 108 pasan y 1 opcional se saltea. **Falta validar en GPU** que los resultados
+  sean idénticos a la línea de base y medir cuánta VRAM se ahorra.
+
 ## Próximos pasos y bloqueos
 
 1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.

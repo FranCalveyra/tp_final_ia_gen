@@ -201,7 +201,7 @@ def _ejecutar_cuda(config, registros, ejemplos, tokens, destino, auditoria, chec
     import torch
     if not torch.cuda.is_available():
         raise RuntimeError("entrenamiento requiere CUDA; no se usa CPU automáticamente")
-    from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments, TrainerCallback, set_seed
+    from transformers import AutoTokenizer, Trainer, TrainingArguments, TrainerCallback, set_seed
     from peft import LoraConfig, get_peft_model
     from .tokenizacion import tokenizar_conversacion
     import wandb
@@ -232,9 +232,10 @@ def _ejecutar_cuda(config, registros, ejemplos, tokens, destino, auditoria, chec
         ejecucion = auditoria.get("ejecucion", EJECUCION)
         # "auto" reparte las capas entre las GPU; Trainer lo detecta (hf_device_map) y no usa DataParallel.
         reparto = {"device_map": "auto"} if ejecucion["dispositivos"] == "auto" else {}
-        modelo = AutoModelForCausalLM.from_pretrained(config["modelo"], revision=config["revision"],
-                                                     dtype=getattr(torch, PRECISIONES[ejecucion["precision"]]),
-                                                     **reparto)
+        import transformers
+        from .carga import cargar_solo_texto
+        modelo = cargar_solo_texto(transformers, config["modelo"], config["revision"],
+                                   dtype=getattr(torch, PRECISIONES[ejecucion["precision"]]), **reparto)
         # Sin attn_implementation: forzar "sdpa" rompe la torre de audio de Gemma 4 (ver modelo.py).
         modelo.config.use_cache = False
         modelo = get_peft_model(modelo, LoraConfig(**LORA, revision=config["revision"]))
