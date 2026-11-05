@@ -342,6 +342,29 @@ Datos sintéticos de `scripts.datos_humo` (4 conversaciones, 8 pasos, checkpoint
   final (Martu), medir VRAM de entrenamiento con secuencias reales y la ruta Modal/A100.
 - `snapshot_download` deja una carpeta `.cache` dentro del run; no afectó la reanudación.
 
+### 2026-11-04: borrador de la Parte 5 del informe (issue #5)
+
+- Borrador en [informe-parte5.md](informe-parte5.md) con lo medido en T4 (s/caso, VRAM, lotes, humo de
+  entrenamiento) y cada número con su artefacto. `INFORME.md` no se creó: es compartido.
+- **Pendiente (PENDIENTE en el borrador):** todo lo que depende del modelo final o de A100-40GB (tiempo y VRAM de
+  entrenamiento real, s/caso y costo en A100, lote máximo estable, antes/después). La VRAM de entrenamiento
+  no se registró en el humo.
+
+### 2026-11-04: diagnóstico del fallo CUDA con lote 8 (issue #4, Kaggle T4)
+
+Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, con `CUDA_LAUNCH_BLOCKING=1` y
+`TORCH_SHOW_CPP_STACKTRACES=1`. Artefactos en `corridas/kaggle/diag-l8` (no versionados).
+
+- **No falló:** 10/50 resueltos, los mismos casos que con lote 1 (cero cambios por caso), parcial 0,831, 0 sin
+  decisión. 17,4 s/caso, 36 micro-lotes, VRAM pico 21,7 GB y reservada 30,2 GB (suma de 2 GPU) sin romperse.
+- **Lectura:** serializar los kernels evita el error. Apunta a concurrencia o asincronía del modelo repartido en
+  2 T4 (`device_map=auto`) y no a falta de memoria. Es una hipótesis: no se identificó la línea.
+- **Decisión:** no adoptarlo. Con bloqueo, el lote 8 (17,4 s/caso) es más lento que el lote 4 normal (15,6 s/caso).
+  En Kaggle seguimos con **lote 4**. En la A100 el modelo entra en una sola GPU, así que este escenario no aplica
+  y el lote máximo se mide ahí. No se probó `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` (~25 min de
+  cuota sin garantía).
+- Cuota de esta corrida: ~40 min, más lenta por el bloqueo.
+
 ## Próximos pasos y bloqueos
 
 1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
@@ -373,6 +396,7 @@ reemplaza la ejecución final A100. El token HF actual es de lectura y no habili
 | Trainer SFT | [entrenamiento-sft.md](entrenamiento-sft.md) |
 | Persistencia Modal | [entrenamiento-modal.md](entrenamiento-modal.md) |
 | Respaldo Kaggle (T4 x2), inferencia y entrenamiento humo | [kaggle.md](kaggle.md) |
+| Parte 5 del informe (recursos y producción), borrador con mediciones T4 | [informe-parte5.md](informe-parte5.md) |
 
 ## Cómo mantener esta bitácora
 
