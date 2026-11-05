@@ -397,6 +397,14 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
   por la celda final de resumen; las dos corridas terminaron con `returncode 0`.
 - Ahorro modesto (~1 GB, ~5 %) sin ningún cambio de resultados. Se mantiene.
 
+### 2026-11-05: infraestructura de prompts configurables (issue #13, en progreso)
+
+- Se agregó `PromptSpec` con textos versionados, SHA-256 canónico y validación estricta de
+  placeholders e integridad al cargar. El baseline vive como configuración explícita y una
+  prueba lo compara con el mensaje y los formatos actuales de `admision.ejemplo`.
+- Verificación CPU: 5 tests de `test_prompts.py`, todos pasan. No se cargó un modelo, no se
+  generaron datos y todavía no se implementó el coordinador configurable ni DSPy/GEPA.
+
 ## Próximos pasos y bloqueos
 
 1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
