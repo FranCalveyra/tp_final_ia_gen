@@ -381,8 +381,21 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
   opcionales (`configuration_gemma4.py:339-340`), `Gemma4Model` no crea esas partes si son `None`
   (`modeling_gemma4.py:2164-2180`) y el `forward` solo las usa con `pixel_values` o `input_features`.
   El LoRA apunta a `language_model`, que no cambia.
-- Probado con dobles: 109 corridos, 108 pasan y 1 opcional se saltea. **Falta validar en GPU** que los resultados
-  sean idénticos a la línea de base y medir cuánta VRAM se ahorra.
+- Probado con dobles: 109 corridos, 108 pasan y 1 opcional se saltea.
+- **Validado en GPU (Kaggle 2x T4, versión 9, commit `a828467`):**
+
+  | Original, 50 casos, lote 4 | Con torres (`base-original-l4`) | Solo texto (`solo-texto-l4`) |
+  |---|---|---|
+  | Resueltos | 10/50 | 10/50, mismos casos, **trazas idénticas en los 50** |
+  | Segundos por caso | 15,6 | 15,7 |
+  | VRAM pico (suma / por GPU) | 19,1 GB (10,9 + 8,2) | **18,1 GB (10,6 + 7,5)** |
+  | Reservada | 29,2 GB | 28,3 GB |
+
+  El humo de entrenamiento sin torres (`humo-solo-texto`) da la misma curva (2,679 → 2,178), publica los 5
+  checkpoints y registra por primera vez la **VRAM de entrenamiento: 15,7 GB pico** (9,5 + 6,1; 15,8 reservada),
+  con datos sintéticos cortos, así que no es representativa de la corrida real. El notebook terminó en `ERROR`
+  por la celda final de resumen; las dos corridas terminaron con `returncode 0`.
+- Ahorro modesto (~1 GB, ~5 %) sin ningún cambio de resultados. Se mantiene.
 
 ## Próximos pasos y bloqueos
 

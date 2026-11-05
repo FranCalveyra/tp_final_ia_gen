@@ -135,10 +135,10 @@ El tiempo del runner excluye la instalación de dependencias; la carga de pesos 
 - **Casos a la vez al entrenar:** `batch_size=1`, `gradient_accumulation_steps=1`, 2 épocas,
   `max_seq_length=8192` (`entrenamiento/corrida.json`). O sea, **1 conversación por paso**. Es la
   configuración del humo, no una decisión de la corrida final.
-- **VRAM de entrenamiento: no se registró en el humo.** Desde 2026-11-05 el entrenador la registra
-  (pico y reservada, sumadas y por GPU) en cada log de W&B, en `estado.json` y en `runner.json` (`vram`).
-  Lo único medido hasta ahora es el pico de inferencia (19,1 GB en 2 T4). **PENDIENTE:** el valor real
-  sale de la primera corrida con secuencias reales.
+- **VRAM de entrenamiento (humo, solo texto): 15,7 GB pico** (9,5 + 6,1 por GPU; 15,8 GB reservada),
+  de `corridas/kaggle/humo-solo-texto/runner.json` (`vram`). Son 4 conversaciones sintéticas cortas con
+  batch 1: **no representa** la corrida real. **PENDIENTE:** el valor con secuencias reales, que el
+  entrenador ya registra en W&B, `estado.json` y `runner.json`.
 - **Checkpoints y publicación:** cada checkpoint se sube a HF con revisión, y la reanudación
   reprodujo la curva (2,5196/2,4173/2,3468 contra 2,5196/2,4179/2,3464). Pasa en T4, no en A100.
 - **Tiempo total del entrenamiento real: PENDIENTE.** Depende de cuántas conversaciones tenga el
@@ -224,8 +224,9 @@ llamada. Para tráfico interactivo conviene lote bajo; para procesar muchos caso
   la A100 tiene una sola GPU de 40 GB). El fallo CUDA de 8 y 16 desaparece con `CUDA_LAUNCH_BLOCKING=1`
   (`corridas/kaggle/diag-l8`), lo que apunta a concurrencia del modelo repartido en 2 GPU y no a memoria:
   en la A100 ese escenario no existe, pero hay que medirlo.
-- La VRAM incluye hoy las torres de visión y audio, que el agente (solo texto) no usa (sección 7):
-  parte del consumo medido es evitable.
+- Desde 2026-11-05 el modelo se carga **sin las torres de visión y audio**: con el mismo lote 4, la VRAM pico
+  bajó de 19,1 a 18,1 GB con trazas idénticas en los 50 casos (`corridas/kaggle/solo-texto-l4`). Las cifras
+  anteriores de esta sección incluyen las torres.
 - No medimos KV cache por conversación ni el techo de lote antes de quedarse sin memoria.
 - **PENDIENTE (A100-40GB):** repetir el barrido 1/4/8/16/32 con `MODELO_METRICAS`, registrar el
   máximo lote estable, la VRAM reservada y el s/caso; recién ahí se fija "casos simultáneos".
@@ -265,7 +266,6 @@ tablas con el adapter entrenado, mismo comando, mismos 50 casos y normas origina
 
 | Idea | Beneficio esperado | Evidencia/estado |
 |---|---|---|
-| Descartar las torres de visión y audio al cargar | menos VRAM (se cargan hoy sin usarse) | observado en la bitácora (2026-11-03); sin medir cuánto ahorra |
 | Corregir el fallo de lotes >= 8 | más casos a la vez | CUDA `unspecified launch failure`; probar `CUDA_LAUNCH_BLOCKING=1` |
 | vLLM u otro servidor con batching continuo | más rendimiento y mejor latencia | no probado; chequear Gemma 4 y LoRA |
 | Medir en A100-40GB | todos los números finales | bloqueado por facturación de Modal |
