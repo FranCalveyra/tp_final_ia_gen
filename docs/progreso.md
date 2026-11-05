@@ -13,11 +13,19 @@ enlaza las guías; no reemplaza el informe final.
 | #3 SFT | Validación de conversaciones, preparación, tokenización, Trainer LoRA y runner persistente; tokenizador real probado | Entrenar y probar corte/reanudación reales; publicación desde Modal y datos/prompt finales |
 | #4 Lotes | Coordinador del kit y adaptador admiten lotes; orden probado con dobles. Medido en T4 (2026-11-04): lote 1 y 4 válidos, **8 y 16 fallan con error CUDA** | Medir en A100-40GB; investigar el fallo de lotes grandes en T4 |
 | #5 Recursos | Infraestructura para corridas auditables | Mediciones antes/después, costos y proyección en `INFORME.md` |
+| #10 Historial | **Implementado (2026-11-05).** Clasificador determinista, pruebas, `historial_clasificado.csv`, análisis reutilizable de costumbres e informe | Revisión del equipo de la clasificación antes de usarla en #11 |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
 El formato de conversaciones es **propuesto**, pendiente de coordinación con Eze/Yas.
 El entrenamiento real también espera el prompt optimizado de Martu. Preparar código no
 reemplaza esos entregables. `INFORME.md` todavía no existe.
+
+### 2026-11-05: clasificación del historial (issue #10)
+
+- Se agregó [`scripts/clasificar_historial.py`](../scripts/clasificar_historial.py), que carga los parámetros y las secciones observables de `normas/original/`, clasifica por precedencia normativa y aprende la costumbre etaria a partir de frecuencias.
+- Resultado reproducible: 1.531 `correcta`, 355 `error` y 114 `ruido`, sobre 2.000 filas. La costumbre conservada para #11 es “no avisar al voluntariado a menores de 75 años”: 1.494/1.614 (`92,6 %`) en menores; el grupo de 75 o más es mixto (`219/386`, `56,7 %`) y no se usó para marcar minorías.
+- Evidencia: [`INFORME.md`](../INFORME.md), [`costumbres.md`](../costumbres.md) y [`historial_costumbres.json`](../historial_costumbres.json). Pruebas: `python -m unittest tests.test_clasificar_historial -v` (3/3).
+- Limitación: el CSV no permite comprobar boxes disponibles, evaluación médica, retriage, camas, aislamiento ni derivaciones; esas normas quedaron documentadas como no verificables.
 
 ## Evidencia disponible
 
