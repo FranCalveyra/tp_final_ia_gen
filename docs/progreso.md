@@ -402,8 +402,12 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
 - Se agregó `PromptSpec` con textos versionados, SHA-256 canónico y validación estricta de
   placeholders e integridad al cargar. El baseline vive como configuración explícita y una
   prueba lo compara con el mensaje y los formatos actuales de `admision.ejemplo`.
-- Verificación CPU: 5 tests de `test_prompts.py`, todos pasan. No se cargó un modelo, no se
-  generaron datos y todavía no se implementó el coordinador configurable ni DSPy/GEPA.
+- Se agregó `AgentePrompt`, que conserva el protocolo JSON y `jugar_lote` pero recibe todos
+  los textos mediante `PromptSpec`. Con el baseline, sus conversaciones, llamadas y entradas
+  al modelo simulado coinciden exactamente con `AgenteJSON`; otras variantes pueden cambiar
+  system, inicio, observaciones y corrección sin tocar el kit.
+- Verificación CPU: 10 tests focalizados, todos pasan. Solo se usaron modelos y entornos
+  simulados: no se cargó un modelo real, no se generaron datos y no se implementó DSPy/GEPA.
 
 ## Próximos pasos y bloqueos
 
