@@ -30,6 +30,13 @@ reemplaza esos entregables. `INFORME.md` y el resumen del issue #11 contienen la
 
 ## Evidencia disponible
 
+### 2026-11-05: seleccion de datos de entrenamiento (issue #12)
+
+- Se seleccionaron 1.595 conversaciones reales: filas `correcta`, sin errores, ruido ni las 36 variaciones ambiguas de aviso a menores concentradas en operadores.
+- Se generaron 5.000 candidatos con `admision.generador`, semilla 12012, y se conservaron 500 sinteticos: 100 por circuito y al menos 60 por cada bucket especial (ART, dos credenciales, acompanante y sin nadie).
+- El dataset final contiene 2.095 conversaciones v1: 1.595 de historial y 500 sinteticas. Las 500 fichas sinteticas pasan las reglas normativas y el conjunto combinado pasa el validador sin errores.
+- No se usan casos de `practica/`. Procedencia, balance, IDs y SHA-256 quedan en [`datos/entrenamiento/manifiesto.json`](../datos/entrenamiento/manifiesto.json). Pruebas especificas: 8/8.
+
 ### 2026-11-05: descubrimiento de costumbres (issue #11)
 
 - Las 2.000 trazas de `historial/trazas.jsonl` coinciden por ID, operador y ficha final con `historial/historial.csv`; se usan como evidencia del proceso, no como etiquetas independientes.

@@ -98,4 +98,62 @@ python scripts/clasificar_historial.py --entrada historial/historial.csv --norma
 python -m unittest tests.test_clasificar_historial -v
 ```
 
+## Issue #12: datos de entrenamiento
+
+### Seleccion de historial
+
+Se parte de las 2.000 filas clasificadas en el issue #10. Se excluyen las 279 filas `error` y las 90 `ruido`. Ademas, se excluyen 36 filas `correcta` con aviso a menores de 75 anos que quedaron fuera de los estratos comparables y estan concentradas en la variacion de `OP-04`, `OP-11` y `OP-17` documentada en el issue #11. Esto evita ensenar como respuesta esperada una conducta ambigua.
+
+Quedan **1.595 conversaciones reales**. Cada una se obtiene de `historial/trazas.jsonl`, conserva el sistema, el mensaje inicial, todas las acciones y observaciones, y termina en `registrar_decision`. No se usan filas de `practica/` ni sus fichas esperadas.
+
+### Casos sinteticos
+
+El script usa `admision.generador.generar` con semilla **12012** y genera 5.000 candidatos. Selecciona 500 de forma determinista: 100 por circuito (`ecg`, `codigo_acv`, `sepsis_probable`, `sepsis_posible`, `ninguno`) y al menos 60 por cada dificultad especial (`art`, `dos_credenciales`, `acompanante`, `sin_nadie`). El balance efectivo es:
+
+| dificultad | cantidad |
+|---|---:|
+| art | 70 |
+| dos credenciales | 60 |
+| acompanante | 63 |
+| sin nadie | 63 |
+| general | 244 |
+| total | 500 |
+
+Cada ficha sintetica se deduce desde los parametros cargados de `normas/original/`: documento, box, circuito, plazo, fuente de cobertura, afiliacion, digito reservado y notificacion. La seleccion de prepaga en dos credenciales y el aviso etario se toman como costumbres observadas del issue #11; no se fijan numeros de parametros en el prompt ni en los datos.
+
+Las conversaciones se ejecutan sobre `admision.Entorno` con un buscador determinista de las normas originales. Las 500 fichas pasan la comparacion normativa y el validador de conversaciones v1. Los fundamentos de cada ficha se derivan segun el circuito y la situacion, en vez de usar una lista generica.
+
+### Dataset final y reproducibilidad
+
+El dataset combinado tiene **2.095 conversaciones**:
+
+| origen | cantidad | proporcion |
+|---|---:|---:|
+| historial | 1.595 | 76,1% |
+| sintetico | 500 | 23,9% |
+| total | 2.095 | 100% |
+
+El comando reproducible es:
+
+```text
+python -m scripts.preparar_datos_entrenamiento --raiz . --salida datos/entrenamiento --semilla 12012 --candidatos 5000
+```
+
+La salida se valida con:
+
+```text
+python -m scripts.validar_conversaciones datos/entrenamiento/conversaciones.jsonl
+```
+
+Resultado: 2.095 registros, 2.095 validos, sin errores. `datos/entrenamiento/manifiesto.json` conserva procedencia, semilla, balance, cantidades y SHA-256; `auditoria_sinteticos.jsonl` conserva la ficha deducida y la categoria de cada sintetico. El ensamblador no sobrescribe una salida existente.
+
+### Archivos del issue
+
+- [`datos/entrenamiento/conversaciones.jsonl`](datos/entrenamiento/conversaciones.jsonl): dataset combinado v1.
+- [`datos/entrenamiento/auditoria_sinteticos.jsonl`](datos/entrenamiento/auditoria_sinteticos.jsonl): auditoria de fichas sinteticas.
+- [`datos/entrenamiento/manifiesto.json`](datos/entrenamiento/manifiesto.json): procedencia, balance y hash.
+- [`scripts/seleccionar_entrenamiento.py`](scripts/seleccionar_entrenamiento.py): curacion y conversion de trazas reales.
+- [`scripts/generar_sinteticos_entrenamiento.py`](scripts/generar_sinteticos_entrenamiento.py): generacion, deduccion y balance sintetico.
+- [`scripts/preparar_datos_entrenamiento.py`](scripts/preparar_datos_entrenamiento.py): ensamblado y validacion final.
+- [`tests/test_seleccionar_entrenamiento.py`](tests/test_seleccionar_entrenamiento.py), [`tests/test_generar_sinteticos_entrenamiento.py`](tests/test_generar_sinteticos_entrenamiento.py) y [`tests/test_preparar_datos_entrenamiento.py`](tests/test_preparar_datos_entrenamiento.py): pruebas reproducibles.
 La suite específica verifica cinco casos: 2.000 filas y conteos, reglas normativas, las dos costumbres, el patrón adicional por operador, validación de 2.000 trazas y reproducibilidad byte a byte.
