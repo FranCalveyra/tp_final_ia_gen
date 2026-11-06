@@ -1,12 +1,10 @@
-# Informe: clasificación del historial
+# Informe: costumbres del hospital
 
-## Resultado actualizado
+## Resumen ejecutivo
 
-Se genera con:
+El análisis amplía el trabajo del issue #10 con `historial/historial.csv`, las 2.000 trazas correspondientes de `historial/trazas.jsonl` y las normas de `normas/original/`. Se confirmaron dos costumbres y se investigó un patrón adicional de operadores sin convertirlo en una regla.
 
-```text
-python scripts/clasificar_historial.py --entrada historial/historial.csv --normas normas/original --salida historial_clasificado.csv
-```
+La clasificación compatible con el issue #10 se conserva:
 
 | tipo | cantidad |
 |---|---:|
@@ -15,63 +13,84 @@ python scripts/clasificar_historial.py --entrada historial/historial.csv --norma
 | ruido | 90 |
 | total | 2.000 |
 
-Una violación de una norma escrita siempre tiene prioridad sobre una costumbre: `error > ruido`.
+Una violación normativa siempre tiene prioridad sobre una costumbre: `error > ruido`.
 
-## Reglas normativas verificables
+## Fuentes y validación de trazas
 
-El script lee los parámetros de `normas/original/parametros.yaml` y verifica las secciones observables:
+El script usa tres fuentes:
 
-- `NOR-ADM-01`, `NOR-ADM-02` y `NOR-ADM-03`: registro, documento, número de documento y box antes del registro. El umbral urgente usa `P-ADM-3`; la edad usa `P-ADM-2`.
-- `NOR-COB-01` a `NOR-COB-04`: cobertura, lesión laboral, afiliación verificada, respuesta, dígito reservado `P-COB-2` y entidad a notificar.
-- `NOR-TDE-01` a `NOR-TDE-04`: circuito y plazo, incluyendo el descuento `P-TDE-5` para ambulancia y las dos categorías de sepsis.
+- `historial/historial.csv`: atributos de ingreso, cobertura y ficha final.
+- `historial/trazas.jsonl`: conversación completa, operador y ficha final de cada ID.
+- `normas/original/`: secciones normativas y `parametros.yaml`.
 
-Cuando hay dos credenciales, la norma no dice que deba elegirse la primera. La auditoría usa como fuente la credencial que el propio historial registra como verificada. La selección observada se analiza aparte como costumbre, sin convertirla en una norma inventada.
+Las trazas se validan antes de usarse como evidencia. Hay 2.000 IDs únicos, cada operador coincide con el CSV y las 2.000 fichas finales coinciden campo por campo con la fila correspondiente. La instrumentación contiene 2.000 lecturas de triage, 2.000 decisiones, 1.587 verificaciones de afiliación, 1.405 preguntas y 6.197 búsquedas normativas; el promedio es 6,5945 pasos por traza.
 
-Las razones normativas contabilizadas pueden solaparse:
+La coincidencia de las fichas no se toma como una etiqueta independiente: las trazas documentan cómo se llegó a la ficha. La fuente para determinar errores sigue siendo la comparación con las normas.
 
-| campo en conflicto | filas |
-|---|---:|
-| entidad a notificar | 48 |
-| plazo del circuito | 97 |
-| verificación | 0; las verificaciones de dos credenciales se resuelven por la credencial efectivamente verificada |
-| cobertura | 12 |
-| registro | 64 |
-| box antes del registro | 61 |
-| filas con al menos una violación | 279 |
+## Metodología
 
-No se clasifican reglas que el CSV no permite comprobar: disponibilidad y tipo físico de boxes, evaluación médica, retriage, camas, aislamiento y derivaciones.
+1. Se cargan los parámetros y las secciones observables de las normas originales.
+2. Se calculan las violaciones normativas fila por fila, incluyendo registro, documento, orden del box, circuito, plazo, cobertura, verificación y entidad a notificar.
+3. Se excluyen de la inferencia de costumbres todas las filas con alguna violación.
+4. Para la costumbre etaria se comparan situaciones equivalentes por `motivo × cobertura`, con al menos 20 filas limpias menores y 20 mayores en cada estrato.
+5. Sólo se confirma una señal cuando tiene muestra suficiente, una frecuencia claramente dominante y una explicación compatible con una práctica no escrita. Una minoría aislada no se convierte automáticamente en costumbre.
+6. Se usan las trazas para validar la correspondencia ID-operador-ficha y para investigar variaciones por operador.
 
-## Costumbres y situaciones equivalentes
+El análisis completo, con frecuencias e IDs, queda en `historial_costumbres.json`. `costumbres.md` es la versión legible para la presentación y para compartir con Martu y Eze.
 
-Las frecuencias se calculan después de excluir las filas con alguna violación normativa. Para la costumbre etaria se comparan situaciones con el mismo `motivo` y `cobertura`, con al menos 20 filas menores y 20 mayores en cada estrato.
+## Costumbres confirmadas
 
-Se detectaron ocho estratos comparables para la costumbre etaria. El umbral observado sigue siendo 75 años. En el conjunto limpio menor de 75, `no` domina; el grupo de 75 o más sigue siendo mixto y sus minorías no se marcan automáticamente.
+### 1. No avisar al voluntariado a menores de 75 años
 
-También se detectó una costumbre en filas con dos credenciales: se selecciona `prepaga` en 162 de 171 filas limpias (94,7%). Las 9 selecciones limpias de obra social se clasifican como `ruido`; las filas con otros errores conservan `error`.
+El umbral observado es 75 años. En filas limpias menores de 75, el aviso es `no` en 1.298 de 1.415 casos (91,7%). En filas limpias de 75 años o más, el aviso es `sí` en 175 de 306 (57,2%), por lo que el grupo mayor no se trata como una regla uniforme.
 
-El JSON conserva los estratos, frecuencias e IDs completos para reutilizarlos en el issue #11. La clasificación no usa como evidencia de costumbre las filas que ya violan normas.
+La comparación no mezcla motivos ni coberturas: se conservaron ocho estratos con muestras de ambos grupos. Los IDs de respaldo de los `no` y los IDs de las excepciones `sí` están en `costumbres.md` y en cada estrato de `historial_costumbres.json`.
 
-## Impacto respecto de la versión anterior
+Esta costumbre explica el ruido que ya clasificaba el issue #10, pero no reemplaza las normas ni justifica avisar o no avisar en cualquier situación sin considerar el contexto.
 
-Se comparó la salida actual con la versión del commit `959838a`:
+### 2. Priorizar la prepaga con dos credenciales
 
-| transición | cantidad |
-|---|---:|
-| `error` -> `correcta` | 71 |
-| `ruido` -> `correcta` | 34 |
-| `error` -> `ruido` | 5 |
-| `correcta` -> `ruido` | 5 |
-| total de filas cambiadas | 115 |
+En 171 filas limpias que presentan dos credenciales, la credencial que figura como verificada es:
 
-La mayor corrección corresponde a filas con dos credenciales que antes se marcaban como error solo porque el clasificador asumía incorrectamente que siempre debía usarse la primera.
+| selección observada | cantidad | frecuencia |
+|---|---:|---:|
+| prepaga | 162 | 94,7% |
+| obra social | 9 | 5,3% |
 
-## Archivos
+La norma no indica que haya que elegir la primera ni que haya que preferir una clase. Por eso esta tendencia se conserva como costumbre observada: no se transforma en una norma inventada. Las 9 excepciones y los 162 IDs de respaldo están documentados.
 
-- [`historial_clasificado.csv`](historial_clasificado.csv)
-- [`costumbres.md`](costumbres.md)
-- [`historial_costumbres.json`](historial_costumbres.json)
-- [`scripts/clasificar_historial.py`](scripts/clasificar_historial.py)
-- [`tests/test_clasificar_historial.py`](tests/test_clasificar_historial.py)
+## Patrón adicional investigado: operadores
+
+Las trazas permiten estudiar si la costumbre etaria se concentra en personas concretas. En las filas normativamente limpias de menores de 75 años:
+
+| operadores | avisos | muestra | frecuencia |
+|---|---:|---:|---:|
+| OP-04 | 28 | 60 | 46,7% |
+| OP-11 | 49 | 82 | 59,8% |
+| OP-17 | 40 | 83 | 48,2% |
+| otros 17 operadores | 0 | 1.190 | 0,0% |
+
+La señal es fuerte y reproducible, y `costumbres.md` conserva los 117 IDs involucrados. Sin embargo, no se confirma como una costumbre del hospital: está concentrada en un subgrupo de operadores y no representa la práctica mayoritaria. Se documenta como variación histórica para el prompt y los datos, pero no agrega una regla ni reclasifica automáticamente filas fuera de los estratos ya comparables.
+
+No se encontraron otros patrones con evidencia equivalente en nivel, motivo, llegada, documento, capacidad de responder, lesión laboral, sospecha de sepsis o cobertura. Las diferencias observadas en esos campos no superan el criterio de confirmación o están explicadas por normas escritas.
+
+## Compatibilidad con el issue #10
+
+El clasificador conserva su interfaz y su precedencia. Con las trazas habilitadas, el CSV generado sigue teniendo exactamente 2.000 filas y los mismos conteos `1.631/279/90`. La validación adicional de trazas sólo rechaza datos inconsistentes; no usa una decisión de la traza para sobreescribir las reglas normativas.
+
+La ejecución reproducible es:
+
+```text
+python scripts/clasificar_historial.py --entrada historial/historial.csv --normas normas/original --trazas historial/trazas.jsonl --salida historial_clasificado.csv
+```
+
+## Archivos y resumen para el equipo
+
+- [`costumbres.md`](costumbres.md): costumbres confirmadas, patrón adicional e IDs.
+- [`historial_costumbres.json`](historial_costumbres.json): frecuencias, estratos, operadores e IDs completos.
+- [`docs/resumen-costumbres-issue-11.md`](docs/resumen-costumbres-issue-11.md): versión breve para Martu y Eze.
+- [`scripts/clasificar_historial.py`](scripts/clasificar_historial.py): análisis reproducible y compatible.
+- [`tests/test_clasificar_historial.py`](tests/test_clasificar_historial.py): pruebas de salida, trazas y determinismo.
 
 ## Verificación
 
@@ -79,4 +98,4 @@ La mayor corrección corresponde a filas con dos credenciales que antes se marca
 python -m unittest tests.test_clasificar_historial -v
 ```
 
-Resultado actualizado: 4 pruebas, todas pasan. Se verifica cantidad, columnas, IDs, conteos, parámetros, credenciales múltiples, estratos de costumbre y reproducibilidad byte a byte en ejecuciones temporales separadas.
+La suite específica verifica cinco casos: 2.000 filas y conteos, reglas normativas, las dos costumbres, el patrón adicional por operador, validación de 2.000 trazas y reproducibilidad byte a byte.

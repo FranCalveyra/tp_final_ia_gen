@@ -13,21 +13,29 @@ enlaza las guías; no reemplaza el informe final.
 | #3 SFT | Validación de conversaciones, preparación, tokenización, Trainer LoRA y runner persistente; tokenizador real probado | Entrenar y probar corte/reanudación reales; publicación desde Modal y datos/prompt finales |
 | #4 Lotes | Coordinador del kit y adaptador admiten lotes; orden probado con dobles. Medido en T4 (2026-11-04): lote 1 y 4 válidos, **8 y 16 fallan con error CUDA** | Medir en A100-40GB; investigar el fallo de lotes grandes en T4 |
 | #5 Recursos | Infraestructura para corridas auditables | Mediciones antes/después, costos y proyección en `INFORME.md` |
-| #10 Historial | **Implementado (2026-11-05).** Clasificador determinista, pruebas, `historial_clasificado.csv`, análisis reutilizable de costumbres e informe | Revisión del equipo de la clasificación antes de usarla en #11 |
+| #10 Historial | **Implementado (2026-11-05).** Clasificador determinista, pruebas, `historial_clasificado.csv`, análisis reutilizable de costumbres e informe | Mantenerlo compatible con la curación del issue #11 |
+| #11 Costumbres | **Implementado (2026-11-05).** Trazas validadas, dos costumbres confirmadas, patrón por operador documentado y resumen para el equipo | Revisar con Martu y Eze antes de usarlo en el prompt final |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
 El formato de conversaciones es **propuesto**, pendiente de coordinación con Eze/Yas.
 El entrenamiento real también espera el prompt optimizado de Martu. Preparar código no
-reemplaza esos entregables. `INFORME.md` todavía no existe.
+reemplaza esos entregables. `INFORME.md` y el resumen del issue #11 contienen la síntesis actualizada.
 
 ### 2026-11-05: clasificación del historial (issue #10)
 
 - Se agregó [`scripts/clasificar_historial.py`](../scripts/clasificar_historial.py), que carga los parámetros y las secciones observables de `normas/original/`, clasifica por precedencia normativa y aprende la costumbre etaria a partir de frecuencias.
-- Resultado reproducible: 1.531 `correcta`, 355 `error` y 114 `ruido`, sobre 2.000 filas. La costumbre conservada para #11 es “no avisar al voluntariado a menores de 75 años”: 1.494/1.614 (`92,6 %`) en menores; el grupo de 75 o más es mixto (`219/386`, `56,7 %`) y no se usó para marcar minorías.
+- Resultado corregido y reproducible: 1.631 `correcta`, 279 `error` y 90 `ruido`, sobre 2.000 filas. Se conservaron las costumbres etaria y de selección de prepaga; el issue #11 amplió la evidencia con las trazas.
 - Evidencia: [`INFORME.md`](../INFORME.md), [`costumbres.md`](../costumbres.md) y [`historial_costumbres.json`](../historial_costumbres.json). Pruebas: `python -m unittest tests.test_clasificar_historial -v` (3/3).
 - Limitación: el CSV no permite comprobar boxes disponibles, evaluación médica, retriage, camas, aislamiento ni derivaciones; esas normas quedaron documentadas como no verificables.
 
 ## Evidencia disponible
+
+### 2026-11-05: descubrimiento de costumbres (issue #11)
+
+- Las 2.000 trazas de `historial/trazas.jsonl` coinciden por ID, operador y ficha final con `historial/historial.csv`; se usan como evidencia del proceso, no como etiquetas independientes.
+- Costumbres confirmadas: no avisar al voluntariado a menores de 75 anos (1.298/1.415 `no` en filas limpias menores, ocho estratos `motivo x cobertura`) y priorizar prepaga con dos credenciales (162/171, 94,7%).
+- Patron adicional no confirmado como costumbre hospitalaria: OP-04, OP-11 y OP-17 concentran 117/225 avisos a menores, mientras los otros 17 operadores tienen 0/1.190. Se documentan los IDs y no se agrega una regla automatica.
+- Evidencia y resumen: [`costumbres.md`](../costumbres.md), [`historial_costumbres.json`](../historial_costumbres.json) y [`resumen para el equipo`](resumen-costumbres-issue-11.md). Pruebas especificas: 5/5.
 
 ### 2026-11-05: auditoria y correccion de issue #10
 
@@ -360,7 +368,7 @@ Datos sintéticos de `scripts.datos_humo` (4 conversaciones, 8 pasos, checkpoint
 ### 2026-11-04: borrador de la Parte 5 del informe (issue #5)
 
 - Borrador en [informe-parte5.md](informe-parte5.md) con lo medido en T4 (s/caso, VRAM, lotes, humo de
-  entrenamiento) y cada número con su artefacto. `INFORME.md` no se creó: es compartido.
+  entrenamiento) y cada número con su artefacto. `INFORME.md` se mantiene como informe compartido.
 - **Pendiente (PENDIENTE en el borrador):** todo lo que depende del modelo final o de A100-40GB (tiempo y VRAM de
   entrenamiento real, s/caso y costo en A100, lote máximo estable, antes/después). La VRAM de entrenamiento
   no se registró en el humo.
