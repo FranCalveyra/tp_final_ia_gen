@@ -164,6 +164,26 @@ def deducir_ficha(caso, parametros: dict[str, int], umbral_edad: int) -> tuple[d
 
     if razones_normativas(fila, parametros):
         raise ValueError(f"la deducción sintética viola normas: {caso.id}")
+    fundamentos = ["NOR-ADM-01"]
+    if caso.edad >= parametros["P-ADM-2"]:
+        fundamentos.append("NOR-ADM-02")
+    if caso.documento_tipo and caso.documento_tipo != "DNI":
+        fundamentos.append("NOR-ADM-03")
+    if caso.credenciales or caso.declarada or caso.trabajo:
+        fundamentos.extend(["NOR-COB-01", "NOR-COB-02"])
+    if fila["cobertura"] == "sin_cobertura":
+        fundamentos.append("NOR-COB-03")
+    if fuente and fila["numero_verificado"].endswith(str(parametros["P-COB-2"])) and fuente[0] != "art":
+        fundamentos.append("NOR-COB-04")
+    fundamentos_por_circuito = {
+        "ecg": "NOR-TDE-01",
+        "codigo_acv": "NOR-TDE-02",
+        "codigo_sepsis": "NOR-TDE-03",
+    }
+    if fila["circuito"] in fundamentos_por_circuito:
+        fundamentos.append(fundamentos_por_circuito[fila["circuito"]])
+        if caso.llegada == "en ambulancia":
+            fundamentos.append("NOR-TDE-04")
     ficha = {
         "registro": fila["registro"],
         "numero_documento": fila["numero_documento"] or None,
@@ -173,7 +193,7 @@ def deducir_ficha(caso, parametros: dict[str, int], umbral_edad: int) -> tuple[d
         "cobertura": fila["cobertura"],
         "entidad_a_notificar": fila["entidad_a_notificar"] or None,
         "aviso_al_voluntariado": caso.edad >= umbral_edad,
-        "fundamentos": ["NOR-ADM-01", "NOR-COB-01", "NOR-TDE-01"],
+        "fundamentos": list(dict.fromkeys(fundamentos)),
     }
     return fila, ficha
 
