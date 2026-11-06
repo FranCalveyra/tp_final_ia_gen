@@ -1677,7 +1677,10 @@
       "sin_nadie": 63
     },
     "fichas_normativamente_validas": 500,
-    "umbral_costumbre_edad": 75
+    "umbral_costumbre_edad": 75,
+    "avisos_mayores_observados": 175,
+    "muestra_mayores_observada": 306,
+    "probabilidad_aviso_mayores": 0.571895
   },
   "total_conversaciones": 2095,
   "por_origen": {
@@ -1687,6 +1690,6 @@
   "validacion": {
     "registros": 2095,
     "validos": 2095,
-    "sha256": "021337407e5b99848172d65d6fbf1f27375c21cd0d0cf7ec8d876baebe82ad3c"
+    "sha256": "9e62303a59f7b267804b281aad7549eced248de7dfb0b8058da1551257493b55"
   }
 }

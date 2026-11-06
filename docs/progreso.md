@@ -35,6 +35,7 @@ reemplaza esos entregables. `INFORME.md` y el resumen del issue #11 contienen la
 - Se seleccionaron 1.595 conversaciones reales: filas `correcta`, sin errores, ruido ni las 36 variaciones ambiguas de aviso a menores concentradas en operadores.
 - Se generaron 5.000 candidatos con `admision.generador`, semilla 12012, y se conservaron 500 sinteticos: 100 por circuito y al menos 60 por cada bucket especial (ART, dos credenciales, acompanante y sin nadie).
 - El dataset final contiene 2.095 conversaciones v1: 1.595 de historial y 500 sinteticas. Las 500 fichas sinteticas pasan las reglas normativas y el conjunto combinado pasa el validador sin errores.
+- Auditoria corregida: la costumbre etaria solo fija `no` para menores de 75. En mayores se usa la frecuencia observada 175/306 con umbral determinista por hash; quedaron 74 avisos y 37 sin aviso entre 111 mayores. Cambiaron 37 conversaciones sinteticas y el nuevo SHA-256 esta en el manifiesto.
 - No se usan casos de `practica/`. Procedencia, balance, IDs y SHA-256 quedan en [`datos/entrenamiento/manifiesto.json`](../datos/entrenamiento/manifiesto.json). Pruebas especificas: 8/8.
 
 ### 2026-11-05: descubrimiento de costumbres (issue #11)

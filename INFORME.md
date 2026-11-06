@@ -119,7 +119,7 @@ El script usa `admision.generador.generar` con semilla **12012** y genera 5.000 
 | general | 244 |
 | total | 500 |
 
-Cada ficha sintetica se deduce desde los parametros cargados de `normas/original/`: documento, box, circuito, plazo, fuente de cobertura, afiliacion, digito reservado y notificacion. La seleccion de prepaga en dos credenciales y el aviso etario se toman como costumbres observadas del issue #11; no se fijan numeros de parametros en el prompt ni en los datos.
+Cada ficha sintetica se deduce desde los parametros cargados de `normas/original/`: documento, box, circuito, plazo, fuente de cobertura, afiliacion, digito reservado y notificacion. La seleccion de prepaga en dos credenciales se toma como costumbre observada del issue #11. Para el aviso etario solo se aplica directamente la señal confirmada de no avisar a menores de 75 anos; en mayores se muestrea de forma determinista la frecuencia observada de 175/306 (57,2%), sin tratarla como una regla universal ni fijar parametros normativos en el prompt o en los datos.
 
 Las conversaciones se ejecutan sobre `admision.Entorno` con un buscador determinista de las normas originales. Las 500 fichas pasan la comparacion normativa y el validador de conversaciones v1. Los fundamentos de cada ficha se derivan segun el circuito y la situacion, en vez de usar una lista generica.
 
@@ -145,7 +145,7 @@ La salida se valida con:
 python -m scripts.validar_conversaciones datos/entrenamiento/conversaciones.jsonl
 ```
 
-Resultado: 2.095 registros, 2.095 validos, sin errores. `datos/entrenamiento/manifiesto.json` conserva procedencia, semilla, balance, cantidades y SHA-256; `auditoria_sinteticos.jsonl` conserva la ficha deducida y la categoria de cada sintetico. El ensamblador no sobrescribe una salida existente.
+Resultado: 2.095 registros, 2.095 validos, sin errores. Las 500 fichas sinteticas son normativamente validas; entre los 111 mayores sinteticos quedaron 74 avisos y 37 sin aviso, mientras los 389 menores quedaron sin aviso. En total cambiaron 37 conversaciones sinteticas respecto de la version anterior. `datos/entrenamiento/manifiesto.json` conserva procedencia, semilla, balance, cantidades y SHA-256; `auditoria_sinteticos.jsonl` conserva la ficha deducida y la evidencia observada de cada sintetico. El ensamblador no sobrescribe una salida existente.
 
 ### Archivos del issue
 
