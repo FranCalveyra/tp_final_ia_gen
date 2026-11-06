@@ -46,10 +46,30 @@ class ClasificacionHistorialTest(unittest.TestCase):
         self.assertEqual(edad["umbral_edad"], 75)
         self.assertEqual(edad["situacion_fields"], ["motivo", "cobertura"])
         self.assertEqual(len(edad["estratos_comparables"]), 8)
+        self.assertTrue(edad["ids_respaldo"])
         self.assertNotIn("H-0140", edad["ids_ruido"])
         self.assertEqual(credenciales["preferido"], "prepaga")
         self.assertEqual(credenciales["muestra"], 171)
         self.assertEqual(credenciales["frecuencias"], {"obra_social": 9, "prepaga": 162})
+
+    def test_trazas_validan_fichas_y_documentan_patron_de_operadores(self):
+        carpeta = Path(tempfile.mkdtemp())
+        resultado = ejecutar(
+            RAIZ / "historial/historial.csv",
+            carpeta / "historial_clasificado.csv",
+            RAIZ / "normas/original",
+            RAIZ / "historial/trazas.jsonl",
+        )
+        self.assertEqual(resultado["trazas"]["filas"], 2000)
+        self.assertEqual(resultado["trazas"]["ids_coincidentes"], 2000)
+        self.assertEqual(resultado["trazas"]["fichas_coincidentes"], 2000)
+        patron = resultado["patrones_adicionales"][0]
+        self.assertEqual(patron["grupos_destacados"], ["OP-04", "OP-11", "OP-17"])
+        self.assertEqual(patron["resto"], {"muestra": 1190, "si": 0, "frecuencia_si": 0.0})
+        self.assertFalse(patron["confirmada_como_costumbre_hospital"])
+        texto = (carpeta / "costumbres.md").read_text(encoding="utf-8")
+        self.assertIn("H-0005", texto)
+        self.assertIn("OP-04", texto)
 
     def test_parametro_adm3_y_documento_se_aplican(self):
         row = {"documento_tipo": "pasaporte", "nivel": "3"}

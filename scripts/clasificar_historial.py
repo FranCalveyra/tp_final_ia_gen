@@ -17,6 +17,11 @@ SECCIONES = (
     "NOR-TDE-01", "NOR-TDE-02", "NOR-TDE-03", "NOR-TDE-04",
 )
 SITUACION_FIELDS = ("motivo", "cobertura")
+FICHA_FIELDS = (
+    "registro", "numero_documento", "box_antes_del_registro", "circuito",
+    "plazo_circuito_min", "cobertura", "entidad_a_notificar",
+    "aviso_al_voluntariado",
+)
 
 
 def cargar_parametros(ruta_normas: Path) -> dict[str, int]:
@@ -44,6 +49,59 @@ def verificar_fuentes(ruta_normas: Path) -> None:
     ]
     if faltantes or not (ruta_normas / "parametros.yaml").is_file():
         raise FileNotFoundError(f"fuentes normativas incompletas: {faltantes}")
+
+
+def _normalizar_ficha(valor: object) -> str:
+    if valor is None:
+        return ""
+    if isinstance(valor, bool):
+        return SI if valor else "no"
+    return str(valor)
+
+
+def cargar_trazas(ruta: Path, rows: list[dict[str, str]]) -> dict:
+    """Valida que las trazas correspondan al historial y resume su evidencia."""
+    esperadas = {row["id"]: row for row in rows}
+    trazas = []
+    with ruta.open(encoding="utf-8") as archivo:
+        for linea, texto in enumerate(archivo, 1):
+            try:
+                traza = json.loads(texto)
+            except json.JSONDecodeError as error:
+                raise ValueError(f"traza invalida en linea {linea}") from error
+            trazas.append(traza)
+    ids = [traza.get("id") for traza in trazas]
+    if len(trazas) != len(rows) or set(ids) != set(esperadas) or len(set(ids)) != len(ids):
+        raise ValueError("las trazas no tienen exactamente un registro por fila del historial")
+
+    fichas_coincidentes = 0
+    operadores = Counter()
+    herramientas = Counter()
+    pasos = 0
+    por_id = {}
+    for traza in trazas:
+        row = esperadas[traza["id"]]
+        ficha = traza.get("ficha")
+        if not isinstance(ficha, dict):
+            raise ValueError(f"la traza {traza['id']} no tiene ficha final")
+        if all(_normalizar_ficha(ficha.get(campo)) == _normalizar_ficha(row[campo]) for campo in FICHA_FIELDS):
+            fichas_coincidentes += 1
+        else:
+            raise ValueError(f"la ficha de la traza {traza['id']} no coincide con el historial")
+        operadores[traza.get("operador", "")] += 1
+        for paso in traza.get("pasos", []):
+            herramientas[paso.get("herramienta", "")] += 1
+            pasos += 1
+        por_id[traza["id"]] = traza
+    return {
+        "filas": len(trazas),
+        "ids_coincidentes": len(ids),
+        "fichas_coincidentes": fichas_coincidentes,
+        "operadores": dict(sorted(operadores.items())),
+        "herramientas": dict(sorted(herramientas.items())),
+        "pasos_promedio": round(pasos / len(trazas), 6),
+        "por_id": por_id,
+    }
 
 
 def entradas_cobertura(texto: str) -> list[tuple[str, str, str]]:
@@ -165,6 +223,52 @@ def razones_normativas(row: dict[str, str], parametros: dict[str, int]) -> list[
     return razones
 
 
+def analizar_variacion_operadores(
+    limpias: list[dict[str, str]],
+    umbral: int,
+    trazas: dict | None = None,
+) -> dict:
+    """Describe una concentración por operador sin convertirla en regla."""
+    menores = [row for row in limpias if int(row["edad"]) < umbral]
+    grupos: dict[str, list[dict[str, str]]] = {}
+    for row in menores:
+        operador = row["operador"]
+        if trazas is not None:
+            operador = trazas["por_id"][row["id"]].get("operador", operador)
+        grupos.setdefault(operador, []).append(row)
+
+    evidencia = []
+    for operador, grupo in sorted(grupos.items()):
+        si = [row for row in grupo if row["aviso_al_voluntariado"] == SI]
+        if len(grupo) < 30:
+            continue
+        evidencia.append({
+            "operador": operador,
+            "muestra": len(grupo),
+            "si": len(si),
+            "frecuencia_si": round(len(si) / len(grupo), 6),
+            "ids_si": [row["id"] for row in si],
+        })
+    destacados = [item for item in evidencia if item["frecuencia_si"] >= 0.30]
+    destacados_ids = {item["operador"] for item in destacados}
+    resto = [row for row in menores if row["operador"] not in destacados_ids]
+    resto_si = sum(row["aviso_al_voluntariado"] == SI for row in resto)
+    return {
+        "criterio": "al menos 30 filas limpias menores del umbral y frecuencia de aviso >= 30%",
+        "grupos": evidencia,
+        "grupos_destacados": [item["operador"] for item in destacados],
+        "resto": {
+            "muestra": len(resto),
+            "si": resto_si,
+            "frecuencia_si": round(resto_si / len(resto), 6) if resto else 0,
+        },
+        "confirmada_como_costumbre_hospital": False,
+        "motivo_no_confirmacion": (
+            "la señal está concentrada en un subgrupo de operadores y no describe una práctica mayoritaria del hospital"
+        ),
+    }
+
+
 def inferir_costumbres(rows: list[dict[str, str]], parametros: dict[str, int]) -> list[dict]:
     """Detecta costumbres solo en filas limpias y en situaciones comparables."""
     razones = {row["id"]: razones_normativas(row, parametros) for row in rows}
@@ -227,6 +331,7 @@ def inferir_costumbres(rows: list[dict[str, str]], parametros: dict[str, int]) -
             "muestra_mayores_limpias": len(mayores),
             "si_mayores_limpias": sum(row["aviso_al_voluntariado"] == SI for row in mayores),
             "estratos_comparables": comparables,
+            "ids_respaldo": sorted({i for estrato in comparables for i in estrato["ids_respaldo"]}),
             "ids_ruido": sorted({i for estrato in comparables for i in estrato["ids_ruido"]}),
         })
 
@@ -253,15 +358,24 @@ def inferir_costumbres(rows: list[dict[str, str]], parametros: dict[str, int]) -
     return costumbres
 
 
-def clasificar(rows: list[dict[str, str]], parametros: dict[str, int]) -> tuple[list[dict[str, str]], dict]:
+def clasificar(
+    rows: list[dict[str, str]],
+    parametros: dict[str, int],
+    trazas: dict | None = None,
+) -> tuple[list[dict[str, str]], dict]:
     costumbres = inferir_costumbres(rows, parametros)
+    razones = {row["id"]: razones_normativas(row, parametros) for row in rows}
+    limpias = [row for row in rows if not razones[row["id"]]]
+    edad = next((item for item in costumbres if item["tipo"] == "aviso_al_voluntariado"), None)
+    patrones = []
+    if edad is not None:
+        patrones.append(analizar_variacion_operadores(limpias, edad["umbral_edad"], trazas))
     ids_ruido = {i for costumbre in costumbres for i in costumbre.get("ids_ruido", [])}
     salida = []
     for row in rows:
-        razones = razones_normativas(row, parametros)
-        tipo = "error" if razones else "ruido" if row["id"] in ids_ruido else "correcta"
+        tipo = "error" if razones[row["id"]] else "ruido" if row["id"] in ids_ruido else "correcta"
         salida.append({"id": row["id"], "tipo": tipo})
-    return salida, {"costumbres": costumbres}
+    return salida, {"costumbres": costumbres, "patrones_adicionales": patrones}
 
 
 def escribir_costumbres(ruta: Path, informe: dict) -> None:
@@ -286,17 +400,44 @@ def escribir_costumbres(ruta: Path, informe: dict) -> None:
             )
         bloques.append(f"IDs de respaldo: {', '.join(item.get('ids_respaldo', []))}.\n\n")
         bloques.append(f"IDs clasificados como ruido: {', '.join(item.get('ids_ruido', []))}.\n\n")
+    patrones = informe.get("patrones_adicionales", [])
+    if patrones:
+        bloques.append("## Patrones adicionales investigados\n")
+        for patron in patrones:
+            bloques.append(
+                "Se examinó la variación del aviso entre operadores en pacientes menores del umbral, "
+                "usando sólo filas sin violaciones normativas.\n\n"
+            )
+            for grupo in patron["grupos"]:
+                bloques.append(
+                    f"- **{grupo['operador']}**: {grupo['si']}/{grupo['muestra']} "
+                    f"({grupo['frecuencia_si']:.1%}); IDs: {', '.join(grupo['ids_si'])}.\n"
+                )
+            resto = patron["resto"]
+            bloques.append(
+                f"\nLos otros operadores suman {resto['si']}/{resto['muestra']} "
+                f"({resto['frecuencia_si']:.1%}). No se confirma como costumbre hospitalaria: "
+                f"la señal es de un subgrupo y no de una práctica mayoritaria.\n\n"
+            )
     ruta.write_text("\n".join(bloques), encoding="utf-8")
 
 
-def ejecutar(entrada: Path, salida: Path, ruta_normas: Path) -> dict:
+def ejecutar(
+    entrada: Path,
+    salida: Path,
+    ruta_normas: Path,
+    trazas: Path | None = None,
+) -> dict:
     verificar_fuentes(ruta_normas)
     parametros = cargar_parametros(ruta_normas)
     with entrada.open(encoding="utf-8", newline="") as archivo:
         rows = list(csv.DictReader(archivo))
     if len(rows) != 2000:
         raise ValueError(f"el historial debe tener 2.000 filas, tiene {len(rows)}")
-    clasificados, informe = clasificar(rows, parametros)
+    evidencia_trazas = cargar_trazas(trazas, rows) if trazas is not None else None
+    clasificados, informe = clasificar(rows, parametros, evidencia_trazas)
+    if evidencia_trazas is not None:
+        informe["trazas"] = {k: v for k, v in evidencia_trazas.items() if k != "por_id"}
     salida.parent.mkdir(parents=True, exist_ok=True)
     with salida.open("w", encoding="utf-8", newline="") as archivo:
         escritor = csv.DictWriter(archivo, fieldnames=["id", "tipo"])
@@ -314,8 +455,10 @@ def main() -> int:
     parser.add_argument("--entrada", type=Path, default=Path("historial/historial.csv"))
     parser.add_argument("--salida", type=Path, default=Path("historial_clasificado.csv"))
     parser.add_argument("--normas", type=Path, default=Path("normas/original"))
+    parser.add_argument("--trazas", type=Path, default=Path("historial/trazas.jsonl"))
     args = parser.parse_args()
-    print(json.dumps(ejecutar(args.entrada, args.salida, args.normas), ensure_ascii=False, indent=2))
+    trazas = args.trazas if args.trazas.is_file() else None
+    print(json.dumps(ejecutar(args.entrada, args.salida, args.normas, trazas), ensure_ascii=False, indent=2))
     return 0
 
 
