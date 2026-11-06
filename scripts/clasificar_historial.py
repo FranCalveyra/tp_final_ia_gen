@@ -84,6 +84,8 @@ def cargar_trazas(ruta: Path, rows: list[dict[str, str]]) -> dict:
         ficha = traza.get("ficha")
         if not isinstance(ficha, dict):
             raise ValueError(f"la traza {traza['id']} no tiene ficha final")
+        if traza.get("operador") != row["operador"]:
+            raise ValueError(f"el operador de la traza {traza['id']} no coincide con el historial")
         if all(_normalizar_ficha(ficha.get(campo)) == _normalizar_ficha(row[campo]) for campo in FICHA_FIELDS):
             fichas_coincidentes += 1
         else:
@@ -419,7 +421,7 @@ def escribir_costumbres(ruta: Path, informe: dict) -> None:
                 f"({resto['frecuencia_si']:.1%}). No se confirma como costumbre hospitalaria: "
                 f"la señal es de un subgrupo y no de una práctica mayoritaria.\n\n"
             )
-    ruta.write_text("\n".join(bloques), encoding="utf-8")
+    ruta.write_text("\n".join(bloques).rstrip() + "\n", encoding="utf-8")
 
 
 def ejecutar(
