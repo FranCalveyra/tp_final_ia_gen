@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import unicodedata
 from collections import Counter
 from dataclasses import replace
@@ -112,7 +113,12 @@ def _fuente_sintetica(caso, fila_base: dict[str, str]) -> tuple[str, str, str] |
     return fuente_cobertura(fila_base)
 
 
-def deducir_ficha(caso, parametros: dict[str, int], umbral_edad: int) -> tuple[dict, dict]:
+def deducir_ficha(
+    caso,
+    parametros: dict[str, int],
+    umbral_edad: int,
+    aviso_al_voluntariado: bool = False,
+) -> tuple[dict, dict]:
     fila = {
         "id": caso.id,
         "edad": str(caso.edad),
@@ -192,10 +198,37 @@ def deducir_ficha(caso, parametros: dict[str, int], umbral_edad: int) -> tuple[d
         "plazo_circuito_min": int(fila["plazo_circuito_min"]) if fila["plazo_circuito_min"] else None,
         "cobertura": fila["cobertura"],
         "entidad_a_notificar": fila["entidad_a_notificar"] or None,
-        "aviso_al_voluntariado": caso.edad >= umbral_edad,
+        "aviso_al_voluntariado": aviso_al_voluntariado,
         "fundamentos": list(dict.fromkeys(fundamentos)),
     }
     return fila, ficha
+
+
+def probabilidad_aviso_mayores(costumbres: dict) -> tuple[int, int, float]:
+    costumbre = next(
+        item for item in costumbres["costumbres"]
+        if item["tipo"] == "aviso_al_voluntariado"
+    )
+    muestra = int(costumbre["muestra_mayores_limpias"])
+    avisos = int(costumbre["si_mayores_limpias"])
+    if not muestra or not 0 <= avisos <= muestra:
+        raise ValueError("evidencia inválida para el aviso en mayores")
+    return avisos, muestra, avisos / muestra
+
+
+def aviso_observado(
+    edad: int,
+    umbral_edad: int,
+    probabilidad_mayores: float,
+    semilla: int,
+    caso_id: str,
+) -> bool:
+    """Aplica la costumbre confirmada y muestrea la señal mixta de mayores."""
+    if edad < umbral_edad:
+        return False
+    digest = hashlib.sha256(f"{semilla}:{caso_id}".encode("ascii")).digest()
+    valor = int.from_bytes(digest[:8], "big") / 2**64
+    return valor < probabilidad_mayores
 
 
 class BuscadorSintetico:
@@ -304,13 +337,17 @@ def generar_sinteticos(
         for item in costumbres["costumbres"]
         if item["tipo"] == "aviso_al_voluntariado"
     )
+    avisos_mayores, muestra_mayores, probabilidad_mayores = probabilidad_aviso_mayores(costumbres)
     parametros = cargar_parametros(ruta_normas)
     casos = generar(semilla=semilla, n=candidatos, prefijo=f"cand-{semilla}")
     seleccionados = seleccionar_casos(casos)
     conversaciones = []
     auditoria = []
     for indice, caso in enumerate(seleccionados, 1):
-        fila, ficha = deducir_ficha(caso, parametros, umbral)
+        aviso = aviso_observado(
+            caso.edad, umbral, probabilidad_mayores, semilla, caso.id
+        )
+        fila, ficha = deducir_ficha(caso, parametros, umbral, aviso)
         caso_final = replace(caso, id=f"S-{semilla}-{indice:04d}")
         conversacion = caso_a_conversacion(caso_final, ficha, ruta_normas)
         validar_registro(conversacion)
@@ -322,6 +359,9 @@ def generar_sinteticos(
             "dificultad": dificultad_caso(caso),
             "edad": caso.edad,
             "cobertura": ficha["cobertura"],
+            "aviso_mayores_observado": (
+                caso.edad >= umbral and ficha["aviso_al_voluntariado"]
+            ),
             "ficha": ficha,
             "normas_verificadas": not razones_normativas(fila, parametros),
         })
@@ -333,5 +373,8 @@ def generar_sinteticos(
         "por_dificultad": dict(sorted(Counter(item["dificultad"] for item in auditoria).items())),
         "fichas_normativamente_validas": sum(item["normas_verificadas"] for item in auditoria),
         "umbral_costumbre_edad": umbral,
+        "avisos_mayores_observados": avisos_mayores,
+        "muestra_mayores_observada": muestra_mayores,
+        "probabilidad_aviso_mayores": round(probabilidad_mayores, 6),
     }
     return conversaciones, auditoria, resumen
