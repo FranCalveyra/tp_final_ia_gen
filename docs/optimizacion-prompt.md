@@ -10,6 +10,10 @@ reproducible de cada candidato.
 Esta primera unidad solo permite definir y ejecutar prompts configurables. No integra
 DSPy/GEPA, no genera datos y no cambia el agente usado por `entrega.py`.
 
+La segunda unidad agrega medición de tokens y una métrica común para candidatos. Todavía
+no ejecuta Gemma ni selecciona un prompt: deja esas operaciones para corridas autorizadas
+sobre datos externos permitidos.
+
 ## Problema del agente de referencia
 
 `admision.ejemplo.AgenteJSON` construye internamente el mensaje de sistema, el mensaje
@@ -100,6 +104,28 @@ argumentos. El hash actual del baseline es:
 Una actualización futura del agente de la cátedra que cambie esos textos hará fallar la
 prueba de equivalencia; no actualizar el JSON ni el hash silenciosamente.
 
+## Longitud y métrica de candidatos
+
+`admision_tp.evaluacion_prompts.medir_longitud_prompt` recibe un `PromptSpec` y el
+tokenizer de la revisión real del modelo. No aproxima caracteres: tokeniza por separado
+los cuatro textos configurables sin tokens especiales y mide también el contexto inicial
+con la plantilla de chat, `add_generation_prompt=True` y `enable_thinking=False`.
+Registra el SHA-256 de esa plantilla y usa `P-METRICA` como id estable para que candidatos
+distintos sean comparables. La función no descarga nada; el futuro runner le inyecta el
+mismo tokenizer que usa el modelo.
+
+`calcular_metricas_candidato` consume los resultados producidos por
+`admision.correr.puntuar` y las trazas del mismo conjunto. Reutiliza `CONTROLES` del kit:
+no replica reglas ni calcula respuestas esperadas. Informa casos 9/9, controles parciales,
+desglose por control, ausencia de decisión, respuestas sin JSON reconocible, llamadas
+inválidas, llamadas, búsquedas, contexto, segundos y longitud del prompt.
+
+La comparación es lexicográfica y mayor-es-mejor: primero casos 9/9, luego controles
+correctos y recién después errores y eficiencia. Por eso una reducción de tokens nunca
+compensa perder un caso completo. Los candidatos solo son comparables si se midieron con
+los mismos casos, esperadas, normas, modelo, revisión y tokenizer; el runner auditable
+debe fijar y hashear esas entradas.
+
 ## Crear una variante
 
 Crear otro JSON dentro de `configuraciones/prompts/`, cambiar `nombre` y solo los textos
@@ -160,16 +186,20 @@ No se descargaron pesos, no se ejecutó GPU y no se midió calidad del modelo.
 de observaciones; corrección de JSON; cambio aislado del system prompt; orden del lote;
 conversaciones completas; estabilidad e integridad del hash.
 
-**No verificado:** comportamiento de una variante con Gemma real, tokens del prompt,
-calidad sobre casos, integración con `entrega.py`, persistencia de manifiestos y ejecución
-en GPU. Esta infraestructura no demuestra ninguna mejora de prompt.
+**Probado con dobles CPU:** además de la compatibilidad anterior, conteo exacto por IDs
+del tokenizer inyectado, opciones de la plantilla de chat, agregación de nueve controles,
+errores JSON y prioridad de casos completos sobre parciales.
+
+**No verificado:** comportamiento de una variante con Gemma real, cantidad real de tokens
+del baseline, calidad sobre casos, integración con `entrega.py`, persistencia de manifiestos
+y ejecución en GPU. Esta infraestructura no demuestra ninguna mejora de prompt.
 
 ## Próximos pasos
 
-1. Construir un conjunto prompt-dev independiente de práctica/test con el generador del
-   kit, un oráculo auditable y splits fijados.
-2. Implementar la métrica que combine casos 9/9, resultados parciales, inválidas y tokens.
-3. Crear el runner reproducible de experimentos y sus manifiestos.
+1. Recibir un conjunto prompt-dev independiente de práctica/test, con respuestas esperadas
+   auditables y splits fijados; esta unidad no lo genera.
+2. Crear el runner reproducible de experimentos y sus manifiestos.
+3. Medir el baseline con el tokenizer real fijado y Gemma sin entrenar, con autorización.
 4. Incorporar DSPy/GEPA con versiones fijadas, sin llamar servicios externos desde el
    agente operativo.
 5. Seleccionar el prompt con datos permitidos; recién después conectarlo desde `entrega.py`

@@ -1,6 +1,6 @@
 # Progreso y decisiones
 
-**Actualizado: 2026-11-05.** Hay generación y humo de entrenamiento LoRA con publicación/reanudación HF
+**Actualizado: 2026-11-09.** Hay generación y humo de entrenamiento LoRA con publicación/reanudación HF
 **en Kaggle T4**, no en A100. **Todavía no hubo entrenamiento con datos reales curados.** La carga solo texto
 está validada en T4. Esta bitácora centraliza evidencia y enlaza guías; no reemplaza el informe final.
 
@@ -22,7 +22,7 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | [#3 SFT](https://github.com/FranCalveyra/tp_final_ia_gen/issues/3) | Conversor, validación, snapshots/tokenización, Trainer LoRA y runner persistente; humo GPU T4 con HF/W&B y reanudación desde checkpoint HF | Cuatro criterios técnicos respaldados; aceptación/accesos y uso efectivo por Martu pendientes. KI-A100-001 mantiene deuda entrenamiento/evaluación/recursos |
 | [#4 Lotes](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4) | **Cerrado completed (2026-11-05), alcance funcional T4.** Carga única, lote activo, conversación completa; 1→4 baja 33,3→15,6 s/caso, mismos 10/50 | Deuda A100-40GB continúa en KI-A100-001; adapter final pendiente y causa CUDA T4 de lotes grandes no identificada |
 | #5 Recursos | Métricas y borrador Parte 5 con inferencia T4 y humo de entrenamiento solo texto: 15,675 GB pico | Recursos/costos A100 y antes/después con adapter final; integrar `INFORME.md` |
-| #13 Prompt | `PromptSpec`, baseline versionado y coordinador configurable, compatibles con `AgenteJSON` mediante dobles CPU | Dataset independiente, oráculo, métrica, runner reproducible y DSPy/GEPA |
+| #13 Prompt | `PromptSpec`, coordinador configurable, medición con tokenizer inyectado y métrica que prioriza 9/9, probados con dobles CPU | Runner auditable; dataset/esperadas externos acordados; tokens y calidad con Gemma real; DSPy/GEPA |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
 El formato de conversaciones es **propuesto**, pendiente de coordinación con Eze/Yas.
@@ -421,6 +421,18 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
   Solo se usaron modelos y entornos simulados para el código nuevo: no se cargó un modelo
   real, no se generaron datos y no se implementó DSPy/GEPA. Diseño y comandos:
   [optimización de prompt](optimizacion-prompt.md).
+
+### 2026-11-09: tokens y métrica de candidatos (issue #13, en progreso)
+
+- `admision_tp.evaluacion_prompts` mide los cuatro textos configurables y el contexto
+  inicial mediante IDs del tokenizer inyectado, sin aproximación por caracteres; conserva
+  opciones de chat y hash de plantilla. No descarga ni carga el tokenizer por su cuenta.
+- La métrica reutiliza los nueve `CONTROLES` y resultados de `admision.correr.puntuar`.
+  La clave prioriza casos 9/9, después parciales y finalmente errores/eficiencia; también
+  cuenta respuestas sin JSON con el mismo parser que el coordinador.
+- Verificación CPU focalizada: 5 tests con tokenizer, trazas y resultados artificiales,
+  todos pasan. Esto prueba el contrato y el orden, no tokens de Gemma ni calidad del agente.
+  [Diseño y límites](optimizacion-prompt.md#longitud-y-métrica-de-candidatos).
 
 ## Próximos pasos y bloqueos
 
