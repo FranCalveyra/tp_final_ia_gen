@@ -1,18 +1,27 @@
 # Progreso y decisiones
 
-**Actualizado: 2026-11-05.** Hay generación real con Gemma completo **en Kaggle T4** (línea de base
-y lotes), no en A100. **Todavía no hubo entrenamiento real.** Esta bitácora centraliza el estado y
-enlaza las guías; no reemplaza el informe final.
+**Actualizado: 2026-11-05.** Hay generación y humo de entrenamiento LoRA con publicación/reanudación HF
+**en Kaggle T4**, no en A100. **Todavía no hubo entrenamiento con datos reales curados.** La carga solo texto
+está validada en T4. Esta bitácora centraliza evidencia y enlaza guías; no reemplaza el informe final.
+
+**Ruta vigente:** Modal descartado definitivamente por decisión del usuario (2026-11-05), sin tarjeta.
+Kaggle es la plataforma operativa de desarrollo; evidencia propia T4 x2. A100-40GB final sigue pendiente:
+menú de `franciscocalveyra/tp-admision-baseline` verificado sin A100 (2026-11-05); determinar otra vía/contexto
+sin asumir GPU/VRAM ni equiparar T4 con A100.
+
+**Known Issue abierto:** [KI-A100-001](../README.md#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb).
+La consigna exige A100-40GB **también para entrenar**, además de evaluación/recursos; sin excepción acordada.
+Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto antes de la próxima ejecución GPU.
 
 ## Estado de nuestra parte
 
 | Issue | Implementado / validado | Falta para cerrar |
 |---|---|---|
-| #1 Baseline | **Cerrado (2026-11-04).** 50 casos × original/b/c en Kaggle T4: 10, 10 y 7 contra la referencia 12, 15 y 12 | Repetir en A100 si Modal se destraba |
-| #2 Infraestructura | **Cerrado (2026-11-04).** Lock, `uv sync` con inferencia, plantilla de variables, app A100-40GB, W&B, repo HF privado | Invitar a la cátedra a HF y W&B pasó al #16 |
-| #3 SFT | Validación de conversaciones, preparación, tokenización, Trainer LoRA y runner persistente; tokenizador real probado | Entrenar y probar corte/reanudación reales; publicación desde Modal y datos/prompt finales |
-| #4 Lotes | Coordinador del kit y adaptador admiten lotes; orden probado con dobles. Medido en T4 (2026-11-04): lote 1 y 4 válidos, **8 y 16 fallan con error CUDA** | Medir en A100-40GB; investigar el fallo de lotes grandes en T4 |
-| #5 Recursos | Infraestructura para corridas auditables | Mediciones antes/después, costos y proyección en `INFORME.md` |
+| #1 Baseline | **Cerrado (2026-11-04).** 50 casos × original/b/c en Kaggle T4: 10, 10 y 7 contra la referencia 12, 15 y 12 | Repetir en A100 por vía disponible a determinar |
+| #2 Infraestructura | **Cerrado (2026-11-04).** Lock, `uv sync` con inferencia, plantilla de variables, app A100-40GB (ahora legacy), W&B, repo HF privado | Invitar a la cátedra a HF y W&B pasó al #16 |
+| [#3 SFT](https://github.com/FranCalveyra/tp_final_ia_gen/issues/3) | Conversor, validación, snapshots/tokenización, Trainer LoRA y runner persistente; humo GPU T4 con HF/W&B y reanudación desde checkpoint HF | Cuatro criterios técnicos respaldados; aceptación/accesos y uso efectivo por Martu pendientes. KI-A100-001 mantiene deuda entrenamiento/evaluación/recursos |
+| [#4 Lotes](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4) | **Cerrado completed (2026-11-05), alcance funcional T4.** Carga única, lote activo, conversación completa; 1→4 baja 33,3→15,6 s/caso, mismos 10/50 | Deuda A100-40GB continúa en KI-A100-001; adapter final pendiente y causa CUDA T4 de lotes grandes no identificada |
+| #5 Recursos | Métricas y borrador Parte 5 con inferencia T4 y humo de entrenamiento solo texto: 15,675 GB pico | Recursos/costos A100 y antes/después con adapter final; integrar `INFORME.md` |
 | #13 Prompt | `PromptSpec`, baseline versionado y coordinador configurable, compatibles con `AgenteJSON` mediante dobles CPU | Dataset independiente, oráculo, métrica, runner reproducible y DSPy/GEPA |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
@@ -175,14 +184,14 @@ Consultar Git para confirmar el estado de publicación remoto; no se cierran iss
   compilado para torch 2.11, rompe el import de `AutoProcessor` (`operator torchvision::nms does not exist`).
   Solución: `pip uninstall -y torchvision`, agregado a la guía.
 - `t4-original-02` y `03` fallaron igual, por torchaudio y luego torchcodec de la imagen (CUDA 13.0 contra 13.2).
-  `t4-original-04` mostró un **bug real de la entrega**: `AutoProcessor` de Gemma 4 carga `Gemma4VideoProcessor`,
+  `t4-original-04` mostró un **bug real de la entrega**: `AutoProcessor` de Gemma 4 carga `Gemma 4VideoProcessor`,
   que exige torchvision, y torchvision no está en nuestro lock. En la A100 de la cátedra también habría fallado.
 - **Decisión:** `ModeloLocal` usa `AutoTokenizer`. El agente es solo texto, y así comparte con el entrenamiento
   (`tokenizacion.py`) el mismo chat template, ya validado con el tokenizer real en CPU. No se agregan
   dependencias de visión ni de audio. Tests: 82 corridos, 81 pasan y 1 opcional se saltea. Falta la corrida real.
 - `t4-original-08` (commit `e5c7f7b`) mostró **otro bug de la entrega y del entrenamiento**: forzar
   `attn_implementation="sdpa"` falla porque `AutoModelForCausalLM` arma el Gemma 4 completo y su
-  `Gemma4AudioModel` no soporta SDPA. **Decisión:** no forzar la atención. Verificado en
+  `Gemma 4AudioModel` no soporta SDPA. **Decisión:** no forzar la atención. Verificado en
   `transformers/modeling_utils.py:1844-1878` (5.22.1): por defecto prueba SDPA en cada submodelo y usa
   eager solo donde no se soporta. El texto sigue con SDPA (`_supports_sdpa = True`). Cambio en
   `modelo.py` y `entrenamiento.py`, con tests de regresión. Las torres de audio y visión se cargan
@@ -321,7 +330,7 @@ no calidad. La subida real a HF y W&B tampoco se probó. Modal no cambió (A100 
 - v4 falló con un `ValueError` sin mensaje: el CLI solo mostraba el tipo. Ahora imprime el traceback por stderr
   (el runner tapa los secretos). `estado.json` sigue guardando solo el tipo, porque se puede publicar.
 - v5 mostró **un bug que también rompía la A100**: `target_modules=["q_proj","v_proj"]` alcanzaba también a las
-  torres de visión y audio de Gemma 4, cuyas capas son `Gemma4ClippableLinear` y PEFT no las soporta.
+  torres de visión y audio de Gemma 4, cuyas capas son `Gemma 4ClippableLinear` y PEFT no las soporta.
   **Decisión:** LoRA solo sobre la atención del modelo de lenguaje, con el patrón `LORA_OBJETIVO`
   (`re.fullmatch` en PEFT, verificado en `peft/utils/other.py:1521`; nombres en `modeling_gemma4.py:2166`).
   Test de regresión. Suite: 106 corridos, 105 pasan y 1 opcional se saltea. Ningún checkpoint llegó a publicarse.
@@ -379,7 +388,7 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
 - **Decisión:** inferencia y entrenamiento cargan Gemma 4 con `vision_config` y `audio_config` en `None`
   (`admision_tp/carga.py`). El agente es solo texto: así no se crean las torres de visión y audio ni sus
   embedders, y sus pesos no ocupan VRAM. Verificado en transformers 5.22.1: ambas configuraciones son
-  opcionales (`configuration_gemma4.py:339-340`), `Gemma4Model` no crea esas partes si son `None`
+  opcionales (`configuration_gemma4.py:339-340`), `Gemma 4Model` no crea esas partes si son `None`
   (`modeling_gemma4.py:2164-2180`) y el `forward` solo las usa con `pixel_values` o `input_features`.
   El LoRA apunta a `language_model`, que no cambia.
 - Probado con dobles: 109 corridos, 108 pasan y 1 opcional se saltea.
@@ -416,18 +425,21 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
 ## Próximos pasos y bloqueos
 
 1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
-2. Crear y verificar el secreto HF de escritura (`hf-write`, nombre propuesto) y probar una
-   subida real a un repo privado; el runner opt-in ya existe (probado con dobles).
+2. Confirmar accesos individuales Kaggle/HF/W&B del equipo con el [checklist de handoff](handoff-equipo.md#checklist-de-accesos-hecho-versus-pendiente-de-comprobar);
+   no crear Secrets ni habilitar facturación Modal, plataforma descartada.
 3. Coordinar conversaciones curadas y prompt final; no entrenar sobre práctica.
-4. Facturación de Modal bloqueada: pide tarjeta. Mientras tanto, probar el baseline en Kaggle T4 x2 ([kaggle.md](kaggle.md)),
-   con autorización explícita y resultados aparte. Con Modal resuelto y autorización de GPU: probar carga, entrenamiento mínimo,
-   checkpoint y reanudación; luego baseline y lotes reales en A100-40GB.
+4. Determinar disponibilidad y VRAM de una vía A100-40GB sin lanzar sesiones para probar permisos.
+   El menú del notebook baseline de `franciscocalveyra` ya se verificó sin A100; no se inspeccionó VRAM
+   en sesión ni se verificaron otros contextos/cuentas. Kaggle reemplaza operativamente a Modal;
+   su T4 x2 validada no demuestra hardware final.
+   Cuando exista ruta y autorización específica, medir carga/backward/memoria y lotes allí.
 5. Completar accesos compartidos, mediciones de recursos y documentación final. Compartir el repo
    privado de HF y el proyecto W&B con la cátedra queda **para cerca de la entrega** (decisión del
    2026-11-03). La consigna no dice qué usuarios invitar: hay que preguntarle a la cátedra.
 
 Gemma comprimido en Mac es una posibilidad de desarrollo, no instalada ni medida; no
-reemplaza la ejecución final A100. El token HF actual es de lectura y no habilita publicación.
+reemplaza la ejecución final A100. El token HF de inferencia es de lectura y no habilita publicación; no confundirlo con el token de escritura
+usado en Kaggle. Los Secrets de Modal quedan como referencia legacy, no como setup pendiente.
 
 ## Guías específicas
 
@@ -442,7 +454,7 @@ reemplaza la ejecución final A100. El token HF actual es de lectura y no habili
 | Preparación de corrida | [preparacion-entrenamiento.md](preparacion-entrenamiento.md) |
 | Tokens y máscaras | [tokenizacion-entrenamiento.md](tokenizacion-entrenamiento.md) |
 | Trainer SFT | [entrenamiento-sft.md](entrenamiento-sft.md) |
-| Persistencia Modal | [entrenamiento-modal.md](entrenamiento-modal.md) |
+| Persistencia Modal (legacy, no usar) | [entrenamiento-modal.md](entrenamiento-modal.md) |
 | Respaldo Kaggle (T4 x2), inferencia y entrenamiento humo | [kaggle.md](kaggle.md) |
 | Parte 5 del informe (recursos y producción), borrador con mediciones T4 | [informe-parte5.md](informe-parte5.md) |
 | Optimización de prompt, infraestructura inicial | [optimizacion-prompt.md](optimizacion-prompt.md) |
@@ -453,3 +465,192 @@ Después de cada unidad: actualizar fecha y estado; agregar decisión/motivo o e
 (también fallido); citar comando, artefacto y limitación; renovar bloqueos y próximo paso.
 No convertir métricas de desarrollo en resultados finales ni marcar validado lo que solo
 está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
+
+
+## 2026-11-05 — Importación de trazas nuevas de la cátedra
+
+- Importados por API desde `austral-ing-ai/talksmith-ing`, carpeta `missions/TPFinal`, commit inmutable `876d8894c1cd339ffb968f12754a21f460ffb393`. El fetch no respondió y se canceló; no se mezclaron historiales Git ni se modificó `admision/`.
+- `entrenamiento/trazas.jsonl`: 800 registros, SHA-256 `adc42d2769cdb90e8509ab4fc71daf02f8c8934137315d06e9f87bd402ff7290`.
+- `historial/trazas.jsonl`: 2.000 registros, SHA-256 `02a7a25bb73bfa199fe0a8a74d5a8332815b786e37056692a58167c9ec69cda8`.
+- Verificación CPU: cada línea parsea como JSON y los cuatro archivos importados coinciden con el hash Git blob publicado por GitHub. Esto NO valida corrección de decisiones, compatibilidad con el conversor ni ausencia de contaminación. Sin GPU, pesos, builds, commits ni push.
+- README y consigna originales actualizados conservados en `docs/referencias/kit-876d889/`; no reemplazan nuestros documentos. Sus enlaces relativos remiten a la estructura del kit original. La cátedra especifica conversión de pasos a mensajes y confirma que su referencia entrenó con las 800 trazas.
+- Triage del subagente: asignados a Fran siguen abiertos #3 (SFT real), #4 (lotes A100/adapter final), #5 (recursos finales); #16 entrega es compartido. El humo sintético T4 no cierra SFT real ni demuestra funcionamiento A100-40GB.
+- Próximo paso recomendado: #3, auditar procedencia, separación de datos y compatibilidad de las trazas con el pipeline, coordinando conversaciones curadas con Eze/Yas y prompt con Martu antes de entrenar. No se ejecutó entrenamiento.
+
+### 2026-11-05: auditoría CPU de trazas nuevas (issue #3)
+
+- Auditadas las 800 trazas de referencia y las 2.000 del historial importadas de upstream `876d889`:
+  [informe y límites](auditoria-trazas.md). **No entrenan directamente:** el esquema crudo no satisface
+  conversaciones v1; una transformación exploratoria en memoria sí pasa su estructura en 2.800/2.800.
+- Las 2.000 trazas alinean con el CSV en ids, fecha, operador y los ocho campos de ficha. No se evaluó
+  corrección normativa: el historial sigue requiriendo clasificación/curación. Las 800 varían parámetros
+  entre casos; no deben reemplazarse sus búsquedas por las normas originales fijas.
+- Validación CPU: `rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest test_conversaciones test_preparacion test_tokenizacion -q`:
+  18 ejecutados, 17 pasan y 1 opcional omitido. Sin GPU, tokenizador, pesos, entrenamiento ni publicaciones.
+- Próximo mínimo: acordar procedencia y prompt; conversor determinista de trazas a v1 que conserve acciones/
+  observaciones y excluya la observación terminal. No implementado en esta auditoría.
+
+### 2026-11-05: conversor determinista de trazas a conversaciones v1 (issue #3)
+
+- Implementadas las interfaces públicas acordadas `convertir_traza` y `convertir_archivo`, con CLI CPU,
+  origen/prompt obligatorios y referencias a fuente/id. Conserva acciones y observaciones; solo omite el
+  resultado terminal. Valida secuencia, ficha y contrato v1 antes de publicar; rechaza ids duplicados y no
+  sobrescribe salidas (tampoco symlinks). [Guía y comandos](conversaciones-entrenamiento.md#conversor-cpu-de-trazas-implementado).
+- TDD red→green por unidad, sin mocks internos. Comando CPU completo:
+  `rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest discover -s tests -q`:
+  **116 ejecutados, 115 pasan y 1 opcional omitido**. Suite pertinente: 25/24/1.
+  Los rojos esperados y un fallo inicial del propio test de rechazo (contexto `assertRaises` fuera del subtest)
+  se corrigieron antes del verde; no hubo builds, instalaciones ni GPU.
+- Exploración de fuentes: 800 + 2.000 conversiones válidas en memoria usando el prompt actual, sin escribir
+  conversaciones finales. Sigue pendiente acordar procedencia de referencia, curar historial y recibir el
+  prompt final; convertir estructura no valida decisiones ni contaminación. No se cerró #3 ni se entrenó.
+
+
+### 2026-11-05: auditoría final de infraestructura #3 y handoff del equipo
+
+- Criterios revisados contra trainer, persistencia, tests y artefactos locales reales: mecanismos implementados;
+  humo T4 v6/v7 terminado, HF con revisiones y mismo run_id W&B al reanudar. **No cierra #3 completamente:**
+  A100-40GB/Modal y corte/recuperación reales siguen sin validar; datos/prompt finales son dependencias externas.
+  [Matriz y comandos para Martu](entrenamiento-sft.md), sin agregar otro trainer ni nuevas seams de tests.
+- Corregidas afirmaciones obsoletas en la guía: sí hubo humo GPU y publicación HF en Kaggle, sí se carga adapter
+  en inferencia y el collator ya preserva padding `-100`. El Secret `hf-write` pendiente es específico de Modal.
+- Ergonomía pendiente, no bloqueo del trainer: Modal no expone cadencia de checkpoints; usa50. Para humo con
+  checkpoint temprano existe CLI directa `--guardar-cada 2`; en Modal hay que planificar suficientes pasos
+  y comprobar un checkpoint confirmado. No se autorizó ni ejecutó ese ensayo.
+- Verificación: `rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest test_entrenamiento test_persistencia test_kaggle_entrenamiento test_cli_entrenar test_preparacion test_tokenizacion test_conversion_trazas -q`:
+  **52 ejecutados, 51 pasan y 1 opcional omitido**. `--help` de entrenar/preparar/tokenizar correcto sin GPU.
+- Asignaciones GitHub realizadas y verificadas por la sesión principal: Eze `ezequielrickert` #6–9,
+  Yas `Yasmindesivo` #10–12, Martu `MartuGiordanelli` #13–15 y los cuatro #16.
+  [Handoff por persona](handoff-equipo.md): contratos, outputs, accesos propios y dependencias inevitables.
+  Paquete preparado para `feat/training-handoff`; commit/push autorizados posteriormente por el usuario.
+  Verificar publicación y hash comunicado por chat; no está integrado en `main` ni basta actualizar esa rama.
+
+
+### 2026-11-05: accesos concretos y auditoría de pendientes #4/#5
+
+- [Checklist de handoff](handoff-equipo.md#checklist-de-accesos-hecho-versus-pendiente-de-comprobar):
+  GitHub código/asignaciones hechos (paquete inicial `3d7da60`, rama `feat/training-handoff`); accesos
+  individuales Kaggle/HF/W&B **no verificados**, sin invitaciones ni cambios remotos en esta unidad.
+  Notebooks inferencia para Eze/Martu y entrenamiento para Martu, con copia/versión separada y Secrets propios.
+- Guía Kaggle corregida con artefactos reales y [matriz SFT](entrenamiento-sft.md); no confundir T4 histórico
+  con estado actual de cuota/driver ni con validación A100. Informe Parte 5 ahora distingue humo 15,675 GB,
+  diagnóstico lote 8 posterior y lote 16 no repetido con bloqueo; causa CUDA continúa siendo hipótesis.
+
+| Issue | Nuestra parte ya implementada / evidencia | Bloqueo propio de validación | Dependencia de equipo | ¿Cerrar completo solo con CPU? |
+|---|---|---|---|---|
+| #3 | Pipeline y handoff; humo LoRA T4, HF/W&B/resume | A100-40GB/Modal, corte/recuperación real | Datos curados y prompt para corrida final | No |
+| #4 | Carga única (`entrega.py`/`ModeloLocal`), lote activo (`AgenteJSON`), devuelve mensajes completos; medición 1/4 T4 | Lotes/rendimiento estable en A100; default sigue 1 | Adapter/prompt final para validación final | No |
+| #5 | Métricas y borrador con fuentes, tiempos T4 y humo VRAM | Recursos/costo/capacidad A100 medidos | Modelo final para antes/después e informe compartido | No |
+
+- Verificación local de artefactos: `salida/tiempos.json` da 33,273/15,642/17,366 s por caso para
+  lote1/lote 4/lote 8 bloqueado; los tres completos 10/50 y 0 sin decisión. Las identidades y trazas por caso se
+  documentaron en el barrido previo (conversación idéntica 49/50 para 1/4, mismo resultado 50/50).
+  Lotes 8/16 originales tienen error CUDA aunque sus `runner.json` históricos indiquen rc 0.
+- **Se puede terminar CPU:** documentación/evidencia y checklist de acceso, no los tres issues completos.
+  No hay razón para inventar otro cambio de código. Próximo propio: habilitar facturación/permisos Modal y
+  pedir autorización para un humo en 1×A100-40GB con checkpoint confirmado y recuperación; runner admite
+  timeout 3600 s por defecto. Tiempo efectivo y costo A100 no medidos: confirmar tarifa/cuota y presupuesto
+  antes de ejecutar; no extrapolar desde T4 ni encadenar entrenamiento final sin autorización aparte.
+- Checks de esta unidad documental: suite CPU completa `rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest discover -s tests -q`:
+  **116 ejecutados, 115 pasan y 1 opcional omitido**; `rtk git diff --check` limpio y sin enlaces locales a
+  archivos inexistentes en los cuatro documentos modificados. No se validaron anchors ni recursos remotos.
+
+
+### 2026-11-05: Modal descartado definitivamente; Kaggle es la ruta operativa
+
+- **Decisión explícita del usuario:** no pondrá tarjeta; Modal se descarta, no queda pendiente destrabarlo.
+  Esta decisión reemplaza los planes previos de setup/corte/publicación en Modal, conservados arriba como
+  historia. No se borraron código ni dependencias y no se ejecutó infraestructura.
+- Kaggle deja de ser fallback temporal. La evidencia propia sigue siendo T4 x2: inferencia/lotes y humo SFT,
+  publicación versionada HF, W&B y reanudación real desde un checkpoint HF completo. Eso permite proponer
+  el cierre **de infraestructura genérica #3**, sin exigir un nuevo corte en Modal ni cerrar el issue automáticamente.
+- #3 puede renombrarse **“Pipeline SFT reproducible con checkpoints HF, W&B y reanudación en Kaggle”**;
+  sustituir el requisito de plataforma Modal por Kaggle y conservar el caveat explícito: A100-40GB aún no
+  validada, datos/prompt/entrenamiento finales pendientes. La sesión principal decidirá actualizar el tracker.
+- #4/#5 mantienen mediciones de hardware final y antes/después pendientes. A100-40GB continúa como requisito;
+  vía alternativa a determinar. Kaggle CLI lista A100 con posibles restricciones; disponibilidad y VRAM de
+  nuestras cuentas no verificadas ([fuente y límites](kaggle.md)). No se lanzó GPU para comprobarlo.
+- Guías de estado/ruta actual y Parte 5 distinguen escenario Modal histórico/ilustrativo de próximos pasos.
+  `entrenamiento-modal.md` y el bloque Modal de entorno quedan **legacy / no usar**. No se presenta la tarifa
+  histórica de Modal como presupuesto de la plataforma futura ni se extrapolan recursos T4 a A100.
+
+- Verificación documental de esta decisión: `rtk git diff --check` limpio; sin destinos locales inexistentes
+  en los siete documentos revisados. No se probaron enlaces remotos/anchors ni se repitieron tests CPU por
+  ser cambios solo de documentación; no hubo GPU, descargas, instalaciones, builds ni escrituras cloud.
+
+
+### 2026-11-05: disponibilidad de acelerador revisada sin iniciar GPU
+
+- Sesión principal verificó en Brave la cuenta `franciscocalveyra`, notebook `tp-admision-baseline`,
+  Settings → Accelerator: solo `None`, `GPU T4 x2` (ya seleccionado) y `TPU v5e-8`; **no aparece A100**.
+  [Vista consultada](https://www.kaggle.com/code/franciscocalveyra/tp-admision-baseline/edit/run/365769288).
+- Draft Session apagada antes y después; sin ejecutar celdas, iniciar GPU, guardar ni cambiar Settings.
+  VRAM no inspeccionada en sesión. Es evidencia de ese menú/cuenta/notebook el día indicado, **no demuestra**
+  ausencia de A100 en todo Kaggle ni describe cuentas ajenas. Catálogo global A100 no concede permisos.
+- Guía Kaggle y handoff actualizados; requisitos A100-40GB y vía final pendiente no cambiaron.
+  Verificación de docs: diffcheck limpio; sin cambios de código, pruebas GPU ni operaciones remotas propias.
+
+
+### 2026-11-05: avanzar en T4 con deuda A100 explícita
+
+- Usuario decidió probar T4 mientras tanto y registrar A100 como deuda futura:
+  [KI-A100-001 en README](../README.md#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb),
+  añadido del equipo sin alterar el contrato original. Fran coordina; vinculado a #3/#4/#5 existentes.
+- **Corrección importante:** `mission.md` línea 98 exige A100-40GB tanto para entrenamiento como para corrida
+  de cátedra; línea 220 exige recursos/tiempos en ese hardware. No es solo una validación de entrega final.
+  No hay excepción acordada. Resolver con evidencia A100 completa o aceptación explícita de alternativa
+  por la cátedra y la validación que acuerden, no con una inferencia desde T4.
+- T4 autorizado en principio para desarrollo; datos/configuración, timeout y consumo de la corrida concreta
+  aún requieren confirmación. No se ejecutó GPU, build, test, descarga ni cambio remoto en esta unidad docs.
+- Handoff enlaza la deuda. `rtk git diff --check` limpio; historial de decisiones anteriores preservado.
+
+
+### 2026-11-05: cierre funcional de lotes y aceptación pendiente del handoff SFT
+
+- Usuario aprobó terminar handoff operativo y actualizar #3/#4 sin GPU. #3 conserva cuatro criterios
+  técnicos con evidencia T4; último criterio de uso por Martu sigue pendiente. Recepción, `--help` y
+  preflight de permisos no equivalen a ejecutar sus experimentos.
+- Sesión principal actualizó y verificó GitHub: [#3](https://github.com/FranCalveyra/tp_final_ia_gen/issues/3)
+  sigue **OPEN**, nuevo título “Pipeline SFT reproducible con checkpoints HF, W&B y reanudación en Kaggle”,
+  primeros cuatro criterios marcados y uso Martu pendiente.
+- [#4](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4) verificado **CLOSED / COMPLETED**, sus cuatro
+  criterios funcionales marcados con evidencia T4. El body/comentario conserva explícitos KI-A100-001 y
+  adapter final pendientes. Esta edición documental no hizo operaciones externas ni consume GPU.
+- [Handoff](handoff-equipo.md#pendientes-por-persona-y-aceptación-operativa) enumera accesos pendientes por
+  Eze/Martu/Yas y datos de cuenta faltantes; usernames Kaggle/HF/W&B no se infieren de GitHub. Yas puede
+  curar en CPU sin esos accesos adicionales. No se enviaron invitaciones ni se compartieron Secrets.
+- **KI-A100-001 permanece abierto** para entrenamiento/evaluación/recursos; #5 no se cierra. Sin excepción
+  de cátedra ni consumo GPU nuevo. Checks documentales: diffcheck limpio y enlaces locales revisados.
+
+### 2026-11-05: cerrar aporte documental propio de recursos e infraestructura
+
+- Parte 5 corregida contra artefactos locales: el runner reportó 15.360 MiB por T4 en esas sesiones
+  (=16,106 GB decimales, 32,212 GB para ambas). Métricas usan bytes/10⁹; la afirmación reservada 30,3 GB
+  sobre capacidad 30 GB mezclaba GiB/GB y se retiró. Asignada/reservada no se suman; picos por GPU no
+  necesariamente coinciden. No se infiere diagnóstico CUDA a partir de esos agregados.
+- También se retiró “GPU-segundos”: son duraciones de pared del runner, no cuota facturada ni cómputo
+  por dispositivo. Separados `train_runtime`, runner y sesión; 340 s v6/v7 no es la cuota total.
+- Latencia heurística 5×micro-lote omitía espera entre micro-lotes. Ahora se informa finalización bajo 50
+  casos desde inicio común (`admision/correr.py`, `ultima_llamada`): lote 4 mín 302,221/mediana 670,895/
+  máx 782,102 s; throughput amortizado 15,642 s/caso no es latencia individual. Sin SLO interactivo medido.
+- Fórmulas de capacidad/costo de producción con variables explícitas, sin nueva tarifa ni presupuesto.
+  [Matriz #5](informe-parte5.md#9-integración-de-criterios-5): **trabajos futuros redactados**, tres criterios
+  cuantitativos aún parciales por modelo/hardware final. #5 no se cierra; no fabricar más cambios CPU.
+- Preparado [aporte Parte 4 infraestructura](informe-parte4-infra.md) para integración conjunta #16:
+  enlaces a contratos/evidencia y límites, sin apropiarse de experimentos de Martu ni crear `INFORME.md`.
+  Scripts CPU stdlib verificaron duraciones, conversiones de unidades y cuantiles sobre artefactos ya existentes;
+  sin GPU, descargas, instalaciones, builds, tests nuevos ni escrituras cloud.
+
+- Verificación final de esta unidad: `rtk git diff --check` limpio y enlaces a archivos locales existentes
+  en Parte 4 infra/Parte 5/bitácora. Sin pruebas GPU ni tests nuevos; criterio trabajos futuros listo para integrar,
+  no cumplimiento total #5 ni entrega #16 terminada.
+
+
+### 2026-11-05: integración autorizada en main
+
+- Usuario autorizó integrar y publicar todo en `main`. Sesión principal verificó `origin/main=fb74ce9`
+  como ancestro (0/5 de divergencia), cambió a `main` y realizó fast-forward local hasta `1353cce`.
+- [Handoff](handoff-equipo.md) actualizado para `main`, árbol limpio y `pull --ff-only`; rama feature/hash
+  inicial conservados como historia. El commit de esta actualización y el push deben verificarse por la
+  sesión principal antes de informar éxito remoto; usar el hash comunicado por chat, no uno autorreferente.
+- Esta unidad solo cambió los dos documentos; diffcheck limpio. Sin tests, GPU, builds ni operaciones Git/cloud propias.

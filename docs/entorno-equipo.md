@@ -1,5 +1,10 @@
 # Preparar el entorno del equipo
 
+> **Actualización 2026-11-05:** Modal descartado definitivamente. Sus comandos/Secrets de esta guía son
+> legacy y no deben ejecutarse. Usar [Kaggle](kaggle.md) para desarrollo; validación final A100-40GB
+> por vía alternativa todavía a determinar. No se borraron dependencias ni código histórico.
+
+
 Desde la raíz del checkout, Python 3.12 o superior y uv instalado. Las pruebas y el buscador no necesitan cuentas, tokens ni GPU.
 
 ## Camino CPU (sin builds)
@@ -16,7 +21,7 @@ solo se instalan en Linux: en macOS/Windows queda PyYAML. Los tests simulan el m
 
 ## Configuración sin secretos en Git
 
-`.env.example` documenta las variables. **No se carga automáticamente**: exportá únicamente las necesarias en tu terminal o configurá los Secrets de Modal. No pegues tokens en comandos que queden en el historial ni en el chat. `.env` y `.env.*` están ignorados salvo la plantilla.
+`.env.example` documenta las variables. **No se carga automáticamente**: exportá únicamente las necesarias en tu terminal o configurá los Secrets propios de Kaggle. No pegues tokens en comandos que queden en el historial ni en el chat. `.env` y `.env.*` están ignorados salvo la plantilla.
 
 | Variable | Uso |
 |---|---|
@@ -29,7 +34,7 @@ solo se instalan en Linux: en macOS/Windows queda PyYAML. Los tests simulan el m
 | `ADAPTER_REPO`, `ADAPTER_REVISION`, `ADAPTER_SUBCARPETA` | Adapter LoRA opcional; ver [modelo](modelo-modal.md#adapter-lora-probado-con-dobles) |
 | `BUSCADOR_VARIANTE` | `baseline` o candidato `sin_comunes` |
 
-## Modal e inferencia (no ejecutar sin autorización)
+## Modal e inferencia — LEGACY, NO USAR
 
 Cada integrante usa su propia cuenta y créditos. Instalar el CLI no ejecuta GPU:
 
@@ -66,4 +71,4 @@ uv lock --check --no-build
 - Proyecto W&B compartido; integración de entrenamiento.
 - Descarga real del modelo y prueba GPU (bloqueadas por medio de pago).
 
-Esta guía no crea cuentas, repositorios ni proyectos externos. Ver [ejecución del modelo](modelo-modal.md) para la futura prueba autorizada.
+Esta guía no crea cuentas, repositorios ni proyectos externos. Ver [Kaggle](kaggle.md) para la ruta actual; [ejecución del modelo](modelo-modal.md) conserva referencias históricas a Modal.

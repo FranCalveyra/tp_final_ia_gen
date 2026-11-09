@@ -1,11 +1,15 @@
-# Entrenamiento durable en Modal — todavía sin ejecución GPU
+# LEGACY: entrenamiento en Modal — NO USAR
+
+> **Decisión 2026-11-05:** Modal descartado definitivamente, sin tarjeta. Este documento conserva el diseño
+> histórico, no una ruta activa ni tareas de setup/validación pendientes. No ejecutar sus comandos ni crear Secrets.
+> Ruta operativa: [Kaggle](kaggle.md); A100-40GB final por vía alternativa a determinar. Código/dependencias conservados.
 
 El runner conserva entradas, manifiestos, checkpoints y salida final en el Volume v2
 `tp-admision-entrenamiento`. Por defecto no publica en HF: usa solamente los secretos
 existentes `huggingface` (lectura del modelo base) y `wandb-secret` (W&B, únicamente si `--online`).
 La publicación es opt-in (ver [Publicación HF](#publicación-hf-opt-in-probada-con-dobles)).
 
-## Comando futuro (NO ejecutado)
+## Comando histórico (NO ejecutar)
 
 ```bash
 uv run --locked --no-build --group modal modal run infra/entrenamiento_app.py \
@@ -71,11 +75,17 @@ no lo limpia. Los Dict de Modal tienen expiración propia de 7 días sin activid
 
 ## Qué está probado y qué falta
 
+El trainer compartido sí tiene humo y reanudación HF reales en Kaggle T4; ver la
+[matriz de evidencia y handoff](entrenamiento-sft.md). Esa prueba no valida el Volume, locks ni GPU A100 de Modal.
+
+El entrypoint usa checkpoints cada 50 pasos: el humo habitual de 8 pasos no garantiza
+un checkpoint reanudable. Planificar suficientes pasos y verificar un checkpoint completo; `final/` no basta.
+
 Los tests CPU con dobles verifican copia exacta, hashes, exclusión, recarga, commits,
 diagnóstico y reanudación. **No demuestran persistencia real de Modal ni entrenamiento.**
 La publicación quedó **probada con dobles** (el modo llega al entrenador y los recibos se
 conservan al reanudar); la definición Modal de `ejecutar_publicando` no se importa en tests.
-Faltan prueba GPU y corte/reanudación reales, el secreto `hf-write` y una subida real,
+Faltan prueba GPU y corte/reanudación reales **en Modal/A100**, el secreto `hf-write` de Modal y una subida desde esa ruta,
 y acceso de la cátedra. No agregar el token de escritura al agente.
 
 Regenerar dependencias sin construir:

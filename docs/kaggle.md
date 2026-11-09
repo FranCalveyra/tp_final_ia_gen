@@ -1,11 +1,25 @@
-# Respaldo de desarrollo: Kaggle (T4 x2)
+# Ruta operativa de desarrollo: Kaggle (T4 x2)
 
-Estado: **probado con dobles** (tests del runner, config y métricas; el entrenamiento humo se describe al final). No se ejecutó nada en Kaggle ni en GPU.
-Es un respaldo temporal porque Modal exige una tarjeta que nadie del equipo puede cargar.
+Estado: **validado en GPU T4 x2 para baseline, lotes y humo SFT sintético**, además de tests con dobles.
+Evidencia fechada y limitaciones en [progreso.md](progreso.md) y [matriz SFT](entrenamiento-sft.md).
+No está validado en A100-40GB ni con entrenamiento de datos reales curados.
+**Decisión 2026-11-05:** Modal descartado definitivamente; Kaggle deja de ser fallback temporal.
+La vía alternativa para validar el hardware final A100-40GB todavía está por determinar.
 La entrega final sigue siendo A100 de 40 GB con los defaults (`bfloat16`, `cuda:0`), que no cambiaron.
 
+**Otros aceleradores:** la [documentación oficial de Kaggle CLI](https://github.com/Kaggle/kaggle-cli/blob/main/docs/kernels.md)
+lista `NvidiaTeslaA100` y advierte restricciones por competencia/administración para algunos aceleradores.
+**Menú verificado el 2026-11-05:** en la cuenta `franciscocalveyra`, notebook
+[`tp-admision-baseline`](https://www.kaggle.com/code/franciscocalveyra/tp-admision-baseline/edit/run/365769288),
+Settings → Accelerator mostró únicamente `None`, `GPU T4 x2` (ya seleccionado) y `TPU v5e-8`: **no A100**.
+La inspección fue de solo lectura, con Draft Session apagada antes/después, sin ejecutar celdas, iniciar sesión
+GPU, guardar ni cambiar Settings. **No se inspeccionó VRAM en una sesión**. Esto limita ese contexto/cuenta;
+no descarta otros notebooks, cuentas o restricciones de competencia. El catálogo global no garantiza acceso.
+Nuestra evidencia propia de ejecución sigue siendo **T4 x2**, no validación del hardware final.
+
 **Límites:** resultados, tiempos y VRAM de Kaggle **no son comparables** con A100 y se reportan aparte.
-La cuota es de unas 30 h/semana de GPU (aproximada, la fija Kaggle) y las sesiones son cortas.
+La referencia histórica de cuota es unas 30 h/semana de GPU; la fija Kaggle. Consultar cuota disponible
+actual en cada cuenta antes de autorizar una sesión: no se verificó aquí ni se garantiza ese saldo.
 
 ## Variables nuevas (solo desarrollo)
 
@@ -15,9 +29,9 @@ La cuota es de unas 30 h/semana de GPU (aproximada, la fija Kaggle) y las sesion
 | `MODELO_DEVICE_MAP` | `cuda:0` | `auto`, `cuda`, `cuda:N` |
 
 En T4 (sm_75) no hay bf16 nativo: el runner usa `float16` y `auto` (reparte Gemma entre las 2 GPU).
-fp16 puede dar NaN o salidas degradadas con Gemma; si pasa, no es un bug del agente. Se reportó
-overflow en fp16 en la torre de visión de Gemma 4 grandes (no E4B) y en Gemma 3 en T4. Para texto
-con E4B no está confirmado: se verifica en la primera corrida (mirar `stderr` y salidas vacías).
+La inferencia E4B fp16 y el humo de ocho pasos entrenaron sin NaN en las corridas registradas;
+no garantiza estabilidad de otros datos o configuraciones. Si aparecen NaN/salidas vacías, guardar evidencia
+y diagnosticar sin atribuir automáticamente el fallo a fp16 o al agente. La carga actual omite torres visión/audio.
 La VRAM de `metricas.jsonl` es la **suma** de las GPU visibles (cota superior) y trae `vram_pico_por_gpu_gb`.
 
 ## Cómo correr
@@ -75,12 +89,16 @@ puntuar local con `admision.correr puntuar` (ver [modelo-modal.md](modelo-modal.
 
 ## Entrenamiento SFT (humo) en Kaggle
 
-Estado: **implementado y probado con dobles**. No se ejecutó en GPU. fp16 en T4 con Gemma no está probado
-para entrenar (puede dar NaN/overflow: el `GradScaler` lo atenúa, no lo descarta). Modal queda como está.
-Es una **prueba de pipeline** con datos sintéticos: no dice nada de la calidad del modelo.
+Estado: **humo validado en GPU T4**. v6 entrenó ocho pasos y publicó checkpoints 2/4/6/8/final;
+v7 retomó checkpoint-2 publicado y completó con el mismo run_id W&B. Artefactos locales:
+`corridas/kaggle/humo-entrena-{1-v6,2-v7}`. La variante `humo-solo-texto` terminó y registró
+15,675 GB pico (suma de GPU) con conversaciones cortas. Ver [evidencia SFT](entrenamiento-sft.md).
+Sigue siendo una **prueba de pipeline sintética**, no calidad ni memoria de un entrenamiento real,
+y no valida A100 ni promete recuperar pasos posteriores al último checkpoint íntegro.
+La reanudación real desde HF sí valida el mecanismo genérico; no requiere una prueba adicional en Modal descartado.
 
 **Qué hace.** `infra/kaggle_entrenamiento.py` llama a `scripts.entrenar` (el mismo `entrenar` de siempre) en
-un subproceso con `--precision fp16 --dispositivos auto` y **siempre** `--online --publicar`: en Kaggle los
+un subproceso con `--precision fp16 --dispositivos auto` y **por defecto** `--online --publicar`: en Kaggle los
 archivos de una versión cortada se pueden perder, así que cada checkpoint sube a HF (repo privado `hf_repo` de
 la configuración, `FranCalveyra/tp-admision`) y W&B registra la corrida. Con `auto` el modelo se reparte entre
 las 2 T4 en un solo proceso: Transformers lo detecta por `hf_device_map` y no usa DataParallel
@@ -156,14 +174,16 @@ El runner baja solo `checkpoint-2/*` en esa revisión (`snapshot_download` con `
 `entrenar` retoma desde el checkpoint (mismo run de W&B, `resume="must"`). No puede cambiar nada de modo, precisión,
 dispositivos, `--guardar-cada`, datos ni código. Éxito esperado: pasos 3 a 8 y checkpoints 4, 6, 8 nuevos en HF.
 
-**GPU estimada** (sin medir): primera corrida unos 5 a 8 min (bajar y cargar el modelo domina; 8 pasos de ~300 tokens y
-subidas de adapter chicas) y la reanudación otros 4 a 6 min: ~15 min de la cuota en total.
+**Tiempo medido histórico:** v6 unos 7 min de sesión y v7 unos 9 min (bitácora); los runners registran
+163 y 177 s, respectivamente, sin toda la instalación/arranque. El entrenamiento v6 aislado registró 17,4 s.
+Estos tiempos con datos cortos **no son un presupuesto garantizado** para nuevas sesiones ni para datos reales.
+Las cuotas y tiempos actuales no se verificaron; acordar alcance/timeout antes de ejecutar.
 
 ## Dependencias: riesgo conocido
 
 `requirements-inferencia.txt` fija `torch==2.15.0` con runtime CUDA **13.2**. Según las notas de PyTorch 2.11,
 los wheels de PyPI con CUDA 13 solo soportan Turing (sm_75) o más nuevo: **T4 sí, P100 (sm_60) no**.
-CUDA 13 pide un driver reciente; si `nvidia-smi` muestra un driver de la serie 5xx viejo, `torch.cuda.is_available()`
-puede dar `False`. No se verificó el driver actual de Kaggle. Si pasa: instalar un torch con CUDA 12.x compatible
-con ese driver (o usar el torch de la imagen) y las demás versiones fijadas sin reinstalar torch, y anotarlo en `runner.json`/bitácora.
-`transformers==5.22.1` podría exigir un torch mínimo: tampoco verificado.
+Compatibilidad **histórica verificada**, no promesa para una imagen futura: `humo-solo-texto/runner.json`
+registra driver 580.178.04, torch 2.15.0+cu132, runtime CUDA 13.2 y dos T4; el runner terminó con código 0.
+No se consultó el driver actual de Kaggle. Ante cambios, registrar `nvidia-smi`/versiones y diagnosticar;
+no cambiar torch ad hoc contradiciendo el lock. Cualquier ajuste requiere resolver versiones y medirlo por separado.

@@ -1,76 +1,132 @@
-# Entrenador SFT LoRA (implementado, todavía no validado en GPU)
+# Entrenador SFT LoRA: implementado y validado con humo en T4
 
-Entrena únicamente las respuestas marcadas por la tokenización. Usa el modelo base
-con revisión fija y LoRA `q_proj/v_proj` **solo del modelo de lenguaje** (patrón `LORA_OBJETIVO`:
-las torres de visión y audio de Gemma 4 usan `Gemma4ClippableLinear`, que PEFT no soporta), rango 8,
-alpha 16, dropout 0. Son parámetros
-iniciales, **no una demostración de que Gemma entre en A100 de 40 GB**.
+**La infraestructura genérica de #3 está implementada y tiene humo/reanudación HF reales en T4.**
+Desde la decisión del 2026-11-05, **Modal está descartado definitivamente**: no se incorporará tarjeta.
+Kaggle es la ruta operativa de desarrollo. La entrega sigue exigiendo A100-40GB, aún sin validar y por una
+vía alternativa **a determinar**. Datos/curación/prompt finales corresponden al equipo.
 
-## Qué está probado
+## Criterios de #3 y evidencia
 
-Tests CPU con dobles comprueban snapshots, padding/etiquetas, diagnóstico, rechazo de
-salidas existentes, reanudación y publicación privada. No ejecutan Trainer ni PEFT.
-El tokenizador real se validó por separado. No hay resultados de entrenamiento aún.
+| Criterio | Implementado / CPU con dobles | Dependencia real / GPU |
+|---|---|---|
+| SFT LoRA para A100-40GB | `entrenamiento.py`, defaults bf16/una GPU para hardware final; Modal conservado como legacy | LoRA/backward en 2 T4 fp16; **A100 sin validar** |
+| Conversaciones, configuración y semilla | snapshots/hash en preparación, tokenización y `corrida.json`; validación antes de cargar pesos | tokenizador real CPU validado; humo T4 con semilla/config fijadas |
+| Cada checkpoint HF con revisión | repo privado obligatorio, recibo `publicacion-hf.json`, índice `publicaciones.json`; fallar si upload falla | v6 publicó 2/4/6/8/final con commits inmutables |
+| W&B con linaje | `wandb.init(config=auditoria)` incluye hashes de entradas, config/semilla, LoRA/política/código; `run.log` agrega checkpoint/revisión | v6/v7 online, mismo run_id; comprobado en artefactos locales, sin consultar W&B en esta auditoría |
+| Retomar tras corte | exige optimizer/scheduler/RNG/Trainer/adapter/manifiestos; fp16 exige scaler; recuperación HF con revisión fijada en Kaggle | v7 descargó checkpoint-2 HF y continuó pasos 3–8; valida recuperar el último checkpoint completo, no pasos posteriores o escrituras parciales |
+| Martu puede operarlo | comandos y contratos debajo, validación CPU disponible | falta que lo use con datos/prompt acordados; no se ejecutó ese experimento |
 
-## Ejecutar (requiere autorización y una máquina Linux con CUDA)
+**Artefactos reales locales, no versionados:** `corridas/kaggle/humo-entrena-1-v6` y `humo-entrena-2-v7`:
+ambos `runner.json` dicen `terminada`, `returncode=0`; `estado.json` dice `finalizada`, mismo
+`run_id=b9088ec869814b35`. Reanudación desde `checkpoint-2`, revisión
+`f11b0814564f09e2ff788937db3fba111317f149`; v7 publica nuevos 4/6/8/final. La curva es cercana, no idéntica bit a bit
+(ver [bitácora](progreso.md)). `humo-solo-texto` terminó y midió 15,675 GB pico sumados en 2 T4 con datos cortos:
+**no demuestra** ajuste de conversaciones reales en A100. Sin acceso a estos artefactos, consultar la bitácora;
+reproducirlos consume GPU y requiere autorización.
 
-```bash
-uv sync --locked --no-build --group entrenamiento
-uv run --locked --no-sync python -m scripts.entrenar \
-  --preparacion corridas/preparada --tokens corridas/tokens \
-  --salida corridas/entrenamiento-001
-```
+## Handoff: entradas, salidas y permisos
 
-**Este comando carga pesos y entrena. No es una prueba inocua.** Por defecto W&B
-es offline y no publica en HF. Cada salida conserva las entradas exactas, hashes,
-configuración, política de checkpoints, LoRA, revisión base y estado del código.
-Si `dirty=true`, el commit no basta para reconstruir el código: commitear y volver
-a preparar antes de una corrida que se reportará en el informe.
+- **Datos:** conversaciones v1 curadas, con prompt acordado. Las trazas crudas necesitan el
+  [conversor](conversaciones-entrenamiento.md#conversor-cpu-de-trazas-implementado); convertir no cura ni certifica procedencia.
+- **Config:** copiar y revisar `configuraciones/sft-ejemplo.json`: modelo/revisión inmutable, semilla,
+  learning rate, epochs, batch/acumulación, límite de secuencia, repo HF y entidad/proyecto W&B.
+  Son valores ilustrativos, no hiperparámetros elegidos para el modelo final. No contiene secretos.
+- **Preparación:** `conversaciones.jsonl`, `configuracion.json`, `manifiesto.json`.
+  **Tokenización:** `tokens.jsonl`, `manifiesto-tokens.json` (sin truncar; assistant-only, contexto/padding `-100`).
+- **Entrenamiento:** `entradas/`, `corrida.json`, `estado.json`, `checkpoint-N/`, `final/`, logs W&B locales;
+  con publicación, índice/recibos HF. `final/` es adapter, **no checkpoint reanudable completo**.
+- **Accesos:** HF permite lectura del Gemma gateado si la cuenta aceptó licencia; publicar requiere escritura
+  en `hf_repo` privado existente. W&B requiere acceso a `wandb_entity/wandb_project`.
+  Variables: `HF_TOKEN`, `WANDB_API_KEY`. Configuralas por entorno/Secrets, nunca por argumentos o chat.
+  No se carga `.env` automáticamente. El token Read no habilita uploads.
 
-Con `--online` registra métricas en W&B. Con `--online --publicar` publica cada
-checkpoint en el repositorio HF existente **privado**, guarda su commit inmutable
-en `publicaciones.json` y lo registra en W&B. No crea ni cambia la privacidad del repo.
-Un fallo de publicación falla la corrida; no se oculta como entrenamiento exitoso.
+### 1. CPU offline, sin GPU ni escrituras cloud
 
-Necesita `WANDB_API_KEY` y, para publicar, un token HF con escritura en ese repo.
-**El token Read usado para inferencia no sirve para subir checkpoints.** Preparar un
-secreto de escritura separado del secreto `huggingface`; nunca pegarlo en código,
-manifiestos ni chat. El secreto W&B existente se llama `wandb-secret`.
-
-## Precisión y dispositivos (T4, desarrollo)
-
-Los defaults no cambian: `--precision bf16 --dispositivos unico --guardar-cada 50` (A100 de 40 GB).
-Para T4 x2: `--precision fp16 --dispositivos auto` (base en fp16, adapter fp32, `GradScaler`; el modelo se
-reparte entre GPU con `device_map="auto"`). `--guardar-cada` fija los pasos entre checkpoints. Los tres valores
-quedan en `corrida.json` (`ejecucion`) y en la política de la identidad: reanudar con otros valores falla, y en
-fp16 el checkpoint debe traer `scaler.pt`. Una auditoría anterior sin `ejecucion` se lee como los defaults.
-Solo probado con dobles. Ver [kaggle.md](kaggle.md#entrenamiento-sft-humo-en-kaggle).
-
-## Reanudar
+En el entorno ya instalado (no ejecutar sync para estos checks):
 
 ```bash
-uv run --locked --no-sync python -m scripts.entrenar \
-  --preparacion corridas/preparada --tokens corridas/tokens \
-  --salida corridas/entrenamiento-001 \
-  --reanudar corridas/entrenamiento-001/checkpoint-50
+rtk proxy .venv/bin/python -m scripts.validar_conversaciones datos/conversaciones-curadas.jsonl
+rtk proxy mkdir -p corridas
+rtk proxy .venv/bin/python -m scripts.preparar_entrenamiento \
+  --datos datos/conversaciones-curadas.jsonl --configuracion configuraciones/sft-ejemplo.json \
+  --salida corridas/sft-preparacion-001
 ```
 
-Se conserva el ID de corrida. Deben coincidir datos, configuración, LoRA, lock y
-modo online/publicación. Cada checkpoint necesita adapter, optimizador, scheduler,
-RNG, Trainer state y manifiestos íntegros. Un adapter `final/` no basta para reanudar.
-En online W&B exige la corrida existente; offline produce segmentos locales que
-todavía deben sincronizarse/conciliarse. Los checkpoints se guardan cada 50 pasos y
-al cierre según Trainer. No se eliminan automáticamente.
+Las rutas `datos/...` son entradas que debe proveer el equipo, no archivos finales ya disponibles.
+Las salidas deben ser nuevas. Guardan bytes exactos, hashes, config/semilla y estado Git. Con `dirty=true`,
+el commit no reconstruye los cambios: no reportar esa corrida como reproducible solo por su commit.
+Versionar código y volver a preparar requiere autorización de commit, no la da este documento.
 
-## Pendiente para cerrar el issue #3
+### 2. CPU con tokenizador, sin pesos
 
-- Prueba real de carga, backward y reanudación con Gemma en A100 de 40 GB.
-- Validar el [runner durable de Modal](entrenamiento-modal.md), ya implementado con
-  commits por checkpoint pero todavía probado solo con dobles CPU.
-- Datos curados reales y prompt optimizado del equipo antes de entrenar.
-- Token HF de escritura y publicación real auditada; acceso de la cátedra.
-- Cargar el adapter LoRA en inferencia o publicar un modelo fusionado. El agente
-  actual **todavía no carga automáticamente** el adapter de esta salida.
+```bash
+rtk proxy .venv/bin/python -m scripts.tokenizar_entrenamiento \
+  --preparacion corridas/sft-preparacion-001 --salida corridas/sft-tokens-001
+```
 
-Fuentes: [Trainer](https://huggingface.co/docs/transformers/en/main_classes/trainer),
-[LoRA](https://huggingface.co/docs/peft/en/package_reference/lora).
+Requiere entorno con grupo `tokenizacion` y tokenizer fijado disponible; puede descargar archivos de tokenizer
+si no están en caché y pedir HF. No se ejecutó aquí ni se autoriza una descarga por mostrar el comando.
+Ver [instalación/tokenización y prueba real CPU](tokenizacion-entrenamiento.md). No recorta secuencias largas.
+
+### 3. GPU Linux ya provisionada: ejecutar SOLO tras autorización
+
+```bash
+rtk proxy .venv/bin/python -m scripts.entrenar \
+  --preparacion corridas/sft-preparacion-001 --tokens corridas/sft-tokens-001 \
+  --salida corridas/sft-entrenamiento-001 --online --publicar
+```
+
+**Carga pesos, usa GPU y escribe W&B/HF.** El entorno Linux necesita dependencias fijadas de entrenamiento
+(ver `uv.lock` y `requirements-entrenamiento.txt`); no instalar ni construir como paso implícito.
+Defaults: `--precision bf16 --dispositivos unico --guardar-cada 50`, objetivo A100-40GB.
+Sin `--online --publicar`, W&B queda offline y HF no recibe checkpoints: útil para ensayos, no cumple el
+registro cloud de la entrega. Una falla de subida falla la corrida, no se oculta.
+
+Para T4 x2 **de desarrollo**, agregar `--precision fp16 --dispositivos auto`; el humo usó `--guardar-cada 2`.
+LoRA apunta solo a atención del modelo de lenguaje (`LORA_OBJETIVO`), r=8/alpha16/dropout0; carga sin torres
+visión/audio. Eso evita módulos no soportados y reduce VRAM, pero no garantiza el ajuste final en A100.
+
+### 4. Reanudar: mismo código, entradas, modo y política
+
+```bash
+rtk proxy .venv/bin/python -m scripts.entrenar \
+  --preparacion corridas/sft-preparacion-001 --tokens corridas/sft-tokens-001 \
+  --salida corridas/sft-entrenamiento-001 \
+  --reanudar corridas/sft-entrenamiento-001/checkpoint-50 --online --publicar
+```
+
+Elegir un checkpoint **completo confirmado**; el nombre es un ejemplo, no una garantía de existencia.
+Repetir precisión/dispositivos/cadencia originales si no fueron defaults. Conserva run_id; online usa W&B
+`resume="must"`. Offline produce segmentos locales que hay que conciliar. No promete recuperar pasos
+posteriores al último checkpoint íntegro, ni salvar una escritura parcial. La CLI directa no descarga por sí sola
+un checkpoint HF: para recuperación desde HF usar [runner Kaggle](kaggle.md#entrenamiento-sft-humo-en-kaggle),
+que fija revisión y valida integridad. [Modal](entrenamiento-modal.md) queda solo como referencia legacy, no usar.
+
+## Estado de cierre de infraestructura y límites restantes
+
+Los cuatro criterios técnicos del pipeline genérico están respaldados: conversaciones/config/semilla,
+checkpoints HF versionados, linaje W&B y recuperación real desde HF tienen evidencia de humo T4.
+**#3 sigue pendiente de aceptación/accesos y uso efectivo por Martu**: confirmar `--help` sin pesos es
+preflight, no un experimento. Ver [pasos de aceptación](handoff-equipo.md#pendientes-por-persona-y-aceptación-operativa).
+No se exige una nueva prueba de corte en Modal: esa plataforma fue descartada. Esta afirmación no cierra
+el issue automáticamente ni certifica entrenamiento final, calidad o ajuste en A100-40GB.
+
+- **Fran / hardware final:** determinar una vía alternativa de A100-40GB; validar carga/backward/memoria y
+  medir recursos/lotes allí antes de afirmar compatibilidad final. No hay plataforma, tarifa ni plazo confirmados.
+- **Equipo:** acordar procedencia/curación y prompt antes del entrenamiento final; Martu puede usar el pipeline
+  en Kaggle con sus accesos y autorización de consumo, sin esperar otro entrenador.
+- **Inferencia:** la carga del adapter está implementada; fijar adapter/revisión final cuando exista.
+  Accesos de cátedra quedan en #16.
+
+Los nombres de Secrets y comandos de [Modal](entrenamiento-modal.md) son históricos: no crearlos ni ejecutarlos.
+El código/dependencias legacy se conservan sin migraciones ni borrados en esta decisión.
+
+## Verificación de esta auditoría CPU
+
+```bash
+rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest test_entrenamiento test_persistencia test_kaggle_entrenamiento test_cli_entrenar test_preparacion test_tokenizacion test_conversion_trazas -q
+```
+
+2026-11-05: **52 ejecutados, 51 pasan, 1 opcional omitido**. También se verificaron `--help` de entrenar,
+preparar y tokenizar sin cargar dependencias pesadas. No se agregaron tests en seams nuevas ni se hizo GPU,
+instalación, cloud o build. Los tests con dobles no demuestran CUDA/PEFT/Modal reales.
