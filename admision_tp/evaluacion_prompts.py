@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import hashlib
 
 from admision.comparar import CONTROLES
@@ -11,7 +12,7 @@ from .prompts import PromptSpec
 
 
 def _ids_tokenizador(valor) -> list[int]:
-    ids = valor.get("input_ids") if isinstance(valor, dict) else valor
+    ids = valor.get("input_ids") if isinstance(valor, Mapping) else valor
     if not isinstance(ids, list) or any(type(x) is not int or x < 0 for x in ids):
         raise ValueError("tokenizador devolvió IDs inválidos o anidados")
     return ids

@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "modelo": "google/gemma-4-E4B-it",
+  "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+  "semilla": 20261109,
+  "max_tokens_nuevos": 512,
+  "max_contexto": 8192,
+  "lote": 1,
+  "dtype": "bfloat16",
+  "device_map": "cuda:0",
+  "buscador_variante": "baseline",
+  "max_turnos": 16,
+  "max_sin_json": 3
+}

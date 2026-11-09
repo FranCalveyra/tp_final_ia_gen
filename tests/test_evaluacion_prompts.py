@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from collections import UserDict
 import unittest
 
 from admision.comparar import CONTROLES
@@ -69,6 +70,13 @@ class EvaluacionPromptsTest(unittest.TestCase):
                 return [[1, 2]]
         with self.assertRaisesRegex(ValueError, "anidados"):
             medir_longitud_prompt(prompt, Anidado())
+
+    def test_acepta_mapping_del_tokenizador_real(self):
+        class MappingTokenizer(TokenizadorArtificial):
+            def apply_chat_template(self, mensajes, **opciones):
+                return UserDict(super().apply_chat_template(mensajes, **opciones))
+        self.assertGreater(
+            medir_longitud_prompt(cargar_prompt_baseline(), MappingTokenizer())["contexto_inicial"], 0)
 
     def test_resume_nueve_controles_json_y_eficiencia(self):
         medicion = medir_longitud_prompt(cargar_prompt_baseline(), TokenizadorArtificial())

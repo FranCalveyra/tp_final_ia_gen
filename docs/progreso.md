@@ -22,7 +22,7 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | [#3 SFT](https://github.com/FranCalveyra/tp_final_ia_gen/issues/3) | Conversor, validación, snapshots/tokenización, Trainer LoRA y runner persistente; humo GPU T4 con HF/W&B y reanudación desde checkpoint HF | Cuatro criterios técnicos respaldados; aceptación/accesos y uso efectivo por Martu pendientes. KI-A100-001 mantiene deuda entrenamiento/evaluación/recursos |
 | [#4 Lotes](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4) | **Cerrado completed (2026-11-05), alcance funcional T4.** Carga única, lote activo, conversación completa; 1→4 baja 33,3→15,6 s/caso, mismos 10/50 | Deuda A100-40GB continúa en KI-A100-001; adapter final pendiente y causa CUDA T4 de lotes grandes no identificada |
 | #5 Recursos | Métricas y borrador Parte 5 con inferencia T4 y humo de entrenamiento solo texto: 15,675 GB pico | Recursos/costos A100 y antes/después con adapter final; integrar `INFORME.md` |
-| #13 Prompt | `PromptSpec`, coordinador configurable, medición con tokenizer inyectado y métrica que prioriza 9/9, probados con dobles CPU | Runner auditable; dataset/esperadas externos acordados; tokens y calidad con Gemma real; DSPy/GEPA |
+| #13 Prompt | `PromptSpec`, coordinador configurable, medición, métrica 9/9 y runner con snapshots/hashes, probados con dobles CPU | Dataset/esperadas externos acordados; tokens y calidad con Gemma real; DSPy/GEPA |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
 El formato de conversaciones es **propuesto**, pendiente de coordinación con Eze/Yas.
@@ -433,6 +433,19 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
 - Verificación CPU focalizada: 5 tests con tokenizer, trazas y resultados artificiales,
   todos pasan. Esto prueba el contrato y el orden, no tokens de Gemma ni calidad del agente.
   [Diseño y límites](optimizacion-prompt.md#longitud-y-métrica-de-candidatos).
+
+### 2026-11-09: runner auditable de candidatos (issue #13, en progreso)
+
+- `scripts.evaluar_prompts` recibe prompt, configuración, casos, esperadas y normas desde
+  archivos externos. Juega antes de copiar/leer esperadas y luego reutiliza `puntuar`; no
+  genera oráculos, casos, costumbres ni conversaciones.
+- Cada salida es exclusiva y conserva snapshots, hashes por archivo, estado Git, identidad
+  de prompt, configuración inmutable, trazas, nueve controles, tiempos y métricas. Los
+  intentos fallidos también dejan manifiesto; no se sobrescriben.
+- Verificación focalizada completa del issue #13: 21 tests pasan; suite CPU: 137
+  ejecutados, 136 pasan y uno se omite por requerir tokenizer real local. Se usó Python
+  3.12 del sistema porque no hay `uv`/`.venv`; no se instaló `transformers`, no se cargó
+  Gemma ni se ejecutó GPU. [Uso, artefactos y fronteras](optimizacion-prompt.md#runner-reproducible).
 
 ## Próximos pasos y bloqueos
 
