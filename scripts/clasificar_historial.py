@@ -442,7 +442,7 @@ def ejecutar(
         informe["trazas"] = {k: v for k, v in evidencia_trazas.items() if k != "por_id"}
     salida.parent.mkdir(parents=True, exist_ok=True)
     with salida.open("w", encoding="utf-8", newline="") as archivo:
-        escritor = csv.DictWriter(archivo, fieldnames=["id", "tipo"])
+        escritor = csv.DictWriter(archivo, fieldnames=["id", "tipo"], lineterminator="\n")
         escritor.writeheader()
         escritor.writerows(clasificados)
     (salida.parent / "historial_costumbres.json").write_text(

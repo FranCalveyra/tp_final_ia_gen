@@ -76,6 +76,12 @@ class ClasificacionHistorialTest(unittest.TestCase):
         self.assertEqual(registro_esperado(row, {"P-ADM-3": 3}), "provisorio")
         self.assertEqual(registro_esperado(row, {"P-ADM-3": 2}), "definitivo")
 
+    def test_salida_usa_fin_de_linea_lf(self):
+        carpeta, _ = self.ejecutar_en_temporal()
+        contenido = (carpeta / "historial_clasificado.csv").read_bytes()
+        self.assertNotIn(b"\r", contenido)
+        self.assertTrue(contenido.startswith(b"id,tipo\n"))
+
     def test_segunda_ejecucion_es_identica(self):
         carpeta_a, resultado_a = self.ejecutar_en_temporal()
         carpeta_b, resultado_b = self.ejecutar_en_temporal()
