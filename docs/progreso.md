@@ -807,3 +807,41 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   la salida, sin gastar GPU. Comprobado en CPU que el subproceso construye la misma variante que se registra.
 - **Motivo:** la comparación `baseline` vs `prefijos` con el agente necesita trazar cada resultado a su buscador.
 - **Evidencia:** suite 124 tests, 1 omitido opcional. Sin ejecución en Kaggle todavía.
+
+### 2026-11-10: conversaciones de entrenamiento v2 (issue #8, CPU, rama `feat/8-conversaciones-eze`)
+
+- **Estado:** implementado, probado por interfaz pública con los datos reales del repo y generado en
+  `datos/conversaciones/v2-baseline/` (2.900 conversaciones: 800 `referencia`, 1.600 `historial`,
+  500 `sintetico`; 0 excluidas). `datos/entrenamiento/` (versión de Yas) no se tocó.
+- **Qué cambia:** nuevo origen `referencia` en el contrato v1; el validador acepta el formato de
+  observación del prompt; el conversor de Fran recibe un `PromptSpec` (y `buscar` para re-ejecutar
+  búsquedas; `--sistema` sigue como obsoleto). `scripts.generar_conversaciones` reconstruye los valores de
+  cada traza desde sus líneas `Valores:`, re-ejecuta cada búsqueda con el buscador de la entrega sobre una
+  copia de las normas con esos valores, revalida la ficha con `razones_normativas` y las costumbres, y
+  genera sintéticos con valores sorteados entre los de la referencia. Detalle y reglas:
+  [contrato](conversaciones-entrenamiento.md#dataset-v2-scriptsgenerar_conversaciones-issue-8).
+- **Decisiones del equipo (después de la auditoría):** (1) buscador `baseline`, porque con el agente en
+  Kaggle (50 casos, normas originales) resolvió 10/50 contra 6/50 de `prefijos`. (2) En 142 conversaciones
+  reales de accidente de trabajo (49 de referencia y 93 de historial) la consulta combinada no traía
+  NOR-COB-02; se agregó una búsqueda «accidente de trabajo ART» después de esa consulta, sin modificar las
+  originales. (3) Se quitaron de `fundamentos` las secciones no recuperadas: 2.326 citas, una por conversación
+  (NOR-COB-01 468, NOR-COB-02 659, NOR-COB-03 1.199). Motivo de (2) y (3): la misión pide que el modelo
+  responda con la evidencia recuperada, no de memoria. Las dos transformaciones quedan registradas por
+  conversación en `auditoria.jsonl` y contadas en el manifiesto.
+- **Por qué:** con los valores de `normas/original`, 584 de las 800 fichas de referencia serían erróneas;
+  las búsquedas deben mostrar los valores con los que se decidió cada ficha. El guion sintético anterior
+  citaba secciones que no buscaba; ahora busca cada sección rectora y cada fundamento (500/500).
+- **Evidencia:** `uv run --locked --no-sync python -m scripts.generar_conversaciones` (20 s, CPU);
+  validador 2.900/2.900 sin errores (SHA-256 `3e6b8897…d2ee`); dos regeneraciones en carpetas temporales,
+  `cmp` idéntico en `conversaciones.jsonl`, `auditoria.jsonl` y `manifiesto.json`; la fila reconstruida
+  desde cada traza coincide con `historial.csv` en las 2.000 filas; ningún valor mostrado difiere de las
+  trazas originales. Suite: `uv run --locked --no-sync python -m unittest discover -s tests` → 203 tests OK
+  (1 omitido). Auditoría independiente del coordinador: 60 conversaciones y 188 búsquedas sin diferencias. El manifiesto registra `dirty=true`: se generó antes del commit.
+- **Cobertura de evidencia tras el curado:** recuperan todas sus secciones rectoras 800/800, 1.600/1.600 y
+  500/500, y ninguna conversación cita fundamentos no recuperados.
+- **Límites:** sin tokenizador real (largos en caracteres: mediana ≈10,8 k reales, 15,6 k sintéticas,
+  máximo 21,9 k); contaminación con práctica por identidad exacta de triage/números, no paráfrasis.
+  No se entrenó ni se usó GPU. Si el prompt final cambia `formato_observacion`, `preparacion`/`tokenizacion`
+  todavía validan con el formato por defecto.
+- **Próximo paso:** regenerar después del commit para que el manifiesto tenga `dirty=false`, y tokenizar
+  (con autorización) para medir los largos reales.

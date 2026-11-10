@@ -170,3 +170,49 @@ Resultado: 2.100 registros, 2.100 validos, sin errores. Respecto de la versión 
 - [`scripts/generar_sinteticos_entrenamiento.py`](scripts/generar_sinteticos_entrenamiento.py): generacion, deduccion y balance sintetico.
 - [`scripts/preparar_datos_entrenamiento.py`](scripts/preparar_datos_entrenamiento.py): ensamblado y validacion final.
 - [`tests/test_seleccionar_entrenamiento.py`](tests/test_seleccionar_entrenamiento.py), [`tests/test_generar_sinteticos_entrenamiento.py`](tests/test_generar_sinteticos_entrenamiento.py) y [`tests/test_preparar_datos_entrenamiento.py`](tests/test_preparar_datos_entrenamiento.py): pruebas reproducibles, incluidas la costumbre completa en sintéticos, NOR-COB-04 con afiliación inactiva y búsquedas idénticas a las del buscador de la entrega.
+
+## Parte 1: conversaciones
+
+Dataset v2 (issue #8), generado por `scripts/generar_conversaciones.py` con el prompt `baseline`
+(sha256 `944ae7f6…f474`) y el buscador de `entrega.construir_buscador` (variante `baseline`, k=2),
+semilla 12012. Comando, reglas y salidas: [contrato de conversaciones](docs/conversaciones-entrenamiento.md#dataset-v2-scriptsgenerar_conversaciones-issue-8).
+
+```text
+uv run --locked --no-sync python -m scripts.generar_conversaciones
+uv run --locked --no-sync python -m scripts.validar_conversaciones datos/conversaciones/v2-baseline/conversaciones.jsonl
+```
+
+| origen | entradas | excluidas | conversaciones |
+|---|---:|---:|---:|
+| reales: historial `correcta` | 1.600 (de 2.000; 240 `error` y 160 `ruido` no entran) | 0 | 1.600 |
+| reales: referencia de la cátedra (`entrenamiento/trazas.jsonl`) | 800 | 0 | 800 |
+| sintéticas (`admision.generador`, valores variados) | 500 | 0 | 500 |
+| total | | | **2.900** |
+
+Validación: 2.900 registros válidos, 0 errores (SHA-256 `3e6b8897…d2ee`). Tres generaciones
+independientes dieron archivos idénticos byte a byte (`cmp`).
+
+- **Búsquedas del buscador real.** Cada búsqueda se re-ejecutó sobre una copia de las normas con los
+  valores de esa conversación. En las 800 de referencia hay 706 conjuntos de valores distintos; 584 de sus
+  fichas serían erróneas con los valores de `normas/original` (469 por plazo, 152 por box), por eso no se
+  re-ejecutaron contra la carpeta original. Ningún valor mostrado cambió respecto de las trazas; solo cambia
+  el desempate de la segunda sección en dos consultas (NOR-COB-01 en lugar de NOR-COB-02).
+- **Revalidación.** Las 2.400 fichas reales cumplen las normas con sus valores y las dos costumbres; las
+  1.600 de historial muestran solo valores originales. Ningún parámetro relevante quedó sin observar.
+- **Sintéticas variadas.** 500 conjuntos de valores distintos, sorteados entre los observados en la
+  referencia; 365 fichas serían distintas con los valores originales. Cada una busca las secciones que la
+  deciden y las que cita en `fundamentos` (500/500 con toda su evidencia).
+- **Buscador `baseline`.** Se eligió por el resultado con el agente en Kaggle (50 casos de práctica,
+  normas originales): `baseline` 10/50 contra `prefijos` 6/50.
+- **Curado para que el modelo responda con la evidencia que recuperó, no de memoria.** Sin curar, con
+  `baseline`, 49 conversaciones de referencia y 93 de historial no recuperaban NOR-COB-02 (accidente de
+  trabajo con la consulta combinada «accidente de trabajo ART dolor torácico plazo»). En esas 142 se agregó
+  una búsqueda «accidente de trabajo ART» justo después de la combinada, sin modificar las consultas
+  originales. Además, los `fundamentos` reales citaban una sección no recuperada en 783 de referencia y
+  1.543 de historial, una por conversación (NOR-COB-03 1.199, NOR-COB-02 659, NOR-COB-01 468): se quitaron
+  esas 2.326 citas. Ninguna ficha quedó sin `fundamentos`.
+- **Cobertura de evidencia.** Las conversaciones que recuperan todas sus secciones rectoras son 800/800 de
+  referencia, 1.600/1.600 de historial y 500/500 sintéticas, y ninguna cita fundamentos no recuperados.
+- **Práctica.** 0 conversaciones comparten triage, documento, afiliado ni CUIL con `practica/casos.jsonl`.
+- **Largo.** Caracteres por conversación (no tokens; no se tokenizó): mediana 10.831 en historial, 10.826 en referencia y 15.618 en
+  sintéticas (máximo 21.939).
