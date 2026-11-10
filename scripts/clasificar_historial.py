@@ -16,7 +16,6 @@ SECCIONES = (
     "NOR-COB-01", "NOR-COB-02", "NOR-COB-03", "NOR-COB-04",
     "NOR-TDE-01", "NOR-TDE-02", "NOR-TDE-03", "NOR-TDE-04",
 )
-SITUACION_FIELDS = ("motivo", "cobertura")
 FICHA_FIELDS = (
     "registro", "numero_documento", "box_antes_del_registro", "circuito",
     "plazo_circuito_min", "cobertura", "entidad_a_notificar",
@@ -174,6 +173,26 @@ def registro_esperado(row: dict[str, str], parametros: dict[str, int]) -> str:
     return "provisorio" if int(row["nivel"]) <= parametros["P-ADM-3"] else "definitivo"
 
 
+def cobertura_esperada(
+    tipo: str,
+    entidad: str,
+    numero: str,
+    activa: bool,
+    parametros: dict[str, int],
+) -> tuple[str, str]:
+    """Devuelve (cobertura, entidad_a_notificar) para la fuente verificada.
+
+    NOR-COB-04 §1/§3: con número terminado en P-COB-2 la ficha dice sin_cobertura y se
+    notifica igual a la entidad, esté activa o no la afiliación (prevalece sobre
+    NOR-COB-02 §3 y NOR-COB-03 §4). §4: no rige para la ART.
+    """
+    if tipo != "art" and numero.endswith(str(parametros["P-COB-2"])):
+        return "sin_cobertura", entidad
+    if not activa:
+        return "sin_cobertura", ""
+    return tipo, entidad
+
+
 def razones_normativas(row: dict[str, str], parametros: dict[str, int]) -> list[str]:
     razones = []
     if row["registro"] != registro_esperado(row, parametros):
@@ -181,6 +200,10 @@ def razones_normativas(row: dict[str, str], parametros: dict[str, int]) -> list[
     if row["numero_documento"] != row["documento_numero"]:
         razones.append("numero_documento")
 
+    # NOR-ADM-01 §4 sólo exige el box antes del registro en los niveles <= P-ADM-1 (y
+    # NOR-ADM-02 por edad); en los demás niveles el registro "puede" hacerse mientras se
+    # espera. Marcar error un box anticipado no exigido es más estricto que el texto, pero
+    # en el historial no hay ninguna fila así (0 de 2.000), por lo que no cambia etiquetas.
     box = int(row["nivel"]) <= parametros["P-ADM-1"] or int(row["edad"]) >= parametros["P-ADM-2"]
     if (row["box_antes_del_registro"] == SI) != box:
         razones.append("box_antes_del_registro")
@@ -210,14 +233,9 @@ def razones_normativas(row: dict[str, str], parametros: dict[str, int]) -> list[
     tipo, entidad, numero = fuente
     if row["entidad_verificada"].strip() != entidad or row["numero_verificado"].strip() != numero:
         razones.append("verificacion")
-    activa = row["respuesta_verificacion"] == "activa"
-    reservado = numero.endswith(str(parametros["P-COB-2"]))
-    if not activa:
-        cobertura, notificar = "sin_cobertura", ""
-    elif reservado and tipo != "art":
-        cobertura, notificar = "sin_cobertura", entidad
-    else:
-        cobertura, notificar = tipo, entidad
+    cobertura, notificar = cobertura_esperada(
+        tipo, entidad, numero, row["respuesta_verificacion"] == "activa", parametros
+    )
     if row["cobertura"] != cobertura:
         razones.append("cobertura")
     if row["entidad_a_notificar"] != notificar:
@@ -225,139 +243,224 @@ def razones_normativas(row: dict[str, str], parametros: dict[str, int]) -> list[
     return razones
 
 
-def analizar_variacion_operadores(
-    limpias: list[dict[str, str]],
-    umbral: int,
-    trazas: dict | None = None,
-) -> dict:
-    """Describe una concentración por operador sin convertirla en regla."""
-    menores = [row for row in limpias if int(row["edad"]) < umbral]
-    grupos: dict[str, list[dict[str, str]]] = {}
-    for row in menores:
-        operador = row["operador"]
-        if trazas is not None:
-            operador = trazas["por_id"][row["id"]].get("operador", operador)
-        grupos.setdefault(operador, []).append(row)
+# Condiciones observables en el triage que la búsqueda puede combinar con la edad. No
+# fijan ningún valor: la búsqueda elige el umbral y la condición que mejor explican las
+# filas limpias, y el resultado se documenta con su comparación contra la regla sólo por edad.
+CONDICIONES_AVISO = {
+    # clave: (descripción, clave de la condición opuesta, predicado sobre la fila)
+    "ninguna": ("sin condición adicional", None, lambda row: True),
+    "sin_acompanante": ("sin acompañante", "con_acompanante", lambda row: not row["acompanante"].strip()),
+    "con_acompanante": ("con acompañante", "sin_acompanante", lambda row: bool(row["acompanante"].strip())),
+    "puede_responder": ("que puede responder", "no_puede_responder", lambda row: row["puede_responder"] == SI),
+    "no_puede_responder": ("que no puede responder", "puede_responder", lambda row: row["puede_responder"] != SI),
+    "en_ambulancia": ("llegado en ambulancia", "sin_ambulancia", lambda row: row["llegada"] == "en ambulancia"),
+    "sin_ambulancia": ("llegado por sus medios", "en_ambulancia", lambda row: row["llegada"] != "en ambulancia"),
+}
+MINIMO_PREFERENCIA_CREDENCIAL = 0.90
 
-    evidencia = []
-    for operador, grupo in sorted(grupos.items()):
-        si = [row for row in grupo if row["aviso_al_voluntariado"] == SI]
-        if len(grupo) < 30:
-            continue
-        evidencia.append({
+
+def aviso_segun_costumbre(row: dict[str, str], costumbre: dict) -> bool:
+    """Aplica la costumbre completa del voluntariado inferida del historial."""
+    condicion = CONDICIONES_AVISO[costumbre["condicion"]][2]
+    return int(row["edad"]) >= int(costumbre["umbral_edad"]) and condicion(row)
+
+
+def _ids(rows: list[dict[str, str]]) -> list[str]:
+    return sorted(row["id"] for row in rows)
+
+
+def _resumen_operadores(rows: list[dict[str, str]], desvio) -> list[dict]:
+    grupos: dict[str, list[dict[str, str]]] = {}
+    for row in rows:
+        grupos.setdefault(row["operador"], []).append(row)
+    return [
+        {
             "operador": operador,
             "muestra": len(grupo),
-            "si": len(si),
-            "frecuencia_si": round(len(si) / len(grupo), 6),
-            "ids_si": [row["id"] for row in si],
-        })
-    destacados = [item for item in evidencia if item["frecuencia_si"] >= 0.30]
-    destacados_ids = {item["operador"] for item in destacados}
-    resto = [row for row in menores if row["operador"] not in destacados_ids]
-    resto_si = sum(row["aviso_al_voluntariado"] == SI for row in resto)
-    return {
-        "criterio": "al menos 30 filas limpias menores del umbral y frecuencia de aviso >= 30%",
-        "grupos": evidencia,
-        "grupos_destacados": [item["operador"] for item in destacados],
-        "resto": {
-            "muestra": len(resto),
-            "si": resto_si,
-            "frecuencia_si": round(resto_si / len(resto), 6) if resto else 0,
-        },
-        "confirmada_como_costumbre_hospital": False,
-        "motivo_no_confirmacion": (
-            "la señal está concentrada en un subgrupo de operadores y no describe una práctica mayoritaria del hospital"
-        ),
+            "desvios": sum(desvio(row) for row in grupo),
+            "ids_desvio": _ids([row for row in grupo if desvio(row)]),
+        }
+        for operador, grupo in sorted(grupos.items())
+    ]
+
+
+def inferir_costumbre_aviso(rows: list[dict[str, str]], limpias: list[dict[str, str]]) -> dict | None:
+    """Busca la regla `edad >= umbral y condición` que mejor explica el aviso en filas limpias."""
+    observado = [row["aviso_al_voluntariado"] == SI for row in limpias]
+    edades = [int(row["edad"]) for row in limpias]
+    candidatos = []
+    for orden, (clave, (_, _, condicion)) in enumerate(CONDICIONES_AVISO.items()):
+        cumple = [condicion(row) for row in limpias]
+        for umbral in sorted(set(edades)):
+            prediccion = [edad >= umbral and ok for edad, ok in zip(edades, cumple)]
+            avisos = sum(prediccion)
+            if avisos == 0 or avisos == len(limpias):
+                continue
+            aciertos = sum(p == o for p, o in zip(prediccion, observado))
+            # Empates: menos condiciones primero; entre umbrales igual de buenos, el mayor,
+            # para no afirmar avisos en edades sin evidencia.
+            candidatos.append((-aciertos, orden, -umbral, clave, umbral))
+    if not candidatos:
+        return None
+    candidatos.sort()
+    _, _, _, clave, umbral = candidatos[0]
+    solo_edad = next(item for item in candidatos if item[3] == "ninguna")
+    costumbre = {"tipo": "aviso_al_voluntariado", "umbral_edad": umbral, "condicion": clave}
+    descripcion, opuesta, condicion = CONDICIONES_AVISO[clave]
+    costumbre["condicion_descripcion"] = descripcion
+    costumbre["condicion_opuesta_descripcion"] = CONDICIONES_AVISO[opuesta][0] if opuesta else ""
+
+    def desvio(row: dict[str, str]) -> bool:
+        return aviso_segun_costumbre(row, costumbre) != (row["aviso_al_voluntariado"] == SI)
+
+    lados = {
+        "avisar": [row for row in limpias if aviso_segun_costumbre(row, costumbre)],
+        "no_avisar_menores": [row for row in limpias if int(row["edad"]) < umbral],
+        "no_avisar_mayores_sin_condicion": [
+            row for row in limpias if int(row["edad"]) >= umbral and not condicion(row)
+        ],
     }
+    operadores = _resumen_operadores(limpias, desvio)
+    con_desvio = {item["operador"] for item in operadores if item["desvios"]}
+    resto = [row for row in rows if row["operador"] not in con_desvio]
+    resto_lados = {
+        "avisar": [row for row in resto if aviso_segun_costumbre(row, costumbre)],
+        "no_avisar_menores": [row for row in resto if int(row["edad"]) < umbral],
+        "no_avisar_mayores_sin_condicion": [
+            row for row in resto if int(row["edad"]) >= umbral and not condicion(row)
+        ],
+    }
+    costumbre.update({
+        "nombre": f"avisar al voluntariado sólo a pacientes de {umbral} años o más {descripcion}",
+        "muestra_limpias": len(limpias),
+        "coinciden_limpias": -candidatos[0][0],
+        "comparacion_solo_edad": {
+            "umbral_edad": solo_edad[4],
+            "coinciden_limpias": -solo_edad[0],
+        },
+        "lados": {
+            nombre: {
+                "muestra": len(grupo),
+                "siguen_costumbre": sum(not desvio(row) for row in grupo),
+                "ids_respaldo": _ids([row for row in grupo if not desvio(row)]),
+                "ids_ruido": _ids([row for row in grupo if desvio(row)]),
+            }
+            for nombre, grupo in lados.items()
+        },
+        "operadores": operadores,
+        "operadores_con_desvios": sorted(con_desvio),
+        "todas_las_filas_operadores_sin_desvios": {
+            nombre: {
+                "muestra": len(grupo),
+                "siguen_costumbre": sum(not desvio(row) for row in grupo),
+            }
+            for nombre, grupo in resto_lados.items()
+        },
+        "ids_respaldo": _ids([row for row in limpias if not desvio(row)]),
+        "ids_ruido": _ids([row for row in limpias if desvio(row)]),
+    })
+    return costumbre
 
 
-def inferir_costumbres(rows: list[dict[str, str]], parametros: dict[str, int]) -> list[dict]:
-    """Detecta costumbres solo en filas limpias y en situaciones comparables."""
+def _obra_social_y_prepaga(row: dict[str, str]) -> bool:
+    entradas = entradas_cobertura(row["credenciales"])
+    return (
+        row["lesion_trabajo"] == "no"  # con lesión laboral rige la ART (NOR-COB-02 §5)
+        and len(entradas) == 2
+        and {tipo for _, tipo, _ in entradas} == {"obra social", "prepaga"}
+    )
+
+
+def inferir_costumbre_credencial(
+    rows: list[dict[str, str]],
+    limpias: list[dict[str, str]],
+    trazas: dict | None = None,
+) -> dict | None:
+    """Qué credencial se verifica cuando hay obra social y prepaga, y qué pasa si está inactiva."""
+    multiples = [
+        (row, fuente_cobertura(row)[0]) for row in limpias
+        if _obra_social_y_prepaga(row) and fuente_cobertura(row)
+    ]
+    if not multiples:
+        return None
+    preferencias = Counter(tipo for _, tipo in multiples)
+    preferido, cantidad = preferencias.most_common(1)[0]
+    if cantidad / len(multiples) < MINIMO_PREFERENCIA_CREDENCIAL:
+        return None
+    siguen = [row for row, tipo in multiples if tipo == preferido]
+    activas = [row for row in siguen if row["respuesta_verificacion"] == "activa"]
+    inactivas = [row for row in siguen if row["respuesta_verificacion"] != "activa"]
+    ruido = [row for row, tipo in multiples if tipo != preferido]
+
+    todas = [row for row in rows if _obra_social_y_prepaga(row) and fuente_cobertura(row)]
+    todas_inactivas = [
+        row for row in todas
+        if fuente_cobertura(row)[0] == preferido and row["respuesta_verificacion"] != "activa"
+    ]
+    costumbre = {
+        "tipo": "seleccion_credencial",
+        "nombre": (
+            f"con obra social y prepaga, verificar sólo la {preferido.replace('_', ' ')} "
+            "y registrar su resultado, sin recurrir a la otra credencial"
+        ),
+        "muestra": len(multiples),
+        "preferido": preferido,
+        "frecuencia_preferido": round(cantidad / len(multiples), 6),
+        "frecuencias": dict(sorted(preferencias.items())),
+        "preferido_activa": {
+            "muestra": len(activas),
+            "coberturas": dict(sorted(Counter(row["cobertura"] for row in activas).items())),
+            "ids_respaldo": _ids(activas),
+        },
+        "preferido_inactiva": {
+            "muestra": len(inactivas),
+            "coberturas": dict(sorted(Counter(row["cobertura"] for row in inactivas).items())),
+            "ids_respaldo": _ids(inactivas),
+        },
+        "todas_las_filas_preferido_inactiva": {
+            "muestra": len(todas_inactivas),
+            "coberturas": dict(sorted(Counter(row["cobertura"] for row in todas_inactivas).items())),
+        },
+        "operadores_con_desvios": sorted({row["operador"] for row in ruido}),
+        "ids_respaldo": _ids(siguen),
+        "ids_ruido": _ids(ruido),
+    }
+    if trazas is not None:
+        verificaciones = Counter(
+            sum(paso.get("herramienta") == "verificar_afiliacion"
+                for paso in trazas["por_id"][row["id"]].get("pasos", []))
+            for row in todas
+        )
+        costumbre["verificaciones_por_traza"] = {str(k): v for k, v in sorted(verificaciones.items())}
+    return costumbre
+
+
+def inferir_costumbres(
+    rows: list[dict[str, str]],
+    parametros: dict[str, int],
+    trazas: dict | None = None,
+) -> list[dict]:
+    """Detecta costumbres sólo en filas sin violaciones normativas."""
     razones = {row["id"]: razones_normativas(row, parametros) for row in rows}
     limpias = [row for row in rows if not razones[row["id"]]]
-    costumbres = []
+    costumbres = [
+        inferir_costumbre_aviso(rows, limpias),
+        inferir_costumbre_credencial(rows, limpias, trazas),
+    ]
+    return [costumbre for costumbre in costumbres if costumbre is not None]
 
-    por_edad: dict[int, list[dict[str, str]]] = {}
-    for row in limpias:
-        por_edad.setdefault(int(row["edad"]), []).append(row)
-    candidatos = []
-    for umbral in sorted(por_edad):
-        actual = por_edad[umbral]
-        anteriores = [row for edad in range(umbral - 3, umbral) for row in por_edad.get(edad, [])]
-        if len(actual) < 10 or len(anteriores) < 10:
-            continue
-        actual_si = sum(row["aviso_al_voluntariado"] == SI for row in actual) / len(actual)
-        anterior_si = sum(row["aviso_al_voluntariado"] == SI for row in anteriores) / len(anteriores)
-        if actual_si < 0.50 or anterior_si >= 0.20:
-            continue
-        menores = [row for row in limpias if int(row["edad"]) < umbral]
-        mayores = [row for row in limpias if int(row["edad"]) >= umbral]
-        if len(menores) < 100 or len(mayores) < 100:
-            continue
-        no_menores = sum(row["aviso_al_voluntariado"] != SI for row in menores) / len(menores)
-        if no_menores >= 0.90:
-            candidatos.append((actual_si - anterior_si, umbral, menores, mayores))
 
-    if candidatos:
-        _, umbral, menores, mayores = max(candidatos)
-        estratos = {}
-        for row in limpias:
-            clave = tuple(row[campo] for campo in SITUACION_FIELDS)
-            grupo = estratos.setdefault(clave, {"menores": [], "mayores": []})
-            grupo["menores" if int(row["edad"]) < umbral else "mayores"].append(row)
-        comparables = []
-        for clave, grupo in sorted(estratos.items()):
-            if len(grupo["menores"]) < 20 or len(grupo["mayores"]) < 20:
-                continue
-            no = sum(row["aviso_al_voluntariado"] != SI for row in grupo["menores"])
-            si = sum(row["aviso_al_voluntariado"] == SI for row in grupo["mayores"])
-            if no / len(grupo["menores"]) >= 0.85:
-                comparables.append({
-                    "situacion": dict(zip(SITUACION_FIELDS, clave)),
-                    "muestra_menores": len(grupo["menores"]),
-                    "no_menores": no,
-                    "frecuencia_no_menores": round(no / len(grupo["menores"]), 6),
-                    "muestra_mayores": len(grupo["mayores"]),
-                    "si_mayores": si,
-                    "frecuencia_si_mayores": round(si / len(grupo["mayores"]), 6),
-                    "ids_respaldo": [row["id"] for row in grupo["menores"] if row["aviso_al_voluntariado"] != SI],
-                    "ids_ruido": [row["id"] for row in grupo["menores"] if row["aviso_al_voluntariado"] == SI],
-                })
-        costumbres.append({
-            "tipo": "aviso_al_voluntariado",
-            "nombre": "no avisar al voluntariado a pacientes menores del umbral observado",
-            "umbral_edad": umbral,
-            "situacion_fields": list(SITUACION_FIELDS),
-            "muestra_menores_limpias": len(menores),
-            "no_menores_limpias": sum(row["aviso_al_voluntariado"] != SI for row in menores),
-            "muestra_mayores_limpias": len(mayores),
-            "si_mayores_limpias": sum(row["aviso_al_voluntariado"] == SI for row in mayores),
-            "estratos_comparables": comparables,
-            "ids_respaldo": sorted({i for estrato in comparables for i in estrato["ids_respaldo"]}),
-            "ids_ruido": sorted({i for estrato in comparables for i in estrato["ids_ruido"]}),
-        })
-
-    multiples = []
-    for row in limpias:
-        if len(entradas_cobertura(row["credenciales"])) > 1:
-            seleccionada = fuente_cobertura(row)
-            if seleccionada:
-                multiples.append((row, seleccionada[0]))
-    preferencias = Counter(tipo for _, tipo in multiples)
-    if multiples:
-        preferido, cantidad = preferencias.most_common(1)[0]
-        if cantidad / len(multiples) >= 0.90:
-            costumbres.append({
-                "tipo": "seleccion_credencial",
-                "nombre": f"priorizar {preferido} cuando se presentan dos credenciales",
-                "muestra": len(multiples),
-                "preferido": preferido,
-                "frecuencia_preferido": round(cantidad / len(multiples), 6),
-                "frecuencias": dict(sorted(preferencias.items())),
-                "ids_respaldo": sorted(row["id"] for row, tipo in multiples if tipo == preferido),
-                "ids_ruido": sorted(row["id"] for row, tipo in multiples if tipo != preferido),
-            })
-    return costumbres
+def desvios_por_operador(costumbres: list[dict], rows: list[dict[str, str]]) -> list[dict]:
+    """Cuántas filas `ruido` aporta cada operador, por costumbre."""
+    operador = {row["id"]: row["operador"] for row in rows}
+    conteo: dict[str, Counter] = {}
+    for costumbre in costumbres:
+        for identificador in costumbre["ids_ruido"]:
+            conteo.setdefault(operador[identificador], Counter())[costumbre["tipo"]] += 1
+    return [
+        {"operador": nombre, **dict(sorted(tipos.items())), "total": sum(tipos.values())}
+        for nombre, tipos in sorted(conteo.items())
+    ]
 
 
 def clasificar(
@@ -365,19 +468,116 @@ def clasificar(
     parametros: dict[str, int],
     trazas: dict | None = None,
 ) -> tuple[list[dict[str, str]], dict]:
-    costumbres = inferir_costumbres(rows, parametros)
+    costumbres = inferir_costumbres(rows, parametros, trazas)
     razones = {row["id"]: razones_normativas(row, parametros) for row in rows}
-    limpias = [row for row in rows if not razones[row["id"]]]
-    edad = next((item for item in costumbres if item["tipo"] == "aviso_al_voluntariado"), None)
-    patrones = []
-    if edad is not None:
-        patrones.append(analizar_variacion_operadores(limpias, edad["umbral_edad"], trazas))
     ids_ruido = {i for costumbre in costumbres for i in costumbre.get("ids_ruido", [])}
     salida = []
     for row in rows:
         tipo = "error" if razones[row["id"]] else "ruido" if row["id"] in ids_ruido else "correcta"
         salida.append({"id": row["id"], "tipo": tipo})
-    return salida, {"costumbres": costumbres, "patrones_adicionales": patrones}
+    return salida, {
+        "costumbres": costumbres,
+        "desvios_por_operador": desvios_por_operador(costumbres, rows),
+    }
+
+
+def _lista_ids(ids: list[str]) -> str:
+    return ", ".join(ids) if ids else "(ninguno)"
+
+
+def _detalle(titulo: str, ids: list[str]) -> str:
+    return f"<details><summary>{titulo} ({len(ids)})</summary>\n\n{_lista_ids(ids)}\n\n</details>\n"
+
+
+def _conteos(conteo: dict) -> str:
+    return ", ".join(f"`{clave}` {valor}" for clave, valor in conteo.items())
+
+
+def _md_aviso(item: dict) -> list[str]:
+    lados = item["lados"]
+    resto = item["todas_las_filas_operadores_sin_desvios"]
+    solo = item["comparacion_solo_edad"]
+    umbral = item["umbral_edad"]
+    condicion, opuesta = item["condicion_descripcion"], item["condicion_opuesta_descripcion"]
+    filas = [
+        (f"{umbral} años o más, {condicion}", "`sí`", "avisar"),
+        (f"{umbral} años o más, {opuesta}", "`no`", "no_avisar_mayores_sin_condicion"),
+        (f"menos de {umbral} años", "`no`", "no_avisar_menores"),
+    ]
+    lineas = [
+        f"## 1. {item['nombre'][0].upper()}{item['nombre'][1:]}\n",
+        f"**Costumbre.** `aviso_al_voluntariado` es `sí` si y sólo si el paciente tiene "
+        f"**{umbral} años o más** y está **{condicion}** en la guardia. Ninguna norma escrita "
+        "menciona el voluntariado.\n",
+        "**Cómo se encontró.** Sobre las filas sin violaciones normativas se probaron todas las reglas "
+        "`edad >= umbral` (cada edad observada), solas o combinadas con un dato observable del triage "
+        "(acompañante, si puede responder, forma de llegada), y se eligió la que explica más filas. "
+        f"La regla completa explica {item['coinciden_limpias']} de {item['muestra_limpias']} filas "
+        f"limpias; la mejor regla sólo por edad (umbral {solo['umbral_edad']}) explica "
+        f"{solo['coinciden_limpias']}, porque trata igual a los mayores {condicion} y {opuesta}. "
+        "Todos los desvíos restantes son de tres operadores (ver abajo).\n",
+        "| situación | aviso | filas limpias que siguen la costumbre | todas las filas de los operadores sin desvíos |",
+        "|---|---|---:|---:|",
+    ]
+    for situacion, aviso, clave in filas:
+        lineas.append(
+            f"| {situacion} | {aviso} | {lados[clave]['siguen_costumbre']}/{lados[clave]['muestra']} | "
+            f"{resto[clave]['siguen_costumbre']}/{resto[clave]['muestra']} |"
+        )
+    lineas += [
+        "",
+        f"**Quién se aparta.** Sólo {', '.join(item['operadores_con_desvios'])}. En filas sin errores "
+        f"no avisaron a {len(lados['avisar']['ids_ruido'])} pacientes de {umbral}+ {condicion}, y avisaron "
+        f"a {len(lados['no_avisar_mayores_sin_condicion']['ids_ruido'])} de {umbral}+ {opuesta} y a "
+        f"{len(lados['no_avisar_menores']['ids_ruido'])} menores de {umbral}: se apartan en ambas "
+        "direcciones, sin otra regla reconocible. El resto de los operadores cumple la costumbre en "
+        "el 100% de sus filas, incluso en las que tienen errores normativos en otros campos (última "
+        "columna). Cada desvío en una fila sin error normativo se clasifica `ruido`, en cualquier "
+        "motivo o cobertura.\n",
+        _detalle(f"Respaldo `sí`: {umbral}+ {condicion}", lados["avisar"]["ids_respaldo"]),
+        _detalle(f"Respaldo `no`: {umbral}+ {opuesta}", lados["no_avisar_mayores_sin_condicion"]["ids_respaldo"]),
+        _detalle(f"Respaldo `no`: menores de {umbral}", lados["no_avisar_menores"]["ids_respaldo"]),
+        _detalle("Ruido: desvíos de la costumbre", item["ids_ruido"]),
+    ]
+    return lineas
+
+
+def _md_credencial(item: dict) -> list[str]:
+    preferido = item["preferido"].replace("_", " ")
+    activa, inactiva = item["preferido_activa"], item["preferido_inactiva"]
+    todas = item["todas_las_filas_preferido_inactiva"]
+    verificaciones = item.get("verificaciones_por_traza")
+    evidencia = (
+        f"**Cómo se encontró.** En {item['muestra']} filas limpias con obra social y prepaga, la "
+        f"credencial verificada fue la {preferido} en {item['frecuencias'].get(item['preferido'], 0)} "
+        f"({item['frecuencia_preferido']:.1%}). Con la {preferido} activa ({activa['muestra']} filas) "
+        f"la ficha registra {_conteos(activa['coberturas'])} (los `sin_cobertura` son números con "
+        f"terminación reservada, NOR-COB-04). Con la {preferido} inactiva ({inactiva['muestra']} filas) "
+        f"registra {_conteos(inactiva['coberturas'])}; contando también filas con errores en otros "
+        f"campos, las {todas['muestra']} con la {preferido} inactiva registran {_conteos(todas['coberturas'])}."
+    )
+    if verificaciones:
+        evidencia += (
+            f" Las {verificaciones['1']} trazas de filas con las dos credenciales tienen exactamente "
+            "una verificación de afiliación: nunca se consulta la segunda."
+            if set(verificaciones) == {"1"} else
+            f" Verificaciones por traza: {_conteos(verificaciones)}."
+        )
+    return [
+        f"## 2. {item['nombre'][0].upper()}{item['nombre'][1:]}\n",
+        f"**Costumbre.** Si el paciente presenta obra social y prepaga (y no hay lesión laboral, "
+        f"donde rige la ART), se verifica **sólo la {preferido}**. Si está activa, la ficha registra "
+        f"esa cobertura y se la notifica según las normas; si está inactiva, se registra "
+        f"`sin_cobertura` y **no se recurre a la otra credencial**. Las normas obligan a verificar la "
+        "cobertura que se usa, pero no dicen cuál elegir cuando hay dos.\n",
+        evidencia + "\n",
+        f"**Quién se aparta.** Las {len(item['ids_ruido'])} filas limpias que verificaron la otra "
+        f"credencial son de {', '.join(item['operadores_con_desvios'])}; se clasifican `ruido`.\n",
+        _detalle(f"Respaldo: {preferido} activa", activa["ids_respaldo"]),
+        _detalle(f"Respaldo: {preferido} inactiva, `sin_cobertura` sin segunda verificación",
+                 inactiva["ids_respaldo"]),
+        _detalle("Ruido: verificaron la otra credencial", item["ids_ruido"]),
+    ]
 
 
 def escribir_costumbres(ruta: Path, informe: dict) -> None:
@@ -385,42 +585,34 @@ def escribir_costumbres(ruta: Path, informe: dict) -> None:
     if not costumbres:
         ruta.write_text("# Costumbres detectadas\n\nNo se detectaron costumbres con evidencia suficiente.\n", encoding="utf-8")
         return
-    bloques = ["# Costumbres detectadas\n"]
+    bloques = [
+        "# Costumbres detectadas\n",
+        "Generado por `scripts/clasificar_historial.py` a partir de `historial/historial.csv`, "
+        "`historial/trazas.jsonl` y `normas/original/`. Las costumbres se infieren sólo de filas "
+        "sin violaciones normativas; una violación siempre es `error`, aunque también se aparte "
+        "de una costumbre. Los números y las listas completas están en `historial_costumbres.json`.\n",
+    ]
     for item in costumbres:
-        bloques.append(f"## {item['nombre']}\n")
         if item["tipo"] == "aviso_al_voluntariado":
-            bloques.append(
-                f"Se compararon estratos por {', '.join(item['situacion_fields'])}, excluyendo errores normativos. "
-                f"Umbral: **{item['umbral_edad']}**; estratos comparables: {len(item['estratos_comparables'])}. "
-                f"En filas limpias menores, `no`: {item['no_menores_limpias']}/{item['muestra_menores_limpias']}; "
-                f"en mayores, `si`: {item['si_mayores_limpias']}/{item['muestra_mayores_limpias']}.\n\n"
-            )
+            bloques += _md_aviso(item)
         else:
+            bloques += _md_credencial(item)
+    desvios = informe.get("desvios_por_operador", [])
+    if desvios:
+        tipos = [item["tipo"] for item in costumbres]
+        bloques += [
+            "## Desvíos por operador\n",
+            "Filas `ruido` aportadas por cada operador. Los desvíos no forman otra costumbre: "
+            "se concentran en pocos operadores y van en ambas direcciones.\n",
+            "| operador | " + " | ".join(tipos) + " | total |",
+            "|---|" + "---:|" * (len(tipos) + 1),
+        ]
+        for item in desvios:
             bloques.append(
-                f"Frecuencias: {item['frecuencias']} sobre {item['muestra']} filas; "
-                f"preferencia observada: {item['frecuencia_preferido']:.1%}.\n\n"
+                f"| {item['operador']} | " + " | ".join(str(item.get(tipo, 0)) for tipo in tipos)
+                + f" | {item['total']} |"
             )
-        bloques.append(f"IDs de respaldo: {', '.join(item.get('ids_respaldo', []))}.\n\n")
-        bloques.append(f"IDs clasificados como ruido: {', '.join(item.get('ids_ruido', []))}.\n\n")
-    patrones = informe.get("patrones_adicionales", [])
-    if patrones:
-        bloques.append("## Patrones adicionales investigados\n")
-        for patron in patrones:
-            bloques.append(
-                "Se examinó la variación del aviso entre operadores en pacientes menores del umbral, "
-                "usando sólo filas sin violaciones normativas.\n\n"
-            )
-            for grupo in patron["grupos"]:
-                bloques.append(
-                    f"- **{grupo['operador']}**: {grupo['si']}/{grupo['muestra']} "
-                    f"({grupo['frecuencia_si']:.1%}); IDs: {', '.join(grupo['ids_si'])}.\n"
-                )
-            resto = patron["resto"]
-            bloques.append(
-                f"\nLos otros operadores suman {resto['si']}/{resto['muestra']} "
-                f"({resto['frecuencia_si']:.1%}). No se confirma como costumbre hospitalaria: "
-                f"la señal es de un subgrupo y no de una práctica mayoritaria.\n\n"
-            )
+        bloques.append("")
     ruta.write_text("\n".join(bloques).rstrip() + "\n", encoding="utf-8")
 
 

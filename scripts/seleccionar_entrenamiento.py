@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 from admision.ejemplo import mensaje_de_sistema, primer_mensaje
-from scripts.clasificar_historial import SI
+from scripts.clasificar_historial import SI, aviso_segun_costumbre
 
 
 def cargar_filas(ruta: Path) -> list[dict[str, str]]:
@@ -29,43 +29,40 @@ def cargar_trazas(ruta: Path) -> dict[str, dict]:
     return {traza["id"]: traza for traza in trazas}
 
 
-def umbral_costumbre(ruta: Path) -> int:
+def costumbre_aviso(ruta: Path) -> dict:
     informe = json.loads(ruta.read_text(encoding="utf-8"))
     for costumbre in informe.get("costumbres", []):
         if costumbre.get("tipo") == "aviso_al_voluntariado":
-            return int(costumbre["umbral_edad"])
-    raise ValueError("no se encontró la costumbre etaria")
+            return costumbre
+    raise ValueError("no se encontró la costumbre del aviso al voluntariado")
 
 
 def seleccionar_ids(
     filas: list[dict[str, str]],
     clasificacion: dict[str, str],
-    umbral: int,
+    costumbre: dict,
 ) -> tuple[list[str], dict]:
     faltantes = {fila["id"] for fila in filas} - clasificacion.keys()
     if faltantes:
         raise ValueError(f"faltan clasificaciones para {len(faltantes)} filas")
     ids_error = sorted(i for i, tipo in clasificacion.items() if tipo == "error")
     ids_ruido = sorted(i for i, tipo in clasificacion.items() if tipo == "ruido")
-    ambiguos = sorted(
+    seleccionados = [fila["id"] for fila in filas if clasificacion[fila["id"]] == "correcta"]
+    # Toda fila correcta sigue la costumbre completa; si no, la clasificación y el informe
+    # de costumbres no corresponden entre sí y no se arma el dataset.
+    inconsistentes = sorted(
         fila["id"] for fila in filas
         if clasificacion[fila["id"]] == "correcta"
-        and int(fila["edad"]) < umbral
-        and fila["aviso_al_voluntariado"] == SI
+        and aviso_segun_costumbre(fila, costumbre) != (fila["aviso_al_voluntariado"] == SI)
     )
-    excluidos = set(ids_error) | set(ids_ruido) | set(ambiguos)
-    seleccionados = [
-        fila["id"] for fila in filas
-        if clasificacion[fila["id"]] == "correcta" and fila["id"] not in excluidos
-    ]
+    if inconsistentes:
+        raise ValueError(f"filas correctas que contradicen la costumbre: {inconsistentes[:5]}")
     return seleccionados, {
         "total_historial": len(filas),
-        "correctas_clasificadas": sum(tipo == "correcta" for tipo in clasificacion.values()),
+        "correctas_clasificadas": len(seleccionados),
         "excluidas_error": len(ids_error),
         "excluidas_ruido": len(ids_ruido),
-        "excluidas_ambiguas": len(ambiguos),
         "seleccionadas": len(seleccionados),
-        "ids_ambiguos": ambiguos,
     }
 
 
@@ -121,7 +118,7 @@ def convertir_historial(
     filas = cargar_filas(ruta_historial)
     clasificacion = cargar_clasificacion(ruta_clasificacion)
     trazas = cargar_trazas(ruta_trazas)
-    seleccionados, resumen = seleccionar_ids(filas, clasificacion, umbral_costumbre(ruta_costumbres))
+    seleccionados, resumen = seleccionar_ids(filas, clasificacion, costumbre_aviso(ruta_costumbres))
     conversaciones = []
     for identificador in seleccionados:
         if identificador not in trazas:

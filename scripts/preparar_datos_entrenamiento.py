@@ -58,7 +58,12 @@ def preparar(
                 "historial/trazas.jsonl",
                 "historial_costumbres.json",
             ],
-            "sinteticos": ["admision.generador", "normas/original", "scripts/generar_sinteticos_entrenamiento.py"],
+            "sinteticos": [
+                "admision.generador",
+                "normas/original",
+                "entrega.construir_buscador",
+                "scripts/generar_sinteticos_entrenamiento.py",
+            ],
         },
         "reales": resumen_historial,
         "sinteticos": resumen_sinteticos,

@@ -725,3 +725,33 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   `costumbres.md`, `historial_costumbres.json`, `conversaciones.jsonl` y `auditoria_sinteticos.jsonl`.
   Ninguna clasificación ni dato de entrenamiento cambió; ningún doc citaba el hash viejo.
   Suite: `uv run --locked --no-sync python -m unittest discover -s tests` → 150 tests OK (1 skipped). Sin GPU ni builds.
+
+### 2026-11-10: corrección de curado y datos de entrenamiento (#10-#12)
+
+- **NOR-COB-04** (`scripts/clasificar_historial.py`, `cobertura_esperada`): con número terminado en
+  P-COB-2 la ficha es `sin_cobertura` y se notifica a la entidad esté activa o no la afiliación (§1, §3;
+  §4 excluye ART). Antes se exigía no notificar si estaba inactiva. El generador sintético usa la misma función.
+- **Voluntariado**: la costumbre se infiere buscando `edad >= umbral` + condición observable del triage sobre
+  filas limpias; sale 75 años y **sin acompañante** (1.609/1.760 limpias vs 1.507 sólo por edad). Los 17
+  operadores sin desvíos la cumplen 185/185, 141/141 y 1.348/1.348. Se quitó la compuerta de estratos
+  `motivo × cobertura`, que dejaba desvíos idénticos como `correcta` o `ruido` según el estrato.
+- **Dos credenciales**: costumbre completa = verificar sólo la prepaga; inactiva → `sin_cobertura` sin recurrir a
+  la obra social (45/45 filas; una verificación en 193/193 trazas). Sin cambios de etiqueta.
+- **Sintéticos**: aviso determinista por la costumbre completa (antes muestreo 175/306); búsquedas con
+  `entrega.construir_buscador` (BM25 `baseline`, `k_entorno=2`) en lugar de `BuscadorSintetico` (eliminado).
+  Las 400 conversaciones con circuito recuperan NOR-TDE-01/02/03. El selector de historial ya no excluye
+  "ambiguas": falla si una fila `correcta` contradice la costumbre.
+- Resultado: 1.600 `correcta` / 240 `error` / 160 `ruido` (antes 1.631/279/90). Cambios: 42 error→correcta,
+  3 error→ruido y 6 correcta→error por NOR-COB-04; 67 correcta→ruido por la costumbre del voluntariado (todas
+  de OP-04/11/17). Dataset: 1.600 reales + 500 sintéticos = 2.100 (antes 1.595 + 500 = 2.095); 53 fichas
+  sintéticas cambiaron y las 500 conversaciones sintéticas cambian sus observaciones de búsqueda.
+- Evidencia: clasificador y `preparar_datos_entrenamiento` regenerados dos veces en carpetas nuevas con `cmp`
+  idéntico; cruce con las 800 trazas de referencia (sólo verificación, no se agregan al dataset): 74/74, 67/67,
+  659/659 voluntariado; 62/62 notifican con terminación reservada inactiva; 65/65 verifican la prepaga y 20/20
+  inactivas → `sin_cobertura`. Suite: `uv run --locked --no-sync python -m unittest discover -s tests` →
+  159 tests OK (1 skipped). Sin GPU, builds ni descargas.
+- Límites: las normas siguen en `normas/original` (variar valores es decisión pendiente). En sintéticos,
+  NOR-COB-03 (246), NOR-ADM-03 (114) y NOR-COB-04 (38) aparecen en `fundamentos` sin ser recuperadas por ninguna
+  búsqueda del guion. La conversión de historial sigue usando los resultados de búsqueda originales de las
+  trazas (issue #8). NOR-ADM-01 §4 se codifica más estricto que el texto (box anticipado no exigido = error),
+  pero afecta 0 filas; quedó comentado. Detalle en [INFORME.md](../INFORME.md) y [costumbres.md](../costumbres.md).

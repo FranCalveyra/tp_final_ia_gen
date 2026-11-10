@@ -2,16 +2,16 @@
 
 ## Resumen ejecutivo
 
-El análisis amplía el trabajo del issue #10 con `historial/historial.csv`, las 2.000 trazas correspondientes de `historial/trazas.jsonl` y las normas de `normas/original/`. Se confirmaron dos costumbres y se investigó un patrón adicional de operadores sin convertirlo en una regla.
+El análisis usa `historial/historial.csv`, las 2.000 trazas correspondientes de `historial/trazas.jsonl` y las normas de `normas/original/`. Se confirmaron dos costumbres completas (aviso al voluntariado y elección de credencial con obra social y prepaga). Todas las filas `ruido` son desvíos de esas costumbres y provienen de tres operadores (`OP-04`, `OP-11`, `OP-17`).
 
-La clasificación compatible con el issue #10 se conserva:
+Clasificación vigente (corrección del 2026-11-10, ver [bitácora](docs/progreso.md)):
 
-| tipo | cantidad |
-|---|---:|
-| correcta | 1.631 |
-| error | 279 |
-| ruido | 90 |
-| total | 2.000 |
+| tipo | cantidad | antes de la corrección |
+|---|---:|---:|
+| correcta | 1.600 | 1.631 |
+| error | 240 | 279 |
+| ruido | 160 | 90 |
+| total | 2.000 | 2.000 |
 
 Una violación normativa siempre tiene prioridad sobre una costumbre: `error > ruido`.
 
@@ -30,53 +30,65 @@ La coincidencia de las fichas no se toma como una etiqueta independiente: las tr
 ## Metodología
 
 1. Se cargan los parámetros y las secciones observables de las normas originales.
-2. Se calculan las violaciones normativas fila por fila, incluyendo registro, documento, orden del box, circuito, plazo, cobertura, verificación y entidad a notificar.
+2. Se calculan las violaciones normativas fila por fila: registro, documento, orden del box, circuito, plazo, cobertura, verificación y entidad a notificar. Para la terminación reservada (NOR-COB-04) se aplica el texto completo: la ficha registra `sin_cobertura` y se notifica a la entidad **esté activa o no la afiliación** (§3), salvo en accidentes de trabajo (§4).
 3. Se excluyen de la inferencia de costumbres todas las filas con alguna violación.
-4. Para la costumbre etaria se comparan situaciones equivalentes por `motivo × cobertura`, con al menos 20 filas limpias menores y 20 mayores en cada estrato.
-5. Sólo se confirma una señal cuando tiene muestra suficiente, una frecuencia claramente dominante y una explicación compatible con una práctica no escrita. Una minoría aislada no se convierte automáticamente en costumbre.
-6. Se usan las trazas para validar la correspondencia ID-operador-ficha y para investigar variaciones por operador.
+4. Costumbre del voluntariado: se prueban todas las reglas `edad >= umbral` (cada edad observada), solas o combinadas con un dato observable del triage (acompañante, si puede responder, forma de llegada), y se elige la que explica más filas limpias. Ni el umbral ni la condición están fijados en el código.
+5. Costumbre de credenciales: entre las filas limpias con obra social y prepaga se mide qué credencial se verificó y qué se registró cuando estaba inactiva; se exige una preferencia de al menos 90% para confirmarla.
+6. Toda fila limpia que se aparta de una costumbre confirmada es `ruido`, en cualquier motivo o cobertura. Las trazas se usan para validar la correspondencia ID-operador-ficha y para contar verificaciones de afiliación.
 
-El análisis completo, con frecuencias e IDs, queda en `historial_costumbres.json`. `costumbres.md` es la versión legible para la presentación y para compartir con Martu y Eze.
+El análisis completo, con frecuencias e IDs, queda en `historial_costumbres.json`. `costumbres.md` es la versión legible, con los IDs que respaldan cada lado de cada costumbre.
 
 ## Costumbres confirmadas
 
-### 1. No avisar al voluntariado a menores de 75 años
+### 1. Avisar al voluntariado sólo a pacientes de 75 años o más sin acompañante
 
-El umbral observado es 75 años. En filas limpias menores de 75, el aviso es `no` en 1.298 de 1.415 casos (91,7%). En filas limpias de 75 años o más, el aviso es `sí` en 175 de 306 (57,2%), por lo que el grupo mayor no se trata como una regla uniforme.
+`aviso_al_voluntariado` es `sí` si y sólo si el paciente tiene 75 años o más y no tiene acompañante en la guardia. La regla explica 1.609 de 1.760 filas limpias; la mejor regla sólo por edad (también 75) explica 1.507, porque trata igual a los mayores acompañados.
 
-La comparación no mezcla motivos ni coberturas: se conservaron ocho estratos con muestras de ambos grupos. Los IDs de respaldo de los `no` y los IDs de las excepciones `sí` están en `costumbres.md` y en cada estrato de `historial_costumbres.json`.
+| situación | aviso | filas limpias que la siguen | todas las filas de los 17 operadores sin desvíos |
+|---|---|---:|---:|
+| 75+ sin acompañante | `sí` | 167/186 | 185/185 |
+| 75+ con acompañante | `no` | 114/126 | 141/141 |
+| menos de 75 | `no` | 1.328/1.448 | 1.348/1.348 |
 
-Esta costumbre explica el ruido que ya clasificaba el issue #10, pero no reemplaza las normas ni justifica avisar o no avisar en cualquier situación sin considerar el contexto.
+La versión anterior describía sólo "no avisar a menores de 75" y trataba al grupo de 75+ como mixto (175/306): esa mezcla era la suma de mayores solos y acompañados. Además, sólo marcaba `ruido` dentro de ocho estratos `motivo × cobertura` con muestra suficiente, por lo que desvíos idénticos quedaban `correcta` o `ruido` según el estrato. Esa compuerta se quitó: la costumbre se cumple al 100% en todas las situaciones para los operadores sin desvíos, así que no hace falta estratificar para separar costumbre de ruido.
 
-### 2. Priorizar la prepaga con dos credenciales
+Cruce con las 800 trazas de referencia de `entrenamiento/trazas.jsonl` (sólo verificación, no se usan como datos): 74/74 `sí` en 75+ sin acompañante, 67/67 `no` en 75+ con acompañante y 659/659 `no` en menores de 75.
 
-En 171 filas limpias que presentan dos credenciales, la credencial que figura como verificada es:
+### 2. Con obra social y prepaga, verificar sólo la prepaga, sin recurrir a la obra social
 
-| selección observada | cantidad | frecuencia |
-|---|---:|---:|
-| prepaga | 162 | 94,7% |
-| obra social | 9 | 5,3% |
+Cuando el paciente presenta las dos credenciales (sin lesión laboral, donde rige la ART), se verifica sólo la prepaga. Si está activa se registra y notifica según las normas; si está inactiva se registra `sin_cobertura` y no se verifica la obra social.
 
-La norma no indica que haya que elegir la primera ni que haya que preferir una clase. Por eso esta tendencia se conserva como costumbre observada: no se transforma en una norma inventada. Las 9 excepciones y los 162 IDs de respaldo están documentados.
+| evidencia | resultado |
+|---|---:|
+| filas limpias que verificaron la prepaga | 163/172 (94,8%) |
+| prepaga inactiva, filas limpias → `sin_cobertura` | 39/39 |
+| prepaga inactiva, todas las filas → `sin_cobertura` | 45/45 |
+| trazas con dos credenciales y una sola verificación | 193/193 |
+| trazas de referencia que verificaron sólo la prepaga | 65/65 |
+| trazas de referencia con prepaga inactiva → `sin_cobertura` | 20/20 |
 
-## Patrón adicional investigado: operadores
+Las normas obligan a verificar la cobertura que se usa, pero no dicen cuál elegir: por eso es costumbre y no norma. Las 9 filas limpias que verificaron la obra social son de `OP-04`, `OP-11` y `OP-17` y son `ruido`.
 
-Las trazas permiten estudiar si la costumbre etaria se concentra en personas concretas. En las filas normativamente limpias de menores de 75 años:
+## Desvíos por operador
 
-| operadores | avisos | muestra | frecuencia |
+| operador | ruido por voluntariado | ruido por credencial | total |
 |---|---:|---:|---:|
-| OP-04 | 28 | 60 | 46,7% |
-| OP-11 | 49 | 82 | 59,8% |
-| OP-17 | 40 | 83 | 48,2% |
-| otros 17 operadores | 0 | 1.190 | 0,0% |
+| OP-04 | 38 | 1 | 39 |
+| OP-11 | 60 | 4 | 64 |
+| OP-17 | 53 | 4 | 57 |
 
-La señal es fuerte y reproducible, y `costumbres.md` conserva los 117 IDs involucrados. Sin embargo, no se confirma como una costumbre del hospital: está concentrada en un subgrupo de operadores y no representa la práctica mayoritaria. Se documenta como variación histórica para el prompt y los datos, pero no agrega una regla ni reclasifica automáticamente filas fuera de los estratos ya comparables.
+Los tres operadores se apartan en ambas direcciones (avisan a menores o a mayores acompañados y omiten avisos a mayores solos), sin otra regla reconocible. No se confirma como otra costumbre: es variación individual y se etiqueta como `ruido`. Los otros 17 operadores no tienen desvíos.
 
-No se encontraron otros patrones con evidencia equivalente en nivel, motivo, llegada, documento, capacidad de responder, lesión laboral, sospecha de sepsis o cobertura. Las diferencias observadas en esos campos no superan el criterio de confirmación o están explicadas por normas escritas.
+## Cambios de etiqueta en la corrección del 2026-11-10
 
-## Compatibilidad con el issue #10
+| causa | cambio | filas |
+|---|---|---:|
+| NOR-COB-04 con afiliación inactiva que notifica (antes se exigía no notificar) | `error` → `correcta` | 42 |
+| ídem, con desvío de la costumbre del voluntariado | `error` → `ruido` | 3 |
+| NOR-COB-04 con afiliación inactiva que **no** notifica | `correcta` → `error` | 6 |
+| costumbre completa del voluntariado, sin compuerta de estratos | `correcta` → `ruido` | 67 |
 
-El clasificador conserva su interfaz y su precedencia. Con las trazas habilitadas, el CSV generado sigue teniendo exactamente 2.000 filas y los mismos conteos `1.631/279/90`. La validación adicional de trazas sólo rechaza datos inconsistentes; no usa una decisión de la traza para sobreescribir las reglas normativas.
+Otras 3 filas con terminación reservada inactiva siguen `error` por otros campos. La costumbre de credenciales no cambió etiquetas: sólo se completó su descripción.
 
 La ejecución reproducible es:
 
@@ -86,11 +98,11 @@ python scripts/clasificar_historial.py --entrada historial/historial.csv --norma
 
 ## Archivos y resumen para el equipo
 
-- [`costumbres.md`](costumbres.md): costumbres confirmadas, patrón adicional e IDs.
-- [`historial_costumbres.json`](historial_costumbres.json): frecuencias, estratos, operadores e IDs completos.
-- [`docs/resumen-costumbres-issue-11.md`](docs/resumen-costumbres-issue-11.md): versión breve para Martu y Eze.
-- [`scripts/clasificar_historial.py`](scripts/clasificar_historial.py): análisis reproducible y compatible.
-- [`tests/test_clasificar_historial.py`](tests/test_clasificar_historial.py): pruebas de salida, trazas y determinismo.
+- [`costumbres.md`](costumbres.md): costumbres completas, método, desvíos por operador e IDs de respaldo de cada lado.
+- [`historial_costumbres.json`](historial_costumbres.json): frecuencias, operadores e IDs completos.
+- [`docs/resumen-costumbres-issue-11.md`](docs/resumen-costumbres-issue-11.md): versión breve para el equipo.
+- [`scripts/clasificar_historial.py`](scripts/clasificar_historial.py): análisis reproducible.
+- [`tests/test_clasificar_historial.py`](tests/test_clasificar_historial.py): pruebas de reglas, costumbres, trazas y determinismo.
 
 ## Verificación
 
@@ -102,9 +114,9 @@ python -m unittest tests.test_clasificar_historial -v
 
 ### Seleccion de historial
 
-Se parte de las 2.000 filas clasificadas en el issue #10. Se excluyen las 279 filas `error` y las 90 `ruido`. Ademas, se excluyen 36 filas `correcta` con aviso a menores de 75 anos que quedaron fuera de los estratos comparables y estan concentradas en la variacion de `OP-04`, `OP-11` y `OP-17` documentada en el issue #11. Esto evita ensenar como respuesta esperada una conducta ambigua.
+Se parte de las 2.000 filas clasificadas. Se excluyen las 240 filas `error` y las 160 `ruido`. Como todo desvío de la costumbre del voluntariado ya es `ruido`, se quitó la exclusión adicional de "ambiguas" (36 filas en la versión anterior); en su lugar, el selector falla si alguna fila `correcta` contradice la costumbre del informe.
 
-Quedan **1.595 conversaciones reales**. Cada una se obtiene de `historial/trazas.jsonl`, conserva el sistema, el mensaje inicial, todas las acciones y observaciones, y termina en `registrar_decision`. No se usan filas de `practica/` ni sus fichas esperadas.
+Quedan **1.600 conversaciones reales** (antes 1.595: salen 31 por la costumbre completa y 6 por NOR-COB-04; entran 42 que antes eran `error` por NOR-COB-04). Cada una se obtiene de `historial/trazas.jsonl`, conserva el sistema, el mensaje inicial, todas las acciones y observaciones, y termina en `registrar_decision`. No se usan filas de `practica/` ni sus fichas esperadas.
 
 ### Casos sinteticos
 
@@ -119,19 +131,21 @@ El script usa `admision.generador.generar` con semilla **12012** y genera 5.000 
 | general | 244 |
 | total | 500 |
 
-Cada ficha sintetica se deduce desde los parametros cargados de `normas/original/`: documento, box, circuito, plazo, fuente de cobertura, afiliacion, digito reservado y notificacion. La seleccion de prepaga en dos credenciales se toma como costumbre observada del issue #11. Para el aviso etario solo se aplica directamente la señal confirmada de no avisar a menores de 75 anos; en mayores se muestrea de forma determinista la frecuencia observada de 175/306 (57,2%), sin tratarla como una regla universal ni fijar parametros normativos en el prompt o en los datos.
+Cada ficha sintetica se deduce desde los parametros cargados de `normas/original/`: documento, box, circuito, plazo, fuente de cobertura, afiliacion, digito reservado (con la misma regla de NOR-COB-04 que el clasificador) y notificacion. Las dos costumbres se leen de `historial_costumbres.json` y se aplican completas y deterministas: con dos credenciales se verifica sólo la preferida, y el aviso al voluntariado es `sí` sólo para 75+ sin acompañante (antes se muestreaba `sí` con probabilidad 175/306 en mayores). Resultado: 61 avisos (todos los 75+ sin acompañante) y ningún aviso en 50 mayores acompañados ni en 389 menores.
 
-Las conversaciones se ejecutan sobre `admision.Entorno` con un buscador determinista de las normas originales. Las 500 fichas pasan la comparacion normativa y el validador de conversaciones v1. Los fundamentos de cada ficha se derivan segun el circuito y la situacion, en vez de usar una lista generica.
+Las conversaciones se ejecutan sobre `admision.Entorno` con el buscador real del proyecto, construido con `entrega.construir_buscador` (misma variante por defecto, `baseline`, y misma carpeta de normas recibida) y con su `k_entorno` (2 secciones). Antes se usaba un buscador sintético propio que, por ejemplo, devolvía NOR-COB-02 + NOR-TDE-01 para la consulta de código ACV; ahora las 400 conversaciones con circuito recuperan su sección rectora (NOR-TDE-01/02/03). Las 500 fichas pasan la comparacion normativa y el validador de conversaciones v1.
+
+Limitaciones: las normas siguen siendo `normas/original` (variar sus valores es una decisión pendiente del equipo). Algunas secciones citadas en `fundamentos` no aparecen en ninguna búsqueda de la conversación (NOR-COB-03 en 246, NOR-ADM-03 en 114 y NOR-COB-04 en 38 sintéticos), porque las consultas del guion no cambiaron.
 
 ### Dataset final y reproducibilidad
 
-El dataset combinado tiene **2.095 conversaciones**:
+El dataset combinado tiene **2.100 conversaciones**:
 
 | origen | cantidad | proporcion |
 |---|---:|---:|
-| historial | 1.595 | 76,1% |
-| sintetico | 500 | 23,9% |
-| total | 2.095 | 100% |
+| historial | 1.600 | 76,2% |
+| sintetico | 500 | 23,8% |
+| total | 2.100 | 100% |
 
 El comando reproducible es:
 
@@ -145,7 +159,7 @@ La salida se valida con:
 python -m scripts.validar_conversaciones datos/entrenamiento/conversaciones.jsonl
 ```
 
-Resultado: 2.095 registros, 2.095 validos, sin errores. Las 500 fichas sinteticas son normativamente validas; entre los 111 mayores sinteticos quedaron 74 avisos y 37 sin aviso, mientras los 389 menores quedaron sin aviso. En total cambiaron 37 conversaciones sinteticas respecto de la version anterior. `datos/entrenamiento/manifiesto.json` conserva procedencia, semilla, balance, cantidades y SHA-256; `auditoria_sinteticos.jsonl` conserva la ficha deducida y la evidencia observada de cada sintetico. El ensamblador no sobrescribe una salida existente.
+Resultado: 2.100 registros, 2.100 validos, sin errores. Respecto de la versión anterior cambiaron 53 fichas sintéticas (45 por el aviso al voluntariado y 10 entidades a notificar por NOR-COB-04; dos fichas cambian en ambos campos) y los mensajes de las 500 conversaciones sintéticas (observaciones del buscador real y nueva referencia `buscador:`). `datos/entrenamiento/manifiesto.json` conserva procedencia, semilla, balance, buscador, cantidades y SHA-256; `auditoria_sinteticos.jsonl` conserva la ficha deducida de cada sintetico. El ensamblador no sobrescribe una salida existente.
 
 ### Archivos del issue
 
@@ -155,5 +169,4 @@ Resultado: 2.095 registros, 2.095 validos, sin errores. Las 500 fichas sintetica
 - [`scripts/seleccionar_entrenamiento.py`](scripts/seleccionar_entrenamiento.py): curacion y conversion de trazas reales.
 - [`scripts/generar_sinteticos_entrenamiento.py`](scripts/generar_sinteticos_entrenamiento.py): generacion, deduccion y balance sintetico.
 - [`scripts/preparar_datos_entrenamiento.py`](scripts/preparar_datos_entrenamiento.py): ensamblado y validacion final.
-- [`tests/test_seleccionar_entrenamiento.py`](tests/test_seleccionar_entrenamiento.py), [`tests/test_generar_sinteticos_entrenamiento.py`](tests/test_generar_sinteticos_entrenamiento.py) y [`tests/test_preparar_datos_entrenamiento.py`](tests/test_preparar_datos_entrenamiento.py): pruebas reproducibles.
-La suite específica verifica cinco casos: 2.000 filas y conteos, reglas normativas, las dos costumbres, el patrón adicional por operador, validación de 2.000 trazas y reproducibilidad byte a byte.
+- [`tests/test_seleccionar_entrenamiento.py`](tests/test_seleccionar_entrenamiento.py), [`tests/test_generar_sinteticos_entrenamiento.py`](tests/test_generar_sinteticos_entrenamiento.py) y [`tests/test_preparar_datos_entrenamiento.py`](tests/test_preparar_datos_entrenamiento.py): pruebas reproducibles, incluidas la costumbre completa en sintéticos, NOR-COB-04 con afiliación inactiva y búsquedas idénticas a las del buscador de la entrega.

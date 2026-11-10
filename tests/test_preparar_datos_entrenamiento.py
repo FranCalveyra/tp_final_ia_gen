@@ -16,12 +16,12 @@ class PrepararDatosEntrenamientoTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as carpeta:
             salida = Path(carpeta) / "entrenamiento"
             manifiesto = preparar(RAIZ, salida)
-            self.assertEqual(manifiesto["reales"]["conversaciones_reales"], 1595)
+            self.assertEqual(manifiesto["reales"]["conversaciones_reales"], 1600)
             self.assertEqual(manifiesto["sinteticos"]["sinteticos_seleccionados"], 500)
-            self.assertEqual(manifiesto["total_conversaciones"], 2095)
-            self.assertEqual(manifiesto["por_origen"], {"historial": 1595, "sintetico": 500})
+            self.assertEqual(manifiesto["total_conversaciones"], 2100)
+            self.assertEqual(manifiesto["por_origen"], {"historial": 1600, "sintetico": 500})
             informe = validar_archivo(salida / "conversaciones.jsonl")
-            self.assertEqual(informe["validos"], 2095)
+            self.assertEqual(informe["validos"], 2100)
             self.assertFalse(informe["errores"])
             self.assertEqual(
                 json.loads((salida / "manifiesto.json").read_text(encoding="utf-8")),

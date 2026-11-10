@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import hashlib
 import unicodedata
 from collections import Counter
 from dataclasses import replace
@@ -12,13 +11,14 @@ from pathlib import Path
 from admision.entorno import Entorno
 from admision.ejemplo import mensaje_de_sistema, primer_mensaje
 from admision.generador import generar
-from admision.normas import cargar_normas
 from admision_tp.conversaciones import validar_registro
+from entrega import construir_buscador
 from scripts.clasificar_historial import (
     SI,
+    aviso_segun_costumbre,
     cargar_parametros,
     circuito_esperado,
-    entradas_cobertura,
+    cobertura_esperada,
     fuente_cobertura,
     plazo_esperado,
     razones_normativas,
@@ -104,20 +104,32 @@ def serializar_art(art: tuple | None) -> str:
     return f"{art[0]} CUIL {art[1]}" if art else ""
 
 
-def _fuente_sintetica(caso, fila_base: dict[str, str]) -> tuple[str, str, str] | None:
+def costumbres_por_tipo(informe: dict) -> dict[str, dict]:
+    costumbres = {item["tipo"]: item for item in informe["costumbres"]}
+    faltantes = {"aviso_al_voluntariado", "seleccion_credencial"} - costumbres.keys()
+    if faltantes:
+        raise ValueError(f"faltan costumbres en el informe: {sorted(faltantes)}")
+    return costumbres
+
+
+def credencial_preferida(caso, costumbres: dict[str, dict]) -> tuple[str, str, str]:
+    """Costumbre de dos credenciales: se verifica sólo la preferida, sin recurrir a la otra."""
+    preferido = costumbres["seleccion_credencial"]["preferido"]
+    return next(credencial for credencial in caso.credenciales if credencial[0] == preferido)
+
+
+def _fuente_sintetica(caso, fila_base: dict[str, str], costumbres: dict[str, dict]) -> tuple[str, str, str] | None:
     if caso.trabajo:
         return "art", caso.art[0], caso.art[1]
     if len(caso.credenciales) > 1:
-        prepaga = next(credencial for credencial in caso.credenciales if credencial[0] == "prepaga")
-        return "prepaga", prepaga[1], prepaga[2]
+        return credencial_preferida(caso, costumbres)
     return fuente_cobertura(fila_base)
 
 
 def deducir_ficha(
     caso,
     parametros: dict[str, int],
-    umbral_edad: int,
-    aviso_al_voluntariado: bool = False,
+    costumbres: dict[str, dict],
 ) -> tuple[dict, dict]:
     fila = {
         "id": caso.id,
@@ -135,8 +147,10 @@ def deducir_ficha(
         "entidad_verificada": "",
         "numero_verificado": "",
         "respuesta_verificacion": "",
+        "acompanante": caso.acompanante or "",
+        "puede_responder": SI if caso.puede_responder else "no",
     }
-    fuente = _fuente_sintetica(caso, fila)
+    fuente = _fuente_sintetica(caso, fila, costumbres)
     if fuente:
         tipo, entidad, numero = fuente
         fila["entidad_verificada"] = entidad
@@ -159,14 +173,11 @@ def deducir_ficha(
         fila["entidad_a_notificar"] = ""
     else:
         tipo, entidad, numero = fuente
-        activa = fila["respuesta_verificacion"] == "activa"
-        reservado = numero.endswith(str(parametros["P-COB-2"]))
-        if not activa:
-            fila["cobertura"], fila["entidad_a_notificar"] = "sin_cobertura", ""
-        elif reservado and tipo != "art":
-            fila["cobertura"], fila["entidad_a_notificar"] = "sin_cobertura", entidad
-        else:
-            fila["cobertura"], fila["entidad_a_notificar"] = tipo, entidad
+        fila["cobertura"], fila["entidad_a_notificar"] = cobertura_esperada(
+            tipo, entidad, numero, fila["respuesta_verificacion"] == "activa", parametros
+        )
+    aviso_al_voluntariado = aviso_segun_costumbre(fila, costumbres["aviso_al_voluntariado"])
+    fila["aviso_al_voluntariado"] = SI if aviso_al_voluntariado else "no"
 
     if razones_normativas(fila, parametros):
         raise ValueError(f"la deducción sintética viola normas: {caso.id}")
@@ -204,52 +215,6 @@ def deducir_ficha(
     return fila, ficha
 
 
-def probabilidad_aviso_mayores(costumbres: dict) -> tuple[int, int, float]:
-    costumbre = next(
-        item for item in costumbres["costumbres"]
-        if item["tipo"] == "aviso_al_voluntariado"
-    )
-    muestra = int(costumbre["muestra_mayores_limpias"])
-    avisos = int(costumbre["si_mayores_limpias"])
-    if not muestra or not 0 <= avisos <= muestra:
-        raise ValueError("evidencia inválida para el aviso en mayores")
-    return avisos, muestra, avisos / muestra
-
-
-def aviso_observado(
-    edad: int,
-    umbral_edad: int,
-    probabilidad_mayores: float,
-    semilla: int,
-    caso_id: str,
-) -> bool:
-    """Aplica la costumbre confirmada y muestrea la señal mixta de mayores."""
-    if edad < umbral_edad:
-        return False
-    digest = hashlib.sha256(f"{semilla}:{caso_id}".encode("ascii")).digest()
-    valor = int.from_bytes(digest[:8], "big") / 2**64
-    return valor < probabilidad_mayores
-
-
-class BuscadorSintetico:
-    """Buscador determinista sobre las normas originales para las observaciones."""
-
-    k_entorno = 2
-
-    def __init__(self, ruta_normas: Path):
-        self.secciones = cargar_normas(ruta_normas)
-
-    def recuperar(self, consulta: str, k: int) -> list:
-        tokens = set(normalizar(consulta).split())
-        puntajes = []
-        for seccion in self.secciones:
-            texto = normalizar(seccion.id + " " + seccion.texto)
-            puntaje = sum(token in texto for token in tokens)
-            puntajes.append((puntaje, seccion.id, seccion))
-        puntajes.sort(key=lambda item: (-item[0], item[1]))
-        return [item[2] for item in puntajes[:k]]
-
-
 def _registrar(mensajes: list[dict], entorno: Entorno, herramienta: str, argumentos: dict) -> None:
     mensajes.append({
         "role": "assistant",
@@ -269,8 +234,9 @@ def _registrar(mensajes: list[dict], entorno: Entorno, herramienta: str, argumen
         })
 
 
-def caso_a_conversacion(caso, ficha: dict, ruta_normas: Path) -> dict:
-    entorno = Entorno(caso, BuscadorSintetico(ruta_normas))
+def caso_a_conversacion(caso, ficha: dict, buscador, costumbres: dict[str, dict]) -> dict:
+    """Recorre el caso en el entorno del kit con el buscador real del proyecto."""
+    entorno = Entorno(caso, buscador)
     mensajes = [
         {"role": "system", "content": mensaje_de_sistema()},
         {"role": "user", "content": primer_mensaje(caso.paciente_id)},
@@ -296,8 +262,7 @@ def caso_a_conversacion(caso, ficha: dict, ruta_normas: Path) -> dict:
         if ficha["cobertura"] == "art" or caso.trabajo:
             entidad, numero = caso.art
         elif len(caso.credenciales) > 1:
-            prepaga = next(c for c in caso.credenciales if c[0] == "prepaga")
-            entidad, numero = prepaga[1], prepaga[2]
+            _, entidad, numero = credencial_preferida(caso, costumbres)
         elif caso.credenciales:
             entidad, numero = caso.credenciales[0][1], caso.credenciales[0][2]
         elif caso.declarada:
@@ -319,6 +284,7 @@ def caso_a_conversacion(caso, ficha: dict, ruta_normas: Path) -> dict:
             "generador:admision.generador",
             "configuracion:semilla-12012",
             "normas:normas/original",
+            f"buscador:entrega.construir_buscador:{getattr(buscador, 'variante', type(buscador).__name__)}",
             "costumbres:issue-11",
         ],
         "messages": mensajes,
@@ -331,25 +297,20 @@ def generar_sinteticos(
     semilla: int = 12012,
     candidatos: int = 5000,
 ) -> tuple[list[dict], list[dict], dict]:
-    costumbres = json.loads(ruta_costumbres.read_text(encoding="utf-8"))
-    umbral = next(
-        int(item["umbral_edad"])
-        for item in costumbres["costumbres"]
-        if item["tipo"] == "aviso_al_voluntariado"
-    )
-    avisos_mayores, muestra_mayores, probabilidad_mayores = probabilidad_aviso_mayores(costumbres)
+    costumbres = costumbres_por_tipo(json.loads(ruta_costumbres.read_text(encoding="utf-8")))
+    aviso = costumbres["aviso_al_voluntariado"]
     parametros = cargar_parametros(ruta_normas)
+    # Mismo buscador que usa la entrega (variante por defecto y carpeta de normas recibida),
+    # para que las observaciones de buscar_normativa sean las que verá el agente.
+    buscador = construir_buscador(ruta_normas)
     casos = generar(semilla=semilla, n=candidatos, prefijo=f"cand-{semilla}")
     seleccionados = seleccionar_casos(casos)
     conversaciones = []
     auditoria = []
     for indice, caso in enumerate(seleccionados, 1):
-        aviso = aviso_observado(
-            caso.edad, umbral, probabilidad_mayores, semilla, caso.id
-        )
-        fila, ficha = deducir_ficha(caso, parametros, umbral, aviso)
+        fila, ficha = deducir_ficha(caso, parametros, costumbres)
         caso_final = replace(caso, id=f"S-{semilla}-{indice:04d}")
-        conversacion = caso_a_conversacion(caso_final, ficha, ruta_normas)
+        conversacion = caso_a_conversacion(caso_final, ficha, buscador, costumbres)
         validar_registro(conversacion)
         conversaciones.append(conversacion)
         auditoria.append({
@@ -358,10 +319,8 @@ def generar_sinteticos(
             "circuito": circuito_caso(caso),
             "dificultad": dificultad_caso(caso),
             "edad": caso.edad,
+            "acompanante": bool(caso.acompanante),
             "cobertura": ficha["cobertura"],
-            "aviso_mayores_observado": (
-                caso.edad >= umbral and ficha["aviso_al_voluntariado"]
-            ),
             "ficha": ficha,
             "normas_verificadas": not razones_normativas(fila, parametros),
         })
@@ -372,9 +331,14 @@ def generar_sinteticos(
         "por_circuito": dict(sorted(Counter(item["circuito"] for item in auditoria).items())),
         "por_dificultad": dict(sorted(Counter(item["dificultad"] for item in auditoria).items())),
         "fichas_normativamente_validas": sum(item["normas_verificadas"] for item in auditoria),
-        "umbral_costumbre_edad": umbral,
-        "avisos_mayores_observados": avisos_mayores,
-        "muestra_mayores_observada": muestra_mayores,
-        "probabilidad_aviso_mayores": round(probabilidad_mayores, 6),
+        "costumbre_aviso": {"umbral_edad": aviso["umbral_edad"], "condicion": aviso["condicion"]},
+        "avisos_al_voluntariado": sum(item["ficha"]["aviso_al_voluntariado"] for item in auditoria),
+        "credencial_preferida": costumbres["seleccion_credencial"]["preferido"],
+        "buscador": {
+            "construido_con": "entrega.construir_buscador",
+            "clase": type(buscador).__name__,
+            "variante": getattr(buscador, "variante", None),
+            "k_entorno": getattr(buscador, "k_entorno", None),
+        },
     }
     return conversaciones, auditoria, resumen
