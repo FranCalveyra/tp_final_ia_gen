@@ -113,11 +113,21 @@ def ejecutar_con_log(comando: list[str], entorno: dict, log: Path,
     return codigo, "".join(cola)
 
 
+def describir_buscador(entorno) -> dict:
+    """Variante de búsqueda que usará `entrega.py` (mismo default) y su configuración."""
+    from admision_tp.buscador import VARIANTES as BUSCADORES
+    nombre = entorno.get("BUSCADOR_VARIANTE", "baseline")
+    if nombre not in BUSCADORES:
+        raise ValueError(f"BUSCADOR_VARIANTE debe ser una de: {', '.join(BUSCADORES)}")
+    return {"variante": nombre, **asdict(BUSCADORES[nombre])}
+
+
 def correr(variante: str, cantidad: int, destino: Path, dtype: str, device_map: str,
            token: str | None) -> int:
     sys.path.insert(0, str(RAIZ))
     from admision_tp.configuracion import Configuracion
     Configuracion(dtype=dtype, device_map=device_map)  # Valida antes de gastar cuota.
+    buscador = describir_buscador(os.environ)  # Ídem: una variante desconocida falla acá.
     crear_salida(destino)
     metricas = destino / "metricas.jsonl"  # Fuera de `salida`: el kit es dueño de esa carpeta.
     entorno = preparar_entorno(os.environ, dtype, device_map, metricas, token)
@@ -126,6 +136,7 @@ def correr(variante: str, cantidad: int, destino: Path, dtype: str, device_map: 
         configuracion = Configuracion.desde_entorno()
     casos, normas = preparar_insumos(variante, cantidad, destino)
     runner = {"variante": variante, "cantidad": cantidad, "configuracion": asdict(configuracion),
+              "buscador": buscador,
               "maquina": describir_maquina(), "estado": "en_curso",
               "inicio": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
     escribir = lambda: (destino / "runner.json").write_text(  # noqa: E731

@@ -659,3 +659,11 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Límite:** hiperparámetros elegidos con el mismo dev; no es evaluación independiente.
 - **Próximo paso:** correr práctica con el agente `baseline` vs `prefijos` (k y tokens por caso) antes de
   cambiar el default.
+
+### 2026-11-10: runner Kaggle registra el buscador (issue #6)
+
+- **Estado:** implementado y probado con dobles. `runner.json` incluye `buscador` (variante efectiva de
+  `BUSCADOR_VARIANTE`, default `baseline`, y su configuración); una variante desconocida falla antes de crear
+  la salida, sin gastar GPU. Comprobado en CPU que el subproceso construye la misma variante que se registra.
+- **Motivo:** la comparación `baseline` vs `prefijos` con el agente necesita trazar cada resultado a su buscador.
+- **Evidencia:** suite 124 tests, 1 omitido opcional. Sin ejecución en Kaggle todavía.
