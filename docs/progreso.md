@@ -23,7 +23,7 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | [#4 Lotes](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4) | **Cerrado completed (2026-11-05), alcance funcional T4.** Carga única, lote activo, conversación completa; 1→4 baja 33,3→15,6 s/caso, mismos 10/50 | Deuda A100-40GB continúa en KI-A100-001; adapter final pendiente y causa CUDA T4 de lotes grandes no identificada |
 | #5 Recursos | Métricas y borrador Parte 5 con inferencia T4 y humo de entrenamiento solo texto: 15,675 GB pico | Recursos/costos A100 y antes/después con adapter final; integrar `INFORME.md` |
 | [#6 Buscador](https://github.com/FranCalveyra/tp_final_ia_gen/issues/6) | **Implementado y comparado con el agente (2026-11-10).** `evaluar_rag`: `baseline` 48/60, `prefijos` 55/60 (referencia 51/60). Agente sin entrenar en Kaggle T4: `baseline` 10/50, `prefijos` 6/50; default `baseline` | Revisión del equipo de la Parte 2 del informe; opcional: repetir con el modelo entrenado |
-| [#7 Ciclo del agente](https://github.com/FranCalveyra/tp_final_ia_gen/issues/7) | **Implementado y probado con dobles CPU (2026-11-10).** `entrega.py` usa `AgentePrompt` + `PromptSpec`; tope de 40 llamadas del kit; guarda de contexto por caso; medición offline del contexto | Validar la entrega nueva en GPU; coordinar formato con Martu (#13) |
+| [#7 Ciclo del agente](https://github.com/FranCalveyra/tp_final_ia_gen/issues/7) | **Implementado y validado en GPU T4 (2026-11-10).** `entrega.py` usa `AgentePrompt` + `PromptSpec`; tope de 40 llamadas del kit; guarda de contexto por caso; medición offline del contexto. Kaggle v23 (`AgentePrompt`, 50 casos) y v24 (entrega nueva, 10 casos): conversaciones idénticas a `AgenteJSON` (v22) | Enviar a Martu la nota de formato (#13); validación A100 sigue en KI-A100-001 |
 | #10 Historial | **Implementado (2026-11-05).** Clasificador determinista, pruebas, `historial_clasificado.csv`, análisis reutilizable de costumbres e informe | Mantenerlo compatible con la curación del issue #11 |
 | #11 Costumbres | **Implementado (2026-11-05).** Trazas validadas, dos costumbres confirmadas, patrón por operador documentado y resumen para el equipo | Revisar con Martu y Eze antes de usarlo en el prompt final |
 | #13 Prompt | `PromptSpec`, coordinador configurable, medición, métrica 9/9 y runner con snapshots/hashes, probados con dobles CPU | Dataset/esperadas externos acordados; tokens y calidad con Gemma real; DSPy/GEPA |
@@ -512,12 +512,22 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
   **Todo con dobles:** no se cargó Gemma ni su tokenizer (no está en caché local), no se usó GPU.
 - **Límites:** `medir_contexto` no se probó con el tokenizer real; el runner de #13 sigue fijando 16 turnos en
   sus configuraciones (decisión de Martu); la guarda también actúa en ese runner porque usa `ModeloLocal`.
-- **Próximo paso:** validar la entrega nueva en GPU (50 casos, mismas condiciones que v22) y confirmar que
-  ningún caso cambia salvo los que superaban 16 turnos.
+- **Validación en GPU (Kaggle T4 x2, Gemma 4 E4B sin entrenar, float16, `device_map=auto`, lote 4, normas original;
+  puntuado localmente; artefactos en `corridas/kaggle/` locales):**
+  - **v23 — `AgentePrompt` con Gemma real** (commit `5d4b657`, runner de #13 con `--solo-plomeria`, prompt
+    `baseline`, 50 casos): **50/50 conversaciones idénticas** a `AgenteJSON` en v22; mismas decisiones, 10/50,
+    parcial 0,831, 19.954 caracteres de contexto por caso. Runner `completada`, propósito `plomeria`, no comparable
+    (sin clave). Largo del prompt con el **tokenizer real**: sistema 615 tokens, contexto inicial 650. ~19 min de GPU.
+  - **v24 — `entrega.py` nueva** (commit `2c16014`, `infra/kaggle_baseline.py`, 10 casos): sin errores; la guarda
+    midió cada llamada con el tokenizer real; **10/10 conversaciones y decisiones idénticas** a v22; 0 casos
+    cortados por la guarda; 0 sin decisión. ~19 min de GPU (13,5 de instalación).
+  - Conclusión: la entrega nueva corre con el modelo real y no cambia decisiones. El tope de 40 llamadas y la
+    guarda no se activaron (máximo 8 turnos y ~4.000 tokens por llamada); su comportamiento está cubierto por
+    los tests con dobles. T4 no equivale a A100 (KI-A100-001).
 
 ## Próximos pasos y bloqueos
 
-1. Validar en GPU la entrega con `AgentePrompt` (issue #7) en las condiciones de v22.
+1. Enviar a Martu la nota de formato (#7 ↔ #13) y coordinar quién lleva la optimización de #13.
 2. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
 3. Confirmar accesos individuales Kaggle/HF/W&B del equipo con el [checklist de handoff](handoff-equipo.md#checklist-de-accesos-hecho-versus-pendiente-de-comprobar);
    no crear Secrets ni habilitar facturación Modal, plataforma descartada.

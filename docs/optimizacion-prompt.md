@@ -12,8 +12,15 @@ DSPy/GEPA ni genera datos. Desde el issue #7 (2026-11-10), `entrega.py` usa `Age
 con el `PromptSpec` de `PROMPT_SPEC` o el baseline (ver [contrato de formato](#contrato-de-formato-7--13)).
 
 Las unidades siguientes agregan medición de tokens, una métrica común y un runner
-auditable para candidatos. Todavía no se ejecutó Gemma ni se seleccionó un prompt: esas
-operaciones quedan para corridas autorizadas sobre datos externos permitidos.
+auditable para candidatos. Todavía no se seleccionó un prompt: la optimización queda para
+corridas autorizadas sobre datos externos permitidos (no práctica).
+
+**Validado con Gemma real (2026-11-10, Kaggle v23):** `AgentePrompt` con el prompt `baseline`
+reproduce exactamente al `AgenteJSON` del kit (50/50 conversaciones idénticas, 10/50 en
+práctica original) y el runner corre de punta a punta con la config T4, `HF_TOKEN` desde
+Kaggle Secrets y `--solo-plomeria`. Largo medido con el tokenizer real: system prompt 615
+tokens, contexto inicial 650 (punto de partida de la optimización). Detalle en
+[progreso](progreso.md).
 
 ## Problema del agente de referencia
 
