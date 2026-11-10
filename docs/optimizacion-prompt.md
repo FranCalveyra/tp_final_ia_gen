@@ -150,7 +150,7 @@ coordinador. No contiene credenciales. Para una corrida real, con entorno ya ins
 GPU autorizada:
 
 ```bash
-rtk proxy uv run --locked --no-sync python -m scripts.evaluar_prompts \
+uv run --locked --no-sync python -m scripts.evaluar_prompts \
   --prompt configuraciones/prompts/baseline.json \
   --configuracion configuraciones/evaluacion-prompt-ejemplo.json \
   --casos <prompt-dev-casos.jsonl> \
@@ -244,28 +244,28 @@ todavía un workflow completo de experimentos.
 Tests focalizados, sin modelo ni dependencias nuevas:
 
 ```bash
-rtk proxy uv run --locked --no-sync python -m unittest discover -s tests -p 'test_prompts.py' -v
-rtk proxy uv run --locked --no-sync python -m unittest discover -s tests -p 'test_agente_prompt.py' -v
-rtk proxy uv run --locked --no-sync python -m unittest discover -s tests -p 'test_evaluacion_prompts.py' -v
-rtk proxy uv run --locked --no-sync python -m unittest discover -s tests -p 'test_experimentos_prompt.py' -v
+uv run --locked --no-sync python -m unittest discover -s tests -p 'test_prompts.py' -v
+uv run --locked --no-sync python -m unittest discover -s tests -p 'test_agente_prompt.py' -v
+uv run --locked --no-sync python -m unittest discover -s tests -p 'test_evaluacion_prompts.py' -v
+uv run --locked --no-sync python -m unittest discover -s tests -p 'test_experimentos_prompt.py' -v
 ```
 
 Suite completa:
 
 ```bash
-rtk proxy uv run --locked --no-sync python -m unittest discover -s tests -v
+uv run --locked --no-sync python -m unittest discover -s tests -v
 ```
 
 Verificación local de esta unidad, con Python 3.12 del sistema porque este checkout no
 tiene `uv` ni `.venv`:
 
 ```bash
-rtk proxy env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests \
+env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests \
   python3 -m unittest test_prompts test_agente_prompt \
   test_evaluacion_prompts test_experimentos_prompt -q
 # 21 tests, todos pasan
 
-rtk proxy env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests \
+env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests \
   python3 -m unittest discover -s tests -q
 # 137 tests, 136 pasan y 1 se omite (tokenizer real local opt-in)
 ```
@@ -273,8 +273,8 @@ rtk proxy env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests \
 Esta ejecución no reproduce el lock ni valida `transformers`; solo prueba contratos CPU
 con dobles y las interfaces públicas del kit disponibles en el checkout.
 
-Verificación realizada el 2026-11-05 con Python del sistema porque `rtk` y `.venv` no
-estaban disponibles en el entorno del agente:
+Verificación realizada el 2026-11-05 con Python del sistema porque `.venv` no
+estaba disponible en el entorno del agente:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

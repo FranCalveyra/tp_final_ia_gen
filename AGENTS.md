@@ -21,7 +21,6 @@ la [bitácora](docs/progreso.md) registra el estado real, las decisiones y la ev
 
 ## Ejecución, seguridad y Git
 
-- Prefijá los comandos de shell con `rtk`; para comandos no soportados, `rtk proxy`.
 - No hagas builds después de cambios. Una autorización explícita puede habilitar un build
   concreto, pero no habilita los siguientes ni otros consumos de infraestructura.
 - No lances GPU, entrenamiento, escrituras cloud ni descargas de pesos sin autorización

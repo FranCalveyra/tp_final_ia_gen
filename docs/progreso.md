@@ -92,13 +92,13 @@ Detalles y reproducción: [buscador](buscador-baseline.md). Comparación por con
   comprobados JSON assistant y cierre de turno, sin encabezados/contexto. Se descargaron
   cuatro archivos (~32,2 MB), **no pesos**. CLI real offline y hashes también pasaron.
 - Suite repetida antes de commitear el 2026-11-02: **60 tests, 59 pasan y uno opcional omitido**,
-  con `rtk proxy .venv/bin/python -m unittest discover -s tests -v`.
+  con `.venv/bin/python -m unittest discover -s tests -v`.
   El test real del tokenizador requiere su grupo/entorno; previamente pasó en su validación específica.
 
 Comando CPU del proyecto (sin build):
 
 ```bash
-rtk proxy uv run --locked --no-sync python -m unittest discover -s tests -v
+uv run --locked --no-sync python -m unittest discover -s tests -v
 ```
 
 ## Decisiones y motivos
@@ -347,7 +347,7 @@ sintéticas). Guía en [kaggle.md](kaggle.md#entrenamiento-sft-humo-en-kaggle).
 - Los tokens van por entorno al subproceso; `ejecutar_con_log` ahora tapa una lista de secretos (HF y W&B).
 - Reanudar desde HF baja solo `checkpoint-N/*` en una revisión de 40 hex y valida integridad e identidad antes de cargar el modelo.
 
-**Evidencia.** `rtk proxy uv run --no-sync python -m unittest discover -s tests`: 104 corridos, 103 pasan y 1 opcional se
+**Evidencia.** `uv run --no-sync python -m unittest discover -s tests`: 104 corridos, 103 pasan y 1 opcional se
 saltea (antes 87/86/1; +4 del entrenador, +13 del runner y los datos de humo). Tests con dobles: defaults A100 sin
 cambios, fp16/`device_map` llegan a `from_pretrained` y `TrainingArguments`, identidad y reanudación incluyen los campos
 nuevos, secretos fuera de argv/`runner.json`/log, publicación forzada y falla temprana, descarga con revisión y
@@ -544,7 +544,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - Las 2.000 trazas alinean con el CSV en ids, fecha, operador y los ocho campos de ficha. No se evaluó
   corrección normativa: el historial sigue requiriendo clasificación/curación. Las 800 varían parámetros
   entre casos; no deben reemplazarse sus búsquedas por las normas originales fijas.
-- Validación CPU: `rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest test_conversaciones test_preparacion test_tokenizacion -q`:
+- Validación CPU: `env PYTHONPATH=tests .venv/bin/python -m unittest test_conversaciones test_preparacion test_tokenizacion -q`:
   18 ejecutados, 17 pasan y 1 opcional omitido. Sin GPU, tokenizador, pesos, entrenamiento ni publicaciones.
 - Próximo mínimo: acordar procedencia y prompt; conversor determinista de trazas a v1 que conserve acciones/
   observaciones y excluya la observación terminal. No implementado en esta auditoría.
@@ -556,7 +556,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   resultado terminal. Valida secuencia, ficha y contrato v1 antes de publicar; rechaza ids duplicados y no
   sobrescribe salidas (tampoco symlinks). [Guía y comandos](conversaciones-entrenamiento.md#conversor-cpu-de-trazas-implementado).
 - TDD red→green por unidad, sin mocks internos. Comando CPU completo:
-  `rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest discover -s tests -q`:
+  `env PYTHONPATH=tests .venv/bin/python -m unittest discover -s tests -q`:
   **116 ejecutados, 115 pasan y 1 opcional omitido**. Suite pertinente: 25/24/1.
   Los rojos esperados y un fallo inicial del propio test de rechazo (contexto `assertRaises` fuera del subtest)
   se corrigieron antes del verde; no hubo builds, instalaciones ni GPU.
@@ -576,7 +576,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - Ergonomía pendiente, no bloqueo del trainer: Modal no expone cadencia de checkpoints; usa50. Para humo con
   checkpoint temprano existe CLI directa `--guardar-cada 2`; en Modal hay que planificar suficientes pasos
   y comprobar un checkpoint confirmado. No se autorizó ni ejecutó ese ensayo.
-- Verificación: `rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest test_entrenamiento test_persistencia test_kaggle_entrenamiento test_cli_entrenar test_preparacion test_tokenizacion test_conversion_trazas -q`:
+- Verificación: `env PYTHONPATH=tests .venv/bin/python -m unittest test_entrenamiento test_persistencia test_kaggle_entrenamiento test_cli_entrenar test_preparacion test_tokenizacion test_conversion_trazas -q`:
   **52 ejecutados, 51 pasan y 1 opcional omitido**. `--help` de entrenar/preparar/tokenizar correcto sin GPU.
 - Asignaciones GitHub realizadas y verificadas por la sesión principal: Eze `ezequielrickert` #6–9,
   Yas `Yasmindesivo` #10–12, Martu `MartuGiordanelli` #13–15 y los cuatro #16.
@@ -610,8 +610,8 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   pedir autorización para un humo en 1×A100-40GB con checkpoint confirmado y recuperación; runner admite
   timeout 3600 s por defecto. Tiempo efectivo y costo A100 no medidos: confirmar tarifa/cuota y presupuesto
   antes de ejecutar; no extrapolar desde T4 ni encadenar entrenamiento final sin autorización aparte.
-- Checks de esta unidad documental: suite CPU completa `rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest discover -s tests -q`:
-  **116 ejecutados, 115 pasan y 1 opcional omitido**; `rtk git diff --check` limpio y sin enlaces locales a
+- Checks de esta unidad documental: suite CPU completa `env PYTHONPATH=tests .venv/bin/python -m unittest discover -s tests -q`:
+  **116 ejecutados, 115 pasan y 1 opcional omitido**; `git diff --check` limpio y sin enlaces locales a
   archivos inexistentes en los cuatro documentos modificados. No se validaron anchors ni recursos remotos.
 
 
@@ -633,7 +633,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   `entrenamiento-modal.md` y el bloque Modal de entorno quedan **legacy / no usar**. No se presenta la tarifa
   histórica de Modal como presupuesto de la plataforma futura ni se extrapolan recursos T4 a A100.
 
-- Verificación documental de esta decisión: `rtk git diff --check` limpio; sin destinos locales inexistentes
+- Verificación documental de esta decisión: `git diff --check` limpio; sin destinos locales inexistentes
   en los siete documentos revisados. No se probaron enlaces remotos/anchors ni se repitieron tests CPU por
   ser cambios solo de documentación; no hubo GPU, descargas, instalaciones, builds ni escrituras cloud.
 
@@ -661,7 +661,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   por la cátedra y la validación que acuerden, no con una inferencia desde T4.
 - T4 autorizado en principio para desarrollo; datos/configuración, timeout y consumo de la corrida concreta
   aún requieren confirmación. No se ejecutó GPU, build, test, descarga ni cambio remoto en esta unidad docs.
-- Handoff enlaza la deuda. `rtk git diff --check` limpio; historial de decisiones anteriores preservado.
+- Handoff enlaza la deuda. `git diff --check` limpio; historial de decisiones anteriores preservado.
 
 
 ### 2026-11-05: cierre funcional de lotes y aceptación pendiente del handoff SFT
@@ -700,7 +700,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   Scripts CPU stdlib verificaron duraciones, conversiones de unidades y cuantiles sobre artefactos ya existentes;
   sin GPU, descargas, instalaciones, builds, tests nuevos ni escrituras cloud.
 
-- Verificación final de esta unidad: `rtk git diff --check` limpio y enlaces a archivos locales existentes
+- Verificación final de esta unidad: `git diff --check` limpio y enlaces a archivos locales existentes
   en Parte 4 infra/Parte 5/bitácora. Sin pruebas GPU ni tests nuevos; criterio trabajos futuros listo para integrar,
   no cumplimiento total #5 ni entrega #16 terminada.
 
@@ -795,7 +795,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   Rechazados: chunks por párrafo, recorte de párrafos, otros stemmers, pesos de título y ajustes BM25.
 - **Evidencia:** [guía del buscador](buscador-baseline.md#candidato-prefijos-2026-11-10-issue-6) y
   `corridas/rag-prefijos-20261110/` y `corridas/rag-exploracion-20261110/` (locales). Suite: 121 tests, 1 omitido opcional.
-- **Exploración reproducible:** `rtk proxy uv run --locked --no-sync python -m scripts.explorar_buscadores
+- **Exploración reproducible:** `uv run --locked --no-sync python -m scripts.explorar_buscadores
   --salida corridas/rag-exploracion-20261110/original.json` reproduce todas las filas rechazadas de la guía.
 - **Límite:** hiperparámetros elegidos con el mismo dev; no es evaluación independiente.
 - **Próximo paso:** correr práctica con el agente `baseline` vs `prefijos` (k y tokens por caso) antes de
@@ -808,6 +808,44 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   la salida, sin gastar GPU. Comprobado en CPU que el subproceso construye la misma variante que se registra.
 - **Motivo:** la comparación `baseline` vs `prefijos` con el agente necesita trazar cada resultado a su buscador.
 - **Evidencia:** suite 124 tests, 1 omitido opcional. Sin ejecución en Kaggle todavía.
+
+### 2026-11-10: conversaciones de entrenamiento v2 (issue #8, CPU, rama `feat/8-conversaciones-eze`)
+
+- **Estado:** implementado, probado por interfaz pública con los datos reales del repo y generado en
+  `datos/conversaciones/v2-baseline/` (2.900 conversaciones: 800 `referencia`, 1.600 `historial`,
+  500 `sintetico`; 0 excluidas). `datos/entrenamiento/` (versión de Yas) no se tocó.
+- **Qué cambia:** nuevo origen `referencia` en el contrato v1; el validador acepta el formato de
+  observación del prompt; el conversor de Fran recibe un `PromptSpec` (y `buscar` para re-ejecutar
+  búsquedas; `--sistema` sigue como obsoleto). `scripts.generar_conversaciones` reconstruye los valores de
+  cada traza desde sus líneas `Valores:`, re-ejecuta cada búsqueda con el buscador de la entrega sobre una
+  copia de las normas con esos valores, revalida la ficha con `razones_normativas` y las costumbres, y
+  genera sintéticos con valores sorteados entre los de la referencia. Detalle y reglas:
+  [contrato](conversaciones-entrenamiento.md#dataset-v2-scriptsgenerar_conversaciones-issue-8).
+- **Decisiones del equipo (después de la auditoría):** (1) buscador `baseline`, porque con el agente en
+  Kaggle (50 casos, normas originales) resolvió 10/50 contra 6/50 de `prefijos`. (2) En 142 conversaciones
+  reales de accidente de trabajo (49 de referencia y 93 de historial) la consulta combinada no traía
+  NOR-COB-02; se agregó una búsqueda «accidente de trabajo ART» después de esa consulta, sin modificar las
+  originales. (3) Se quitaron de `fundamentos` las secciones no recuperadas: 2.326 citas, una por conversación
+  (NOR-COB-01 468, NOR-COB-02 659, NOR-COB-03 1.199). Motivo de (2) y (3): la misión pide que el modelo
+  responda con la evidencia recuperada, no de memoria. Las dos transformaciones quedan registradas por
+  conversación en `auditoria.jsonl` y contadas en el manifiesto.
+- **Por qué:** con los valores de `normas/original`, 584 de las 800 fichas de referencia serían erróneas;
+  las búsquedas deben mostrar los valores con los que se decidió cada ficha. El guion sintético anterior
+  citaba secciones que no buscaba; ahora busca cada sección rectora y cada fundamento (500/500).
+- **Evidencia:** `uv run --locked --no-sync python -m scripts.generar_conversaciones` (20 s, CPU);
+  validador 2.900/2.900 sin errores (SHA-256 `3e6b8897…d2ee`); dos regeneraciones en carpetas temporales,
+  `cmp` idéntico en `conversaciones.jsonl`, `auditoria.jsonl` y `manifiesto.json`; la fila reconstruida
+  desde cada traza coincide con `historial.csv` en las 2.000 filas; ningún valor mostrado difiere de las
+  trazas originales. Suite: `uv run --locked --no-sync python -m unittest discover -s tests` → 203 tests OK
+  (1 omitido). Auditoría independiente del coordinador: 60 conversaciones y 188 búsquedas sin diferencias. El manifiesto registra `dirty=true`: se generó antes del commit.
+- **Cobertura de evidencia tras el curado:** recuperan todas sus secciones rectoras 800/800, 1.600/1.600 y
+  500/500, y ninguna conversación cita fundamentos no recuperados.
+- **Límites:** sin tokenizador real (largos en caracteres: mediana ≈10,8 k reales, 15,6 k sintéticas,
+  máximo 21,9 k); contaminación con práctica por identidad exacta de triage/números, no paráfrasis.
+  No se entrenó ni se usó GPU. Si el prompt final cambia `formato_observacion`, `preparacion`/`tokenizacion`
+  todavía validan con el formato por defecto.
+- **Próximo paso:** regenerar después del commit para que el manifiesto tenga `dirty=false`, y tokenizar
+  (con autorización) para medir los largos reales.
 
 ### 2026-11-10: `prefijos` contra `baseline` con el agente (issue #6, Kaggle T4)
 

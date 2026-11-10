@@ -100,21 +100,21 @@ pendiente; el pipeline rechaza excedidos sin recortarlos y mantiene supervisión
 
 ## Evidencia de ejecución y límites
 
-Se ejecutaron scripts inline con `rtk proxy .venv/bin/python -` usando `json,csv,hashlib,collections,re,statistics`,
+Se ejecutaron scripts inline con `.venv/bin/python -` usando `json,csv,hashlib,collections,re,statistics`,
 `validar_archivo`, `validar_registro`, `_accion`, `mensaje_de_sistema`, `primer_mensaje`, `cargar_casos` y
 `nota_de_triage`. Solo se imprimieron métricas agregadas en el análisis final. Los scripts no dejaron datasets.
 
 Chequeo público reproducible de rechazo crudo (produce un informe por línea, salida esperada 1):
 
 ```bash
-rtk proxy .venv/bin/python -m scripts.validar_conversaciones entrenamiento/trazas.jsonl
-rtk proxy .venv/bin/python -m scripts.validar_conversaciones historial/trazas.jsonl
+.venv/bin/python -m scripts.validar_conversaciones entrenamiento/trazas.jsonl
+.venv/bin/python -m scripts.validar_conversaciones historial/trazas.jsonl
 ```
 
 Tests CPU pertinentes:
 
 ```bash
-rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest test_conversaciones test_preparacion test_tokenizacion -q
+env PYTHONPATH=tests .venv/bin/python -m unittest test_conversaciones test_preparacion test_tokenizacion -q
 ```
 
 Resultado: **18 ejecutados, 17 pasan, 1 opcional omitido** (0,253 s). Son tests de contrato/pipeline, no calidad.

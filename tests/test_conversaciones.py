@@ -42,6 +42,21 @@ class ConversacionesTest(unittest.TestCase):
                 dato[clave] = valor
                 validar_registro(dato)
 
+    def test_origen_referencia_y_formato_de_observacion_del_prompt(self):
+        dato = registro()
+        dato["origen"] = "referencia"
+        validar_registro(dato)
+        dato["messages"][3]["content"] = "<leer_triage>\nNota sintética\n</leer_triage>"
+        formato = "<{herramienta}>\n{observacion}\n</{herramienta}>"
+        validar_registro(dato, formato)
+        with self.assertRaises(ValueError):
+            validar_registro(dato)  # el formato por defecto es el de AgenteJSON
+        for contenido in ("<leer_triage>\n \n</leer_triage>", "<preguntar>\nNota\n</preguntar>",
+                          "<leer_triage>\nNota sintética"):
+            dato["messages"][3]["content"] = contenido
+            with self.subTest(contenido=contenido), self.assertRaises(ValueError):
+                validar_registro(dato, formato)
+
     def test_acciones_malformadas(self):
         acciones = ['texto {"herramienta":"leer_triage"}', '{"herramienta": "otra", "argumentos": {}}',
                     '{"herramienta":"leer_triage","argumentos":{"paciente_id":1}}',

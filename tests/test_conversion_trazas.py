@@ -74,12 +74,32 @@ class ConversionTrazaTest(unittest.TestCase):
             cambio(dato)
             with self.subTest(cambio=cambio), self.assertRaises(ValueError):
                 self.convertir(dato)
-        for campo, valor in [("origen", "referencia"), ("sistema", " "), ("referencia", ""),
+        for campo, valor in [("origen", "practica"), ("sistema", " "), ("referencia", ""),
                              ("referencia", "practica/casos.jsonl")]:
             opciones = dict(origen="sintetico", sistema="Sistema", referencia="fuente.jsonl")
             opciones[campo] = valor
             with self.subTest(campo=campo, valor=valor), self.assertRaises(ValueError):
                 convertir_traza(traza(), **opciones)
+
+    def test_prompt_spec_usa_todos_sus_textos_y_buscar_reemplaza_solo_busquedas(self):
+        from admision_tp.prompts import PromptSpec
+        prompt = PromptSpec(version=1, nombre="prueba", system_prompt="Sistema P",
+                            mensaje_inicial="Entra {paciente_id}.",
+                            formato_observacion="[{herramienta}]\n{observacion}\n[fin]",
+                            mensaje_json_invalido="JSON por favor")
+        consultas = []
+        salida = convertir_traza(traza(), origen="referencia", referencia="entrenamiento/trazas.jsonl",
+                                 prompt=prompt, buscar=lambda c: consultas.append(c) or f"nuevo:{c}")
+        mensajes = salida["messages"]
+        self.assertEqual(salida["origen"], "referencia")
+        self.assertEqual([m["content"] for m in mensajes[:2]], ["Sistema P", "Entra P-1."])
+        self.assertEqual(mensajes[3]["content"], "[leer_triage]\nNota sintética\nCon espacios  \n[fin]")
+        self.assertEqual(mensajes[5]["content"], "[buscar_normativa]\nnuevo:registro\n[fin]")
+        self.assertEqual(consultas, ["registro"])
+        with self.assertRaises(ValueError):
+            convertir_traza(traza(), origen="referencia", referencia="f.jsonl", prompt=prompt, sistema="S")
+        with self.assertRaises(ValueError):
+            convertir_traza(traza(), origen="referencia", referencia="f.jsonl")
 
     def test_archivo_determinista_y_validado_con_referencias_a_fuente(self):
         from admision_tp.conversion_trazas import convertir_archivo

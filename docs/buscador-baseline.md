@@ -119,11 +119,11 @@ Configuración en `admision_tp/buscador.py` (`VARIANTES`, `ConfigBM25`).
 Comandos (tests: 121, 120 OK y 1 omitido opcional):
 
 ```bash
-BUSCADOR_VARIANTE=prefijos rtk proxy uv run --locked --no-sync python -m admision.evaluar_rag \
+BUSCADOR_VARIANTE=prefijos uv run --locked --no-sync python -m admision.evaluar_rag \
   --entrega entrega.py --normas normas/original --consultas rag/consultas_dev.jsonl
-rtk proxy uv run --locked --no-sync python -m scripts.comparar_buscadores \
+uv run --locked --no-sync python -m scripts.comparar_buscadores \
   --salida corridas/rag-prefijos-20261110/original.json
-rtk proxy uv run --locked --no-sync python -m scripts.comparar_buscadores --normas normas/b \
+uv run --locked --no-sync python -m scripts.comparar_buscadores --normas normas/b \
   --evidencia-ajustada --salida corridas/rag-prefijos-20261110/b-evidencia-ajustada.json
 ```
 
@@ -171,7 +171,7 @@ valores por defecto da las mismas métricas y consultas que `baseline` (test inc
 Todas las filas con k=2 salvo indicación.
 
 ```bash
-rtk proxy uv run --locked --no-sync python -m scripts.explorar_buscadores \
+uv run --locked --no-sync python -m scripts.explorar_buscadores \
   --salida corridas/rag-exploracion-20261110/original.json
 ```
 
@@ -263,7 +263,7 @@ dos variantes; la carpeta de salida debe ser nueva:
 
 ```bash
 for b in baseline prefijos; do
-  rtk proxy uv run --locked --no-sync python -m admision.correr puntuar \
+  uv run --locked --no-sync python -m admision.correr puntuar \
     --trazas corridas/kaggle/v22/$b-original-n50-l4/salida/trazas.jsonl \
     --esperadas practica/esperadas-original.jsonl \
     --salida corridas/kaggle/v22/$b-original-n50-l4/puntuacion

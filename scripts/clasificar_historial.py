@@ -371,6 +371,14 @@ def _obra_social_y_prepaga(row: dict[str, str]) -> bool:
     )
 
 
+def sigue_costumbre_credencial(row: dict[str, str], costumbre: dict) -> bool:
+    """Con obra social y prepaga, la credencial verificada es la preferida por la costumbre."""
+    if not _obra_social_y_prepaga(row):
+        return True
+    fuente = fuente_cobertura(row)
+    return fuente is None or fuente[0] == costumbre["preferido"]
+
+
 def inferir_costumbre_credencial(
     rows: list[dict[str, str]],
     limpias: list[dict[str, str]],

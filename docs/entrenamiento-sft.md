@@ -45,9 +45,9 @@ reproducirlos consume GPU y requiere autorización.
 En el entorno ya instalado (no ejecutar sync para estos checks):
 
 ```bash
-rtk proxy .venv/bin/python -m scripts.validar_conversaciones datos/conversaciones-curadas.jsonl
-rtk proxy mkdir -p corridas
-rtk proxy .venv/bin/python -m scripts.preparar_entrenamiento \
+.venv/bin/python -m scripts.validar_conversaciones datos/conversaciones-curadas.jsonl
+mkdir -p corridas
+.venv/bin/python -m scripts.preparar_entrenamiento \
   --datos datos/conversaciones-curadas.jsonl --configuracion configuraciones/sft-ejemplo.json \
   --salida corridas/sft-preparacion-001
 ```
@@ -60,7 +60,7 @@ Versionar código y volver a preparar requiere autorización de commit, no la da
 ### 2. CPU con tokenizador, sin pesos
 
 ```bash
-rtk proxy .venv/bin/python -m scripts.tokenizar_entrenamiento \
+.venv/bin/python -m scripts.tokenizar_entrenamiento \
   --preparacion corridas/sft-preparacion-001 --salida corridas/sft-tokens-001
 ```
 
@@ -71,7 +71,7 @@ Ver [instalación/tokenización y prueba real CPU](tokenizacion-entrenamiento.md
 ### 3. GPU Linux ya provisionada: ejecutar SOLO tras autorización
 
 ```bash
-rtk proxy .venv/bin/python -m scripts.entrenar \
+.venv/bin/python -m scripts.entrenar \
   --preparacion corridas/sft-preparacion-001 --tokens corridas/sft-tokens-001 \
   --salida corridas/sft-entrenamiento-001 --online --publicar
 ```
@@ -89,7 +89,7 @@ visión/audio. Eso evita módulos no soportados y reduce VRAM, pero no garantiza
 ### 4. Reanudar: mismo código, entradas, modo y política
 
 ```bash
-rtk proxy .venv/bin/python -m scripts.entrenar \
+.venv/bin/python -m scripts.entrenar \
   --preparacion corridas/sft-preparacion-001 --tokens corridas/sft-tokens-001 \
   --salida corridas/sft-entrenamiento-001 \
   --reanudar corridas/sft-entrenamiento-001/checkpoint-50 --online --publicar
@@ -124,7 +124,7 @@ El código/dependencias legacy se conservan sin migraciones ni borrados en esta 
 ## Verificación de esta auditoría CPU
 
 ```bash
-rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest test_entrenamiento test_persistencia test_kaggle_entrenamiento test_cli_entrenar test_preparacion test_tokenizacion test_conversion_trazas -q
+env PYTHONPATH=tests .venv/bin/python -m unittest test_entrenamiento test_persistencia test_kaggle_entrenamiento test_cli_entrenar test_preparacion test_tokenizacion test_conversion_trazas -q
 ```
 
 2026-11-05: **52 ejecutados, 51 pasan, 1 opcional omitido**. También se verificaron `--help` de entrenar,

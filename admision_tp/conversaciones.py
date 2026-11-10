@@ -15,6 +15,9 @@ ARGUMENTOS = {
     "buscar_normativa": {"consulta"},
     "registrar_decision": set(CAMPOS),
 }
+# `referencia`: las trazas con las que la cátedra entrenó su modelo (entrenamiento/trazas.jsonl).
+ORIGENES = ("historial", "referencia", "sintetico")
+FORMATO_OBSERVACION = "Resultado de {herramienta}:\n{observacion}"
 
 
 def _json(texto):
@@ -68,14 +71,25 @@ def _accion(texto):
     return nombre
 
 
-def validar_registro(registro):
-    """Valida estructura sin modificar contenido; ValueError no incluye datos sensibles."""
+def _partes_observacion(formato, herramienta):
+    """Prefijo y sufijo que el formato del prompt pone alrededor de la observación."""
+    if not isinstance(formato, str) or formato.count("{observacion}") != 1:
+        raise ValueError("formato de observación inválido")
+    antes, despues = formato.split("{observacion}")
+    return antes.format(herramienta=herramienta), despues.format(herramienta=herramienta)
+
+
+def validar_registro(registro, formato_observacion=FORMATO_OBSERVACION):
+    """Valida estructura sin modificar contenido; ValueError no incluye datos sensibles.
+
+    `formato_observacion` es el del prompt usado (`PromptSpec.formato_observacion`).
+    """
     campos = {"version", "id", "origen", "referencias", "messages"}
     if not isinstance(registro, dict) or set(registro) != campos:
         raise ValueError("campos del registro faltantes o desconocidos")
     if type(registro["version"]) is not int or registro["version"] != 1:
         raise ValueError("versión no soportada")
-    if not _cadena(registro["id"]) or registro["origen"] not in ("historial", "sintetico"):
+    if not _cadena(registro["id"]) or registro["origen"] not in ORIGENES:
         raise ValueError("id u origen inválido")
     refs = registro["referencias"]
     if not isinstance(refs, list) or not refs or not all(_cadena(x) for x in refs):
@@ -103,12 +117,15 @@ def validar_registro(registro):
             if (anterior == "registrar_decision") != (i == len(mensajes) - 1):
                 raise ValueError("registrar_decision debe ser la última acción")
         elif i > 1:
-            prefijo = f"Resultado de {anterior}:\n"
-            if not mensaje["content"].startswith(prefijo) or not mensaje["content"][len(prefijo):].strip():
+            prefijo, sufijo = _partes_observacion(formato_observacion, anterior)
+            contenido = mensaje["content"]
+            cuerpo = contenido[len(prefijo):len(contenido) - len(sufijo)]
+            if (not contenido.startswith(prefijo) or not contenido.endswith(sufijo)
+                    or len(contenido) < len(prefijo) + len(sufijo) or not cuerpo.strip()):
                 raise ValueError(f"mensaje {i}: observación no corresponde a herramienta")
 
 
-def validar_archivo(ruta):
+def validar_archivo(ruta, formato_observacion=FORMATO_OBSERVACION):
     """Informe determinista de formato y hash exacto; no carga modelo ni reescribe datos."""
     contenido = Path(ruta).read_bytes()
     informe = {"sha256": hashlib.sha256(contenido).hexdigest(), "registros": 0,
@@ -126,7 +143,7 @@ def validar_archivo(ruta):
         informe["registros"] += 1
         try:
             registro = _json(linea)
-            validar_registro(registro)
+            validar_registro(registro, formato_observacion)
             if registro["id"] in vistos:
                 raise ValueError("id duplicado")
             vistos.add(registro["id"])
