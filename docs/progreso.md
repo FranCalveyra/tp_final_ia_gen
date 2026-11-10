@@ -24,6 +24,7 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | #5 Recursos | Métricas y borrador Parte 5 con inferencia T4 y humo de entrenamiento solo texto: 15,675 GB pico | Recursos/costos A100 y antes/después con adapter final; integrar `INFORME.md` |
 | [#6 Buscador](https://github.com/FranCalveyra/tp_final_ia_gen/issues/6) | **Implementado y comparado con el agente (2026-11-10).** `evaluar_rag`: `baseline` 48/60, `prefijos` 55/60 (referencia 51/60). Agente sin entrenar en Kaggle T4: `baseline` 10/50, `prefijos` 6/50; default `baseline` | Revisión del equipo de la Parte 2 del informe; opcional: repetir con el modelo entrenado |
 | [#7 Ciclo del agente](https://github.com/FranCalveyra/tp_final_ia_gen/issues/7) | **Implementado y validado en GPU T4 (2026-11-10).** `entrega.py` usa `AgentePrompt` + `PromptSpec`; tope de 40 llamadas del kit; guarda de contexto por caso; medición offline del contexto. Kaggle v23 (`AgentePrompt`, 50 casos) y v24 (entrega nueva, 10 casos): conversaciones idénticas a `AgenteJSON` (v22) | Enviar a Martu la nota de formato (#13); validación A100 sigue en KI-A100-001 |
+| [#9 Evaluación completa](https://github.com/FranCalveyra/tp_final_ia_gen/issues/9) | **Implementado y probado con dobles (2026-11-10).** Plan JSON + `infra/kaggle_evaluacion.py` (Kaggle) y `scripts.tabla_evaluacion` (local); la tabla reproduce v22 (10/50, 0,831, 19.954) | Correr `actual.json` en GPU (autorización y cuota); filas `solo_prompt`, `solo_entrenamiento`, `ambos` cuando haya prompt optimizado y adapter publicado |
 | #10 Historial | **Implementado (2026-11-05).** Clasificador determinista, pruebas, `historial_clasificado.csv`, análisis reutilizable de costumbres e informe | Mantenerlo compatible con la curación del issue #11 |
 | #11 Costumbres | **Implementado (2026-11-05).** Trazas validadas, dos costumbres confirmadas, patrón por operador documentado y resumen para el equipo | Revisar con Martu y Eze antes de usarlo en el prompt final |
 | #13 Prompt | **En progreso (Eze, desde 2026-11-10).** `PromptSpec`, runner con snapshots/hashes, conjunto de desarrollo `datos/prompt-dev/v1` (2 carpetas de normas × 20 casos), 4 candidatos, configuración como la entrega y ranking; todo probado con dobles CPU | Correr la fase 1 en Kaggle (autorización GPU), elegir, fase 2 con `prefijos`, regenerar #8 con el prompt elegido |
@@ -529,16 +530,18 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
 
 1. #13 (Eze): autorizar y correr la celda de fase 1 en Kaggle (~1 h 35 min a 2 h de T4), rankear y pasar a la fase 2
    ([optimización de prompt](optimizacion-prompt.md#fase-1-2026-11-10-eze-conjunto-de-desarrollo-candidatos-y-evaluación-preparada)).
-2. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
-3. Confirmar accesos individuales Kaggle/HF/W&B del equipo con el [checklist de handoff](handoff-equipo.md#checklist-de-accesos-hecho-versus-pendiente-de-comprobar);
+2. Con autorización, correr `configuraciones/evaluacion/actual.json` en Kaggle ([evaluacion.md](evaluacion.md));
+   después completar la plantilla de cuatro filas cuando existan prompt optimizado y adapter.
+3. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
+4. Confirmar accesos individuales Kaggle/HF/W&B del equipo con el [checklist de handoff](handoff-equipo.md#checklist-de-accesos-hecho-versus-pendiente-de-comprobar);
    no crear Secrets ni habilitar facturación Modal, plataforma descartada.
-4. Coordinar conversaciones curadas y prompt final; no entrenar sobre práctica.
-5. Determinar disponibilidad y VRAM de una vía A100-40GB sin lanzar sesiones para probar permisos.
+5. Coordinar conversaciones curadas y prompt final; no entrenar sobre práctica.
+6. Determinar disponibilidad y VRAM de una vía A100-40GB sin lanzar sesiones para probar permisos.
    El menú del notebook baseline de `franciscocalveyra` ya se verificó sin A100; no se inspeccionó VRAM
    en sesión ni se verificaron otros contextos/cuentas. Kaggle reemplaza operativamente a Modal;
    su T4 x2 validada no demuestra hardware final.
    Cuando exista ruta y autorización específica, medir carga/backward/memoria y lotes allí.
-6. Completar accesos compartidos, mediciones de recursos y documentación final. Compartir el repo
+7. Completar accesos compartidos, mediciones de recursos y documentación final. Compartir el repo
    privado de HF y el proyecto W&B con la cátedra queda **para cerca de la entrega** (decisión del
    2026-11-03). La consigna no dice qué usuarios invitar: hay que preguntarle a la cátedra.
 
@@ -563,6 +566,7 @@ usado en Kaggle. Los Secrets de Modal quedan como referencia legacy, no como set
 | Respaldo Kaggle (T4 x2), inferencia y entrenamiento humo | [kaggle.md](kaggle.md) |
 | Parte 5 del informe (recursos y producción), borrador con mediciones T4 | [informe-parte5.md](informe-parte5.md) |
 | Optimización de prompt, infraestructura inicial y contrato de formato con #7 | [optimizacion-prompt.md](optimizacion-prompt.md) |
+| Evaluación completa (50 casos × original/b/c) y tabla de la Parte 4 | [evaluacion.md](evaluacion.md) |
 
 ## Cómo mantener esta bitácora
 
@@ -939,3 +943,24 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Abierto:** aceptar que las hipótesis salen del perfil agregado de fallas en práctica (la selección no);
   DSPy/GEPA postergado por costo de GPU; tokens reales de A–D recién con la corrida.
 - **Próximo paso:** autorizar y correr la fase 1 en Kaggle, rankear y revisar caso por caso.
+
+### 2026-11-10: evaluación completa y tabla de la Parte 4 (issue #9, CPU, rama `feat/9-evaluacion-eze`)
+
+- **Estado:** implementado y probado con dobles; tabla validada con artefactos reales; **sin GPU**.
+  Guía: [evaluacion.md](evaluacion.md).
+- **Qué hay:** un plan JSON (`configuraciones/evaluacion/actual.json`: solo `sin_entrenar` × original/b/c × 50;
+  `plantilla-cuatro-filas.json`, rechazada por el runner hasta completarla). `infra/kaggle_evaluacion.py` valida
+  el plan entero antes de gastar GPU (sha256 de prompts, adapter con commit HF, etiquetas únicas) y corre cada
+  combinación con `kaggle_baseline.correr` en su carpeta, con entorno propio; una falla no frena las demás.
+  `scripts.tabla_evaluacion` puntúa con `admision.correr.puntuar` y escribe `tabla.md`/`tabla.json` con la
+  procedencia de cada número, referencia de la cátedra rotulada y faltantes como «—».
+- **Decisión:** no hay un segundo runner; el plan solo orquesta el existente y la procedencia sale de
+  `runner.json`. El comando de jugar se reconstruye de `runner.json` (el runner no guarda su línea de comando);
+  el plan sí guarda el suyo en `evaluacion.json`.
+- **Evidencia:** `python -m scripts.tabla_evaluacion --corrida sin_entrenar=corridas/kaggle/v22/baseline-original-n50-l4
+  --salida corridas/tablas/2026-11-10-v22-sin-entrenar` da 10/50, parcial 0,831, 19.954 caracteres/caso y
+  15,16 s/caso, con `resultados.jsonl` idéntico byte a byte al puntuado previo; b y c «sin corrida».
+  Kaggle T4, no comparable con A100. Tests: `tests/test_kaggle_evaluacion.py`, `tests/test_tabla_evaluacion.py`.
+- **Limitación:** v22 no registró el prompt en `runner.json` (la tabla lo marca); v24 no tiene `runner.json`
+  y se rechaza. El runner de planes no corrió en GPU.
+- **Próximo paso:** con autorización, correr `actual.json` (~50–65 min de T4 estimados) y armar la tabla.
