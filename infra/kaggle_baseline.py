@@ -122,12 +122,29 @@ def describir_buscador(entorno) -> dict:
     return {"variante": nombre, **asdict(BUSCADORES[nombre])}
 
 
+def describir_prompt() -> dict:
+    """PromptSpec que cargará `entrega.py`: misma función y misma resolución de `PROMPT_SPEC`.
+
+    Valida el sha256 al cargarlo, así un prompt inválido falla antes de gastar GPU."""
+    from entrega import cargar_prompt
+    from admision_tp.prompts import RAIZ as RAIZ_PROMPTS, RUTA_BASELINE
+    prompt = cargar_prompt()
+    ruta = Path(os.environ.get("PROMPT_SPEC") or RUTA_BASELINE)
+    ruta = ruta if ruta.is_absolute() else RAIZ_PROMPTS / ruta
+    try:
+        archivo = ruta.resolve().relative_to(RAIZ_PROMPTS.resolve()).as_posix()
+    except ValueError:
+        archivo = str(ruta)
+    return {"nombre": prompt.nombre, "version": prompt.version, "sha256": prompt.sha256, "archivo": archivo}
+
+
 def correr(variante: str, cantidad: int, destino: Path, dtype: str, device_map: str,
            token: str | None) -> int:
     sys.path.insert(0, str(RAIZ))
     from admision_tp.configuracion import Configuracion
     Configuracion(dtype=dtype, device_map=device_map)  # Valida antes de gastar cuota.
     buscador = describir_buscador(os.environ)  # Ídem: una variante desconocida falla acá.
+    prompt = describir_prompt()  # Ídem: un PROMPT_SPEC inválido o alterado falla acá.
     crear_salida(destino)
     metricas = destino / "metricas.jsonl"  # Fuera de `salida`: el kit es dueño de esa carpeta.
     entorno = preparar_entorno(os.environ, dtype, device_map, metricas, token)
@@ -136,7 +153,7 @@ def correr(variante: str, cantidad: int, destino: Path, dtype: str, device_map: 
         configuracion = Configuracion.desde_entorno()
     casos, normas = preparar_insumos(variante, cantidad, destino)
     runner = {"variante": variante, "cantidad": cantidad, "configuracion": asdict(configuracion),
-              "buscador": buscador,
+              "buscador": buscador, "prompt": prompt,
               "maquina": describir_maquina(), "estado": "en_curso",
               "inicio": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
     escribir = lambda: (destino / "runner.json").write_text(  # noqa: E731

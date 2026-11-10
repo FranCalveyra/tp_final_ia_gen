@@ -231,12 +231,34 @@ class ModeloTest(unittest.TestCase):
 
     def test_factory_carga_una_vez_y_reutiliza_coordinador(self):
         import entrega
-        from admision.ejemplo import AgenteJSON
+        from admision_tp.agente_prompt import AgentePrompt
         with patch.object(ModeloLocal, "cargar", return_value=self.adaptador) as cargar:
             agente = entrega.construir_agente()
-        self.assertIsInstance(agente, AgenteJSON)
+        self.assertIsInstance(agente, AgentePrompt)
         self.assertIs(agente.modelo_lote, self.adaptador)
         cargar.assert_called_once()
+
+    def test_medir_contexto_usa_el_template_de_la_generacion_sin_tocar_torch(self):
+        self.procesador.apply_chat_template.return_value = {"input_ids": [[1] * 300]}
+        conversacion = [{"role": "user", "content": "hola"}]
+        with patch.dict(sys.modules, {"torch": None}):
+            self.assertEqual(self.adaptador.medir_contexto(conversacion), (300, 8192 - 512))
+        args, kwargs = self.procesador.apply_chat_template.call_args
+        self.assertEqual(args, ([conversacion],))
+        self.assertEqual({k: kwargs[k] for k in ("tokenize", "add_generation_prompt", "enable_thinking", "truncation")},
+                         {"tokenize": True, "add_generation_prompt": True, "enable_thinking": False,
+                          "truncation": False})
+        self.modelo.generate.assert_not_called()
+
+    def test_limite_medido_coincide_con_el_corte_de_la_generacion(self):
+        self.procesador.apply_chat_template.return_value = {"input_ids": [[]]}
+        _, limite = self.adaptador.medir_contexto([])
+        self.procesador.apply_chat_template.return_value = self.entradas
+        self.entradas.__getitem__.return_value.shape = (1, limite)
+        self.assertEqual(self.adaptador([[{}]]), ["primera"])  # justo en el límite: genera
+        self.entradas.__getitem__.return_value.shape = (1, limite + 1)
+        with self.assertRaisesRegex(ValueError, "Contexto excedido"):
+            self.adaptador([[{}]])
 
 
 if __name__ == "__main__":
