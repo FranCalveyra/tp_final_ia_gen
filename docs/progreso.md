@@ -22,14 +22,45 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | [#3 SFT](https://github.com/FranCalveyra/tp_final_ia_gen/issues/3) | Conversor, validación, snapshots/tokenización, Trainer LoRA y runner persistente; humo GPU T4 con HF/W&B y reanudación desde checkpoint HF | Cuatro criterios técnicos respaldados; aceptación/accesos y uso efectivo por Martu pendientes. KI-A100-001 mantiene deuda entrenamiento/evaluación/recursos |
 | [#4 Lotes](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4) | **Cerrado completed (2026-11-05), alcance funcional T4.** Carga única, lote activo, conversación completa; 1→4 baja 33,3→15,6 s/caso, mismos 10/50 | Deuda A100-40GB continúa en KI-A100-001; adapter final pendiente y causa CUDA T4 de lotes grandes no identificada |
 | #5 Recursos | Métricas y borrador Parte 5 con inferencia T4 y humo de entrenamiento solo texto: 15,675 GB pico | Recursos/costos A100 y antes/después con adapter final; integrar `INFORME.md` |
+| #10 Historial | **Implementado (2026-11-05).** Clasificador determinista, pruebas, `historial_clasificado.csv`, análisis reutilizable de costumbres e informe | Mantenerlo compatible con la curación del issue #11 |
+| #11 Costumbres | **Implementado (2026-11-05).** Trazas validadas, dos costumbres confirmadas, patrón por operador documentado y resumen para el equipo | Revisar con Martu y Eze antes de usarlo en el prompt final |
 | #13 Prompt | `PromptSpec`, coordinador configurable, medición, métrica 9/9 y runner con snapshots/hashes, probados con dobles CPU | Dataset/esperadas externos acordados; tokens y calidad con Gemma real; DSPy/GEPA |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
 El formato de conversaciones es **propuesto**, pendiente de coordinación con Eze/Yas.
 El entrenamiento real también espera el prompt optimizado de Martu. Preparar código no
-reemplaza esos entregables. `INFORME.md` todavía no existe.
+reemplaza esos entregables. `INFORME.md` y el resumen del issue #11 contienen la síntesis actualizada.
+
+### 2026-11-05: clasificación del historial (issue #10)
+
+- Se agregó [`scripts/clasificar_historial.py`](../scripts/clasificar_historial.py), que carga los parámetros y las secciones observables de `normas/original/`, clasifica por precedencia normativa y aprende la costumbre etaria a partir de frecuencias.
+- Resultado corregido y reproducible: 1.631 `correcta`, 279 `error` y 90 `ruido`, sobre 2.000 filas. Se conservaron las costumbres etaria y de selección de prepaga; el issue #11 amplió la evidencia con las trazas.
+- Evidencia: [`INFORME.md`](../INFORME.md), [`costumbres.md`](../costumbres.md) y [`historial_costumbres.json`](../historial_costumbres.json). Pruebas: `python -m unittest tests.test_clasificar_historial -v` (3/3).
+- Limitación: el CSV no permite comprobar boxes disponibles, evaluación médica, retriage, camas, aislamiento ni derivaciones; esas normas quedaron documentadas como no verificables.
 
 ## Evidencia disponible
+
+### 2026-11-05: seleccion de datos de entrenamiento (issue #12)
+
+- Se seleccionaron 1.595 conversaciones reales: filas `correcta`, sin errores, ruido ni las 36 variaciones ambiguas de aviso a menores concentradas en operadores.
+- Se generaron 5.000 candidatos con `admision.generador`, semilla 12012, y se conservaron 500 sinteticos: 100 por circuito y al menos 60 por cada bucket especial (ART, dos credenciales, acompanante y sin nadie).
+- El dataset final contiene 2.095 conversaciones v1: 1.595 de historial y 500 sinteticas. Las 500 fichas sinteticas pasan las reglas normativas y el conjunto combinado pasa el validador sin errores.
+- Auditoria corregida: la costumbre etaria solo fija `no` para menores de 75. En mayores se usa la frecuencia observada 175/306 con umbral determinista por hash; quedaron 74 avisos y 37 sin aviso entre 111 mayores. Cambiaron 37 conversaciones sinteticas y el nuevo SHA-256 esta en el manifiesto.
+- No se usan casos de `practica/`. Procedencia, balance, IDs y SHA-256 quedan en [`datos/entrenamiento/manifiesto.json`](../datos/entrenamiento/manifiesto.json). Pruebas especificas: 8/8.
+
+### 2026-11-05: descubrimiento de costumbres (issue #11)
+
+- Las 2.000 trazas de `historial/trazas.jsonl` coinciden por ID, operador y ficha final con `historial/historial.csv`; se usan como evidencia del proceso, no como etiquetas independientes.
+- Costumbres confirmadas: no avisar al voluntariado a menores de 75 anos (1.298/1.415 `no` en filas limpias menores, ocho estratos `motivo x cobertura`) y priorizar prepaga con dos credenciales (162/171, 94,7%).
+- Patron adicional no confirmado como costumbre hospitalaria: OP-04, OP-11 y OP-17 concentran 117/225 avisos a menores, mientras los otros 17 operadores tienen 0/1.190. Se documentan los IDs y no se agrega una regla automatica.
+- Evidencia y resumen: [`costumbres.md`](../costumbres.md), [`historial_costumbres.json`](../historial_costumbres.json) y [`resumen para el equipo`](resumen-costumbres-issue-11.md). Pruebas especificas: 5/5.
+
+### 2026-11-05: auditoria y correccion de issue #10
+
+- Se corrigio la seleccion de cobertura con dos credenciales: ya no se asume la primera; se usa la credencial efectivamente verificada y se conserva la preferencia observada por prepaga como costumbre separada.
+- La deteccion de costumbres excluye errores normativos y compara estratos `motivo x cobertura`. Se conservaron 8 estratos comparables para la costumbre etaria y se documento la preferencia por prepaga en 162/171 filas limpias.
+- Nueva salida: 1.631 `correcta`, 279 `error`, 90 `ruido`. Cambiaron 115 filas respecto de `959838a`: 71 error->correcta, 34 ruido->correcta, 5 error->ruido y 5 correcta->ruido.
+- Pruebas especificas: 4/4. La suite completa sigue teniendo fallas ajenas en Kaggle/entrenamiento, integracion CPU, persistencia, preparacion y variantes del buscador.
 
 ### Buscador: conjunto de desarrollo, 60 consultas, normas originales
 
@@ -355,7 +386,7 @@ Datos sintéticos de `scripts.datos_humo` (4 conversaciones, 8 pasos, checkpoint
 ### 2026-11-04: borrador de la Parte 5 del informe (issue #5)
 
 - Borrador en [informe-parte5.md](informe-parte5.md) con lo medido en T4 (s/caso, VRAM, lotes, humo de
-  entrenamiento) y cada número con su artefacto. `INFORME.md` no se creó: es compartido.
+  entrenamiento) y cada número con su artefacto. `INFORME.md` se mantiene como informe compartido.
 - **Pendiente (PENDIENTE en el borrador):** todo lo que depende del modelo final o de A100-40GB (tiempo y VRAM de
   entrenamiento real, s/caso y costo en A100, lote máximo estable, antes/después). La VRAM de entrenamiento
   no se registró en el humo.
