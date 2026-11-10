@@ -70,7 +70,7 @@ rechazan: combinar fuentes exige una decisión explícita de identidad, no conca
 Ejemplo **solo para una fuente ya curada y un prompt ya acordado** (no se ejecutó sobre los datos importados):
 
 ```bash
-rtk proxy .venv/bin/python -m scripts.convertir_trazas \
+.venv/bin/python -m scripts.convertir_trazas \
   --entrada datos/trazas-curadas.jsonl --salida datos/conversaciones-curadas.jsonl \
   --origen historial --prompt configuraciones/prompts/baseline.json
 ```
@@ -87,11 +87,11 @@ ante pérdida de energía. El conversor no clasifica historial, no regenera RAG 
 Validación por las interfaces públicas:
 
 ```bash
-rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest test_conversion_trazas test_conversaciones test_preparacion test_tokenizacion -q
+env PYTHONPATH=tests .venv/bin/python -m unittest test_conversion_trazas test_conversaciones test_preparacion test_tokenizacion -q
 ```
 
 Evidencia CPU: 25 tests, 24 pasan y 1 opcional omitido. Suite completa:
-`rtk proxy env PYTHONPATH=tests .venv/bin/python -m unittest discover -s tests -q`:
+`env PYTHONPATH=tests .venv/bin/python -m unittest discover -s tests -q`:
 116 tests, 115 pasan y 1 omitido. Red→green por unidad:
 API ausente → conservación; inválidos aceptados → validación; API archivo ausente → determinismo;
 archivo vacío aceptado → rechazo integral; `False == 0` aceptado → ficha con tipos exactos;
@@ -107,13 +107,13 @@ Un solo comando regenera el dataset de entrenamiento en una carpeta **nueva** (s
 sin tocarla). `datos/entrenamiento/` queda como la versión anterior de Yas, solo como historia.
 
 ```bash
-rtk proxy uv run --locked --no-sync python -m scripts.generar_conversaciones
+uv run --locked --no-sync python -m scripts.generar_conversaciones
 # equivalente explícito:
-rtk proxy uv run --locked --no-sync python -m scripts.generar_conversaciones \
+uv run --locked --no-sync python -m scripts.generar_conversaciones \
   --prompt configuraciones/prompts/baseline.json --semilla 12012 --candidatos 5000 \
   --salida datos/conversaciones/v2-baseline
 # otra variante del buscador (la decisión vigente es baseline; ver abajo):
-rtk proxy uv run --locked --no-sync python -m scripts.generar_conversaciones --buscador-variante prefijos
+uv run --locked --no-sync python -m scripts.generar_conversaciones --buscador-variante prefijos
 ```
 
 Sin `--buscador-variante` el buscador se arma con `entrega.construir_buscador`, igual que en inferencia

@@ -12,17 +12,17 @@ Eze `ezequielrickert` #6–9; Yas `Yasmindesivo` #10–12; Martu `MartuGiordanel
 
 ### Obtener el paquete en main tras confirmarse la publicación
 
-Primero `rtk git status --short`: si muestra cambios, **detenete** y preservalos antes de cambiar de rama;
+Primero `git status --short`: si muestra cambios, **detenete** y preservalos antes de cambiar de rama;
 no hagas reset, limpieza ni stash automático. Con árbol limpio:
 
 ```bash
-rtk git switch main
-rtk git pull --ff-only origin main
-rtk git rev-parse HEAD
+git switch main
+git pull --ff-only origin main
+git rev-parse HEAD
 ```
 
-Compará el hash con el commit comunicado por chat. Si no existe `main` local, primero hacé `rtk git fetch origin`
-y `rtk git switch --track origin/main`; luego actualizá con `pull --ff-only`. Si falla por divergencia, detenete:
+Compará el hash con el commit comunicado por chat. Si no existe `main` local, primero hacé `git fetch origin`
+y `git switch --track origin/main`; luego actualizá con `pull --ff-only`. Si falla por divergencia, detenete:
 no forzar ni reescribir trabajo local.
 
 **Ruta actual (decisión 2026-11-05): Kaggle para desarrollo. Modal descartado definitivamente.**
@@ -117,8 +117,8 @@ No se completaron ni verificaron esos permisos externos desde esta sesión.
 2. En un entorno ya instalado, ejecutar solo la ayuda CPU:
 
 ```bash
-rtk proxy .venv/bin/python -m scripts.entrenar --help
-rtk proxy .venv/bin/python -m scripts.convertir_trazas --help
+.venv/bin/python -m scripts.entrenar --help
+.venv/bin/python -m scripts.convertir_trazas --help
 ```
 
 3. Revisar desde sus cuentas la copia del notebook, membresía HF/W&B y licencia/acceso Gemma; confirmar
