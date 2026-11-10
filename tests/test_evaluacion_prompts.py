@@ -9,6 +9,8 @@ from admision.comparar import CONTROLES
 from admision_tp.evaluacion_prompts import (
     calcular_metricas_candidato,
     clave_comparacion,
+    clave_de_manifiesto,
+    marcar_comparabilidad,
     medir_longitud_prompt,
 )
 from admision_tp.prompts import cargar_prompt_baseline
@@ -93,14 +95,44 @@ class EvaluacionPromptsTest(unittest.TestCase):
 
     def test_comparacion_prioriza_casos_completos_y_luego_parciales(self):
         medicion = medir_longitud_prompt(cargar_prompt_baseline(), TokenizadorArtificial())
-        completo = calcular_metricas_candidato(
-            [resultado("c1", 9), resultado("c2", 0)], [traza("c1"), traza("c2")], medicion)
-        parcial = calcular_metricas_candidato(
-            [resultado("c1", 8), resultado("c2", 8)], [traza("c1"), traza("c2")], medicion)
+
+        def medir(resultados):
+            return marcar_comparabilidad(
+                calcular_metricas_candidato(resultados, [traza("c1"), traza("c2")], medicion),
+                estado="completada", proposito="evaluacion")
+        completo = medir([resultado("c1", 9), resultado("c2", 0)])
+        parcial = medir([resultado("c1", 8), resultado("c2", 8)])
         self.assertGreater(clave_comparacion(completo), clave_comparacion(parcial))
-        mejor_parcial = calcular_metricas_candidato(
-            [resultado("c1", 8), resultado("c2", 7)], [traza("c1"), traza("c2")], medicion)
+        mejor_parcial = medir([resultado("c1", 8), resultado("c2", 7)])
         self.assertGreater(clave_comparacion(parcial), clave_comparacion(mejor_parcial))
+
+    def test_solo_corridas_completas_de_evaluacion_tienen_clave(self):
+        medicion = medir_longitud_prompt(cargar_prompt_baseline(), TokenizadorArtificial())
+        crudas = calcular_metricas_candidato([resultado("c1", 9)], [traza("c1")], medicion)
+        with self.assertRaisesRegex(ValueError, "no comparable"):
+            clave_comparacion(crudas)  # sin marcar no se puede ordenar
+        sana = marcar_comparabilidad(crudas, estado="completada", proposito="evaluacion")
+        self.assertEqual(clave_comparacion(sana), tuple(crudas["clave_comparacion"]))
+        self.assertEqual(clave_de_manifiesto(
+            {"estado": "completada", "proposito": "evaluacion", "metricas": sana}),
+            clave_comparacion(sana))
+        for estado, proposito in (("completada_con_error", "evaluacion"),
+                                  ("completada", "plomeria"),
+                                  ("completada_con_error", "plomeria")):
+            with self.subTest(estado=estado, proposito=proposito):
+                marcada = marcar_comparabilidad(crudas, estado=estado, proposito=proposito)
+                self.assertIs(marcada["comparable"], False)
+                self.assertIsNone(marcada["clave_comparacion"])
+                with self.assertRaisesRegex(ValueError, "no comparable"):
+                    clave_comparacion(marcada)
+                # Un manifiesto adulterado con métricas sanas tampoco compite.
+                with self.assertRaisesRegex(ValueError, "no comparable"):
+                    clave_de_manifiesto(
+                        {"estado": estado, "proposito": proposito, "metricas": sana})
+        with self.assertRaisesRegex(ValueError, "no comparable"):
+            clave_de_manifiesto({"estado": "fallida", "proposito": "evaluacion"})
+        with self.assertRaises(ValueError):
+            marcar_comparabilidad(crudas, estado="completada", proposito="otro")
 
     def test_rechaza_casos_desalineados_o_controles_incompletos(self):
         medicion = medir_longitud_prompt(cargar_prompt_baseline(), TokenizadorArtificial())

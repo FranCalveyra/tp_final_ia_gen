@@ -755,3 +755,26 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   búsqueda del guion. La conversión de historial sigue usando los resultados de búsqueda originales de las
   trazas (issue #8). NOR-ADM-01 §4 se codifica más estricto que el texto (box anticipado no exigido = error),
   pero afecta 0 filas; quedó comentado. Detalle en [INFORME.md](../INFORME.md) y [costumbres.md](../costumbres.md).
+
+### 2026-11-10: robustez del runner de prompts (#13) para Kaggle
+
+- Alcance: solo el runner de evaluación de Martu; no se optimizó prompt, no hay DSPy/GEPA y
+  `entrega.py` no cambió. Detalle en [optimización de prompt](optimizacion-prompt.md#guardas-de-datos-y-propósito).
+- Guarda de práctica: el runner copiaba los casos antes de llamar a `jugar`, así que el chequeo
+  `revisar_que_no_haya_esperadas` del kit nunca veía la carpeta original (se habían corrido 50 casos de
+  `practica/`). Ahora se llama a esa función del kit sobre las rutas originales y se rechazan casos/esperadas
+  que resuelven dentro de `practica/` (también vía symlink). Solo `--solo-plomeria` lo permite, con
+  `proposito=plomeria` en el manifiesto. Toda corrida registra `proposito` y `guardas`.
+- Comparabilidad: solo `estado=completada` + `proposito=evaluacion` tiene `clave_comparacion`;
+  `clave_comparacion`/`clave_de_manifiesto` levantan `ValueError` para el resto. Test con un doble que
+  lanza el mismo `ValueError` de contexto excedido que `ModeloLocal`. El CLI sale con 1 si `completada_con_error`.
+- Kaggle: `configuraciones/evaluacion-prompt-kaggle-t4.json` (float16, `device_map=auto`); el ejemplo A100
+  no cambió. `HF_TOKEN` se toma del entorno o del Kaggle Secret como en `infra/kaggle_baseline.py`, sin registrarlo.
+- Casos/esperadas malformados: `ValueError` claro, manifiesto `fallida` y código 1, sin traceback.
+- Tests de equivalencia `AgentePrompt` = `AgenteJSON`: tres respuestas sin JSON, `max_turnos`, límite de
+  40 llamadas del `Entorno` real y lotes de distinto largo.
+- Evidencia: `UV_PROJECT_ENVIRONMENT=<.venv sincronizado del checkout principal> uv run --locked --no-sync
+  python -m unittest discover -s tests` → 169 tests OK (1 skipped), +19 nuevos. **Probado con dobles**:
+  sin tokenizer real, sin GPU ni Kaggle; la carga real del modelo en T4 y el Secret no se ejercitaron.
+- Próximo paso: correr plomería en Kaggle con autorización y, para seleccionar, un conjunto prompt-dev
+  generado fuera de práctica/test.

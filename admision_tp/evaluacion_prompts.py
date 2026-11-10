@@ -176,10 +176,46 @@ def calcular_metricas_candidato(resultados: list[dict], trazas: list[dict],
     }
 
 
+# Solo una corrida terminada sin error y hecha para evaluar puede competir.
+PROPOSITOS = ("evaluacion", "plomeria")
+ESTADO_COMPARABLE = "completada"
+PROPOSITO_COMPARABLE = "evaluacion"
+
+
+def marcar_comparabilidad(metricas: dict, *, estado: str, proposito: str) -> dict:
+    """Devuelve las métricas con ``comparable`` explícito; sin clave si no es comparable."""
+    if proposito not in PROPOSITOS:
+        raise ValueError("propósito de corrida inválido")
+    motivo = None
+    if estado != ESTADO_COMPARABLE:
+        motivo = f"estado {estado}"
+    elif proposito != PROPOSITO_COMPARABLE:
+        motivo = f"propósito {proposito}"
+    return {**metricas, "comparable": motivo is None, "motivo_no_comparable": motivo,
+            "clave_comparacion": metricas.get("clave_comparacion") if motivo is None else None}
+
+
 def clave_comparacion(metricas: dict) -> tuple:
-    """Clave mayor-es-mejor para ordenar candidatos medidos sobre el mismo conjunto."""
-    clave = metricas.get("clave_comparacion") if isinstance(metricas, dict) else None
+    """Clave mayor-es-mejor para ordenar candidatos medidos sobre el mismo conjunto.
+
+    Exige métricas marcadas como comparables por ``marcar_comparabilidad``: una corrida con
+    error, de plomería o sin marcar no puede ordenarse junto a corridas sanas.
+    """
+    if not isinstance(metricas, dict) or metricas.get("comparable") is not True:
+        motivo = metricas.get("motivo_no_comparable") if isinstance(metricas, dict) else None
+        raise ValueError(f"corrida no comparable{f' ({motivo})' if motivo else ''}")
+    clave = metricas.get("clave_comparacion")
     if (not isinstance(clave, list) or len(clave) != 8
             or any(not isinstance(x, (int, float)) or isinstance(x, bool) for x in clave)):
         raise ValueError("métricas sin clave de comparación válida")
     return tuple(clave)
+
+
+def clave_de_manifiesto(manifiesto: dict) -> tuple:
+    """Clave de un ``manifiesto.json`` del runner; rechaza corridas fallidas o no comparables."""
+    if not isinstance(manifiesto, dict):
+        raise ValueError("manifiesto inválido")
+    estado, proposito = manifiesto.get("estado"), manifiesto.get("proposito")
+    if estado != ESTADO_COMPARABLE or proposito != PROPOSITO_COMPARABLE:
+        raise ValueError(f"corrida no comparable (estado {estado}, propósito {proposito})")
+    return clave_comparacion(manifiesto.get("metricas"))

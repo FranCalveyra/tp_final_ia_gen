@@ -4,21 +4,30 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 import json
+import os
 from pathlib import Path
 import random
 import re
 import shutil
 
 from admision.casos import cargar_casos, cargar_esperadas
-from admision.correr import jugar, puntuar
+from admision.correr import jugar, puntuar, revisar_que_no_haya_esperadas
 
 from .agente_prompt import AgentePrompt
 from .buscador import BuscadorBM25
 from .configuracion import Configuracion
-from .evaluacion_prompts import calcular_metricas_candidato, medir_longitud_prompt
+from .evaluacion_prompts import (
+    PROPOSITOS,
+    calcular_metricas_candidato,
+    marcar_comparabilidad,
+    medir_longitud_prompt,
+)
 from .preparacion import _canonical, _codigo, _sha
 from .prompts import PromptSpec
 
+
+# Datos de práctica del kit: nunca sirven para evaluar ni seleccionar prompts.
+_PRACTICA = Path(__file__).resolve().parents[1] / "practica"
 
 _CAMPOS_CONFIG = {
     "version", "modelo", "revision", "semilla", "max_tokens_nuevos", "max_contexto",
@@ -123,8 +132,68 @@ def _copiar_normas(origen, destino) -> dict:
     return {p.relative_to(destino).as_posix(): _sha(p.read_bytes()) for p in sorted(archivos)}
 
 
+def _verificar_origen(casos, esperadas, normas, proposito) -> dict:
+    """Guardas previas a copiar cualquier entrada; devuelve qué se verificó.
+
+    Las rutas se resuelven (incluidos symlinks) antes de comparar con ``practica/``. El
+    chequeo del kit se corre sobre las rutas ORIGINALES: la copia en ``salida/entradas``
+    nunca tiene esperadas al lado y por eso no lo dispararía.
+    """
+    if proposito not in PROPOSITOS:
+        raise ValueError(f"propósito inválido; usar uno de {', '.join(PROPOSITOS)}")
+    practica = _PRACTICA.resolve()
+    en_practica = []
+    for nombre, ruta in (("casos", casos), ("esperadas", esperadas)):
+        resuelta = Path(ruta).resolve()
+        if resuelta == practica or practica in resuelta.parents:
+            en_practica.append(nombre)
+    if proposito == "plomeria":
+        # Solo plomería puede usar práctica; la copia aislada sigue revisada por `jugar`.
+        return {"datos_practica": en_practica, "esperadas_al_alcance": "omitida_plomeria"}
+    if en_practica:
+        raise ValueError(
+            f"{' y '.join(en_practica)} dentro de practica/: nunca se evalúan ni optimizan prompts "
+            "con práctica; para probar solo la plomería usar --solo-plomeria")
+    revisar_que_no_haya_esperadas(Path(normas), Path(casos))
+    return {"datos_practica": [], "esperadas_al_alcance": "verificada_en_origen"}
+
+
+def _cargar_entradas_jsonl(cargador, ruta, nombre):
+    """Convierte errores de formato del kit en un ``ValueError`` claro, sin traceback."""
+    try:
+        return cargador(ruta)
+    except (TypeError, KeyError, ValueError, AttributeError) as error:
+        raise ValueError(
+            f"{nombre} con formato inválido ({type(error).__name__}: {error})") from None
+
+
+def _obtener_secreto_kaggle(nombre: str) -> str:
+    from kaggle_secrets import UserSecretsClient  # Solo existe en Kaggle.
+
+    return UserSecretsClient().get_secret(nombre)
+
+
+def _asegurar_token_hf(entorno=None, obtener_secreto=_obtener_secreto_kaggle) -> None:
+    """Igual que ``infra/kaggle_baseline.py``: HF_TOKEN del entorno o, si falta, Kaggle Secret.
+
+    El token solo se deja en el entorno del proceso para que lo lea Hugging Face; nunca se
+    imprime ni se guarda en manifiestos.
+    """
+    entorno = os.environ if entorno is None else entorno
+    if entorno.get("HF_TOKEN"):
+        return
+    try:
+        token = obtener_secreto("HF_TOKEN")
+    except Exception:  # Fuera de Kaggle no existe el módulo; en Kaggle, secreto sin adjuntar.
+        token = None
+    if not isinstance(token, str) or not token:
+        raise RuntimeError("Falta HF_TOKEN (variable de entorno o Kaggle Secret)")
+    entorno["HF_TOKEN"] = token
+
+
 def _cargar_modelo_real(config):
     """Carga opt-in: el CLI llega acá; los tests inyectan dobles y no importan torch."""
+    _asegurar_token_hf()
     import torch
 
     random.seed(config.semilla)
@@ -141,12 +210,13 @@ def _hashes_artefactos(salida: Path) -> dict:
 
 
 def ejecutar_evaluacion_prompt(*, prompt, configuracion, casos, esperadas, normas, salida,
-                               modelo_lote=None, tokenizer=None) -> dict:
+                               modelo_lote=None, tokenizer=None, proposito="evaluacion") -> dict:
     """Ejecuta un candidato sin exponer las esperadas durante ``jugar``.
 
     La carpeta de salida se reserva antes de cargar el modelo y nunca se reutiliza. Un
     modelo/tokenizer inyectado habilita tests CPU; sin ellos se carga la revisión fijada
-    y se requiere el entorno GPU del proyecto.
+    y se requiere el entorno GPU del proyecto. ``proposito="plomeria"`` es la única forma
+    de aceptar datos de ``practica/`` y deja la corrida como no comparable.
     """
     salida = Path(salida)
     if salida.exists() or salida.is_symlink():
@@ -159,7 +229,9 @@ def ejecutar_evaluacion_prompt(*, prompt, configuracion, casos, esperadas, norma
     codigo = None
     config = spec = None
     hashes_entrada = {}
+    guardas = None
     try:
+        guardas = _verificar_origen(casos, esperadas, normas, proposito)
         codigo = _codigo()
         prompt_bytes = _copiar_archivo(prompt, entradas / "prompt.json")
         config_bytes = _copiar_archivo(configuracion, entradas / "configuracion.json")
@@ -172,7 +244,7 @@ def ejecutar_evaluacion_prompt(*, prompt, configuracion, casos, esperadas, norma
         hashes_entrada["normas"] = _copiar_normas(normas, entradas / "normas")
         spec = PromptSpec.cargar(entradas / "prompt.json")
         config = ConfiguracionEvaluacionPrompt.cargar(entradas / "configuracion.json")
-        casos_cargados = cargar_casos(entradas / "casos.jsonl")
+        casos_cargados = _cargar_entradas_jsonl(cargar_casos, entradas / "casos.jsonl", "casos")
         ids = [caso.id for caso in casos_cargados]
         if not ids or len(ids) != len(set(ids)):
             raise ValueError("los casos deben tener ids únicos y no estar vacíos")
@@ -193,16 +265,24 @@ def ejecutar_evaluacion_prompt(*, prompt, configuracion, casos, esperadas, norma
         # Se lee una sola vez después de jugar; esta copia exacta es la que se puntúa.
         esperadas_bytes = _copiar_archivo(esperadas, entradas / "esperadas.jsonl")
         hashes_entrada["esperadas.jsonl"] = _sha(esperadas_bytes)
-        esperadas_cargadas = cargar_esperadas(entradas / "esperadas.jsonl")
+        esperadas_cargadas = _cargar_entradas_jsonl(
+            cargar_esperadas, entradas / "esperadas.jsonl", "esperadas")
         if set(esperadas_cargadas) != set(ids):
             raise ValueError("casos y esperadas deben tener exactamente los mismos ids")
         resultados, resumen = puntuar(trazas, esperadas_cargadas, salida, tiempos)
-        metricas = calcular_metricas_candidato(resultados, trazas, longitud)
+        estado = "completada" if tiempos.get("error") is None else "completada_con_error"
+        # Una corrida con error del agente o de plomería no recibe clave y no se puede rankear.
+        metricas = marcar_comparabilidad(
+            calcular_metricas_candidato(resultados, trazas, longitud),
+            estado=estado, proposito=proposito)
         (salida / "metricas.json").write_bytes(_canonical(metricas))
 
         manifiesto = {
             "version": 1,
-            "estado": "completada" if tiempos.get("error") is None else "completada_con_error",
+            "estado": estado,
+            "proposito": proposito,
+            "comparable": metricas["comparable"],
+            "guardas": guardas,
             "codigo": codigo,
             "prompt": {"nombre": spec.nombre, "version": spec.version, "sha256": spec.sha256},
             "configuracion": config.como_dict(),
@@ -213,15 +293,17 @@ def ejecutar_evaluacion_prompt(*, prompt, configuracion, casos, esperadas, norma
         (salida / "manifiesto.json").write_bytes(_canonical(manifiesto))
         return manifiesto
     except Exception as error:
-        # Un intento fallido también queda visible y nunca se reutiliza.
-        if not (entradas / "esperadas.jsonl").exists():
+        # Un intento fallido también queda visible y nunca se reutiliza. Si falló la guarda
+        # de origen no se toca el archivo de esperadas.
+        if guardas is not None and not (entradas / "esperadas.jsonl").exists():
             try:
                 esperadas_bytes = _copiar_archivo(esperadas, entradas / "esperadas.jsonl")
                 hashes_entrada["esperadas.jsonl"] = _sha(esperadas_bytes)
             except (OSError, ValueError):
                 pass
         fallo = {
-            "version": 1, "estado": "fallida", "codigo": codigo,
+            "version": 1, "estado": "fallida", "proposito": proposito, "comparable": False,
+            "guardas": guardas, "codigo": codigo,
             "prompt": ({"nombre": spec.nombre, "version": spec.version, "sha256": spec.sha256}
                        if spec is not None else None),
             "configuracion": config.como_dict() if config is not None else None,
@@ -245,12 +327,18 @@ def main(argv=None) -> int:
     parser.add_argument("--esperadas", type=Path, required=True)
     parser.add_argument("--normas", type=Path, required=True)
     parser.add_argument("--salida", type=Path, required=True)
-    args = parser.parse_args(argv)
+    parser.add_argument(
+        "--solo-plomeria", action="store_true",
+        help="prueba de plomería: permite practica/, la corrida queda no comparable")
+    args = vars(parser.parse_args(argv))
+    proposito = "plomeria" if args.pop("solo_plomeria") else "evaluacion"
     try:
-        manifiesto = ejecutar_evaluacion_prompt(**vars(args))
+        manifiesto = ejecutar_evaluacion_prompt(**args, proposito=proposito)
     except (OSError, ValueError, RuntimeError) as error:
         print(f"{type(error).__name__}: {error}", file=__import__("sys").stderr)
         return 1
-    print(json.dumps({"estado": manifiesto["estado"], "prompt": manifiesto["prompt"],
+    print(json.dumps({"estado": manifiesto["estado"], "proposito": manifiesto["proposito"],
+                      "comparable": manifiesto["comparable"], "prompt": manifiesto["prompt"],
                       "metricas": manifiesto["metricas"]}, ensure_ascii=False, indent=2))
-    return 0
+    # Una corrida que terminó con error del agente no debe parecer exitosa.
+    return 0 if manifiesto["estado"] == "completada" else 1

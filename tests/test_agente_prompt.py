@@ -1,7 +1,9 @@
 import json
 import unittest
 
+from admision.casos import Caso
 from admision.ejemplo import AgenteJSON
+from admision.entorno import MAX_LLAMADAS, Entorno
 from admision_tp.agente_prompt import AgentePrompt
 from admision_tp.prompts import PromptSpec, cargar_prompt_baseline
 
@@ -120,6 +122,113 @@ class AgentePromptTest(unittest.TestCase):
             "nombre": "baseline", "version": 1, "sha256": self.baseline.sha256})
         mensajes = agente.jugar_lote([EntornoSimulado()])[0]
         self.assertNotIn(self.baseline.sha256, json.dumps(mensajes))
+
+
+class ModeloPorPaciente:
+    """Guion por paciente; registra qué pacientes entran en cada llamada al modelo."""
+
+    def __init__(self, guiones):
+        self.guiones = guiones
+        self.turnos = {}
+        self.llamadas = []
+
+    def __call__(self, conversaciones):
+        pacientes = [next(p for p in self.guiones if p in m[1]["content"]) for m in conversaciones]
+        self.llamadas.append(pacientes)
+        respuestas = []
+        for paciente in pacientes:
+            turno = self.turnos.get(paciente, 0)
+            self.turnos[paciente] = turno + 1
+            guion = self.guiones[paciente]
+            respuestas.append(guion(turno) if callable(guion) else guion[turno])
+        return respuestas
+
+
+def caso_entorno(paciente_id="P-1"):
+    return Caso.desde_dict({
+        "id": "c-1", "paciente_id": paciente_id, "nombre": "Paciente Simulado",
+        "edad": 30, "nivel": 5, "motivo": "dolor", "nota": "Nota simulada.",
+        "sepsis": "no", "llegada": "por sus propios medios", "documento_tipo": "DNI",
+        "documento_numero": "30111222", "credenciales": [], "puede_responder": True,
+        "no_responde_porque": None, "acompanante": None, "trabajo": None,
+        "declarada": None, "art": None, "afiliaciones": {},
+    })
+
+
+class EquivalenciaLimitesTest(unittest.TestCase):
+    """Bordes del coordinador: AgentePrompt(baseline) debe igualar a AgenteJSON."""
+
+    def setUp(self):
+        self.baseline = cargar_prompt_baseline()
+
+    def _ambos(self, guiones, entornos_factory, **limites):
+        resultados = []
+        for crear in (lambda m: AgenteJSON(m, **limites),
+                      lambda m: AgentePrompt(m, self.baseline, **limites)):
+            modelo = ModeloPorPaciente(guiones)
+            entornos = entornos_factory()
+            mensajes = crear(modelo).jugar_lote(entornos)
+            resultados.append((mensajes, modelo.llamadas, entornos))
+        (original, llamadas_o, _), (configurable, llamadas_c, entornos) = resultados
+        self.assertEqual(configurable, original)
+        self.assertEqual(llamadas_c, llamadas_o)
+        return configurable, llamadas_c, entornos
+
+    def test_tres_respuestas_sin_json_seguidas_cortan_el_caso(self):
+        mensajes, llamadas, entornos = self._ambos(
+            {"P-1": lambda turno: "no es JSON"}, lambda: [EntornoSimulado()])
+        asistente = [m for m in mensajes[0] if m["role"] == "assistant"]
+        self.assertEqual(len(asistente), 3)
+        self.assertEqual(len(llamadas), 3)
+        self.assertEqual(entornos[0].llamadas, [])
+        # La tercera respuesta inválida corta sin agregar otra corrección.
+        self.assertEqual(mensajes[0][-1], {"role": "assistant", "content": "no es JSON"})
+
+    def test_json_valido_reinicia_el_contador_sin_json(self):
+        guion = ["x", "y", accion("buscar_normativa", consulta="a"), "z", "w",
+                 accion("registrar_decision")]
+        mensajes, _, entornos = self._ambos({"P-1": guion}, lambda: [EntornoSimulado()])
+        self.assertEqual([n for n, _ in entornos[0].llamadas],
+                         ["buscar_normativa", "registrar_decision"])
+        self.assertEqual(sum(m["role"] == "assistant" for m in mensajes[0]), 6)
+
+    def test_max_turnos_corta_el_caso(self):
+        busqueda = accion("buscar_normativa", consulta="cobertura")
+        mensajes, _, entornos = self._ambos(
+            {"P-1": lambda turno: busqueda}, lambda: [EntornoSimulado()], max_turnos=5)
+        self.assertEqual(sum(m["role"] == "assistant" for m in mensajes[0]), 5)
+        self.assertEqual(len(entornos[0].llamadas), 5)
+        self.assertEqual(mensajes[0][-1]["role"], "user")
+
+    def test_limite_de_llamadas_del_entorno_termina_el_caso(self):
+        lectura = accion("leer_triage", paciente_id="P-1")
+
+        def entornos():
+            return [Entorno(caso_entorno(), buscador=None)]
+        mensajes, _, (entorno,) = self._ambos(
+            {"P-1": lambda turno: lectura}, entornos, max_turnos=MAX_LLAMADAS + 20)
+        self.assertEqual(MAX_LLAMADAS, 40)
+        self.assertEqual(len(entorno.log), MAX_LLAMADAS)
+        self.assertTrue(entorno.terminado)
+        self.assertIsNone(entorno.decision)
+        self.assertEqual(sum(m["role"] == "assistant" for m in mensajes[0]), MAX_LLAMADAS)
+        self.assertEqual(mensajes[0][-1]["role"], "assistant")
+
+    def test_lote_con_casos_de_distinto_largo(self):
+        fin = accion("registrar_decision")
+        guiones = {
+            "P-1": [accion("leer_triage", paciente_id="P-1"), fin],
+            "P-2": ["sin json", accion("leer_triage", paciente_id="P-2"),
+                    accion("buscar_normativa", consulta="x"), fin],
+            "P-3": [fin],
+        }
+        mensajes, llamadas, entornos = self._ambos(
+            guiones, lambda: [EntornoSimulado("P-1"), EntornoSimulado("P-2"), EntornoSimulado("P-3")])
+        self.assertEqual(llamadas, [["P-1", "P-2", "P-3"], ["P-1", "P-2"], ["P-2"], ["P-2"]])
+        self.assertEqual([sum(m["role"] == "assistant" for m in c) for c in mensajes], [2, 4, 1])
+        for paciente, conversacion in zip(("P-1", "P-2", "P-3"), mensajes):
+            self.assertIn(paciente, conversacion[1]["content"])
+        self.assertEqual([e.llamadas[-1][0] for e in entornos], ["registrar_decision"] * 3)
 
 
 if __name__ == "__main__":
