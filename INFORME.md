@@ -110,6 +110,117 @@ python scripts/clasificar_historial.py --entrada historial/historial.csv --norma
 python -m unittest tests.test_clasificar_historial -v
 ```
 
+## Parte 2: buscador
+
+### Enfoque
+
+El buscador (`admision_tp/buscador.py`, conectado por `entrega.construir_buscador`) se arma siempre con
+la carpeta de normas recibida: indexa una sección completa por archivo `NOR-*.md` e incorpora su línea de
+valores desde el `parametros.yaml` de esa carpeta, así los números de las normas b/c o del test llegan
+por búsqueda y no por los pesos. Es BM25 (k1=1,5, b=0,75) sobre texto normalizado (minúsculas, sin
+tildes); el texto devuelto no se modifica. No usa servicios externos, embeddings ni descargas. Las variantes
+se eligen con `BUSCADOR_VARIANTE`; el default de la entrega es `baseline`. Detalle técnico y reproducción en
+la [guía del buscador](docs/buscador-baseline.md).
+
+### Evaluación por separado (`admision.evaluar_rag`)
+
+Comando, sobre las 60 consultas de desarrollo y normas originales, con el código de `4e3613a`
+(repetido sin cambios sobre `d37f492`):
+
+```text
+BUSCADOR_VARIANTE=<variante> uv run --locked --no-sync python -m admision.evaluar_rag --entrega entrega.py --normas normas/original --consultas rag/consultas_dev.jsonl
+```
+
+| Buscador | Secciones por búsqueda | Completas | Recall de evidencia | Precisión | Tokens/consulta |
+|---|---|---:|---:|---:|---:|
+| Referencia BM25 de la cátedra | 2 | 51/60 | 0,875 | 0,492 | 580 |
+| `baseline` (default de la entrega) | 2 | 48/60 | 0,817 | 0,467 | 618 |
+| `sin_comunes` | 2 | 50/60 | 0,850 | 0,483 | 591 |
+| `prefijos` | 1 a 3 (umbral 0,6) | **55/60** | **0,933** | **0,686** | **549** |
+
+- `baseline`: BM25 sobre la sección entera, 2 secciones. Queda por debajo de la referencia; las consultas
+  coloquiales tienen recall 0,25 porque depende de compartir palabras.
+- `sin_comunes`: quita una lista fija de palabras comunes del índice y de la consulta (conserva `no`, `sin`,
+  `ni` y números). Gana 3 consultas y pierde 1 contra `baseline`.
+- `prefijos`: sin palabras comunes, cada palabra recortada a sus primeras 4 letras (une `registro`,
+  `registrarlo`, `registra`) y hasta 3 secciones, descartando las que puntúan menos de 0,6 × la primera.
+  Supera la referencia en las cuatro métricas; gana 9 consultas y pierde 2 (d027 y d052, por colisiones de
+  prefijo). Coloquiales: recall 0,75.
+
+**Variantes probadas y descartadas.** Además de las tres seleccionables se midieron 68 configuraciones,
+reproducibles con `python -m scripts.explorar_buscadores --salida <carpeta nueva>`; la tabla completa está en
+la guía. En resumen:
+
+| Familia | Mejor resultado | Por qué se descartó |
+|---|---|---|
+| Fragmentos por párrafo (top 2–5, con o sin puntaje de sección) | 49/60, 0,833, 291–341 tokens | Menos tokens, pero menos recall que la referencia |
+| Sección recortada a los párrafos con coincidencia | 51/60, 0,867, 535 tokens | Pierde evidencia de párrafos sin palabras de la consulta |
+| Otros stemmers (plurales, sufijos, prefijo 5 o 6) | 51/60, 0,867 | Peores que prefijo 4 |
+| Título con más peso, ajustes de k1/b | 49–51/60 | Ganancia de 1 consulta como mucho |
+| Peso 0,25 para palabras comunes | 49/60, 0,833, 605 tokens | Pierde d011 igual que `sin_comunes`, gana menos |
+| Fusión BM25 + n-gramas de caracteres (RRF) | 48/60, 0,817, 612 tokens | No supera a `sin_comunes` |
+| `prefijos` sin umbral (k=3) | 56/60, 0,942, 895 tokens | +45 % de tokens por 1 consulta |
+| `prefijos` con umbral 0,4 / 0,5 / 0,7 / 0,8 | 56 / 55 / 53 / 52 de 60 | 0,6 es el codo entre recall y tokens |
+
+Prefijo, umbral y k se eligieron mirando estas mismas 60 consultas: son números de desarrollo, no una
+evaluación independiente. Con normas b y c el texto es el mismo y solo cambian los valores; con la evidencia
+ajustada a esos valores las tres variantes dan lo mismo que con original. Densos, híbridos con embeddings y
+rerankers quedaron fuera: requieren descargas o dependencias nuevas no autorizadas. Lo que sigue sin
+resolverse (d030 pecho ↔ dolor torácico, d023 abuela ↔ edad) necesita sinónimos.
+
+### Cuánto rinde el agente con cada buscador
+
+Como lo que cuenta es lo que le sirve al agente, antes de cambiar el default se compararon `baseline` y
+`prefijos` jugando los 50 casos de práctica con normas originales. Configuración: Kaggle T4 x2, notebook
+`franciscocalveyra/tp-admision-baseline` versión 22, commit `4e3613a` limpio, Gemma 4 E4B **sin entrenar**,
+float16, `device_map=auto`, `MODELO_LOTE=4`, prompt sin optimizar de `AgenteJSON`. Comando por
+variante: `BUSCADOR_VARIANTE=<variante> MODELO_LOTE=4 python infra/kaggle_baseline.py --variante original
+--cantidad 50 --salida <carpeta nueva>`; puntuado local con `python -m admision.correr puntuar --esperadas
+practica/esperadas-original.jsonl`.
+
+| Métrica | `baseline` | `prefijos` |
+|---|---:|---:|
+| Casos resueltos | **10/50** | 6/50 |
+| Parcial medio | **0,831** | 0,796 |
+| registro / box / circuito / plazo | 0,76 / 0,72 / 0,98 / 0,92 | 0,62 / 0,68 / 0,94 / 0,84 |
+| cobertura / entidad / aviso / verificación | 0,80 / 0,82 / 0,72 / 0,76 | 0,78 / 0,82 / 0,72 / 0,76 |
+| Llamadas / búsquedas por caso | 4,9 / 1,34 | 5,0 / 1,40 |
+| Caracteres de contexto por caso | 19.954 | 20.689 |
+| Segundos por caso (T4, lote 4) | 15,2 | 15,7 |
+
+`baseline` reproduce exactamente la corrida anterior del modelo sin entrenar (10/50, 0,831; commit `a89f5b9`).
+Por caso, `prefijos` gana 3 (pev-005, 019, 037) y pierde 7 (pev-010, 012, 017, 021, 024, 049, 050); con 10
+casos discordantes la prueba de signos da p≈0,34, así que la diferencia **no es concluyente**, pero tampoco
+hay señal de mejora.
+
+**Por qué el mejor recall no ayudó.** `baseline` devuelve siempre 2 secciones; `prefijos` devolvió 1 en 30
+búsquedas, 3 en 26 y 2 en 14. Con 3 suele sumar secciones parecidas de otras áreas (por ejemplo NOR-DER-01 o
+NOR-GUA-02), justamente las que no deciden la ficha. Por eso el contexto por caso subió 3,7 % en vez de bajar
+como en la evaluación separada, y cambió el recorrido del agente (en pev-021 nunca buscó el circuito). Es lo
+que muestran las trazas, no una causa probada.
+
+**Costo de contexto.** Con las dos variantes el agente hace pocas búsquedas (1,3–1,4 por caso) y cada caso usa
+unos 20.000 caracteres de contexto (~5.000 tokens a 4 caracteres por token). `prefijos` trae menos tokens por
+consulta en `evaluar_rag` (549 contra 618) pero más contexto por caso con el agente. El costo de GPU de la
+comparación fue 2.968 s de sesión T4 (≈ 49,5 min, ~20 min de instalación de dependencias); tiempos T4 **no
+comparables** con la A100-40GB de la entrega.
+
+### Decisión
+
+El default de la entrega sigue siendo `baseline` (`entrega.py` no cambia): es el que mejor resolvió con el
+agente y el que se usó para generar las conversaciones de entrenamiento. `prefijos` queda documentado y
+seleccionable como resultado negativo: mejora la evaluación separada pero no al agente sin entrenar. Si
+alcanzan tiempo y cuota, se repetirá la comparación con el modelo entrenado.
+
+### Límites
+
+- Una sola corrida por variante, 50 casos, solo normas originales y modelo sin entrenar.
+- Los hiperparámetros de `prefijos` se ajustaron con las consultas de desarrollo; la práctica se usó solo para
+  medir, nunca para ajustar.
+- Resultados de agente en T4; falta medir en A100-40GB.
+- Artefactos de las corridas locales e ignorados por Git: `corridas/kaggle/v22/` (runner, métricas, trazas
+  y puntuación) y `corridas/rag-*-20261110/` (comparaciones de `evaluar_rag`).
+
 ## Issue #12: datos de entrenamiento
 
 ### Seleccion de historial
