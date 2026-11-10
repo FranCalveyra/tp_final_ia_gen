@@ -444,11 +444,24 @@ def _sha256(ruta: Path) -> str:
     return hashlib.sha256(Path(ruta).read_bytes()).hexdigest()
 
 
-def _git(raiz: Path) -> dict:
+def _git(raiz: Path, salida: Path | None = None) -> dict:
+    """Commit y estado del árbol. La propia salida (y su carpeta temporal) no cuenta como cambio:
+    se escribe dentro del repo antes de registrar el manifiesto y, si contara, siempre daría dirty."""
     def correr(*args):
         return subprocess.run(["git", *args], cwd=raiz, capture_output=True, text=True, check=True).stdout
+    excluir = []
+    if salida is not None:
+        try:
+            relativa = Path(salida).resolve().relative_to(Path(raiz).resolve())
+        except ValueError:
+            relativa = None
+        if relativa is not None:
+            padre = relativa.parent.as_posix()
+            excluir = [f":(exclude,glob){relativa.as_posix()}/**",
+                       f":(exclude,glob){padre}/.{relativa.name}-*/**"]
     try:
-        return {"commit": correr("rev-parse", "HEAD").strip(), "dirty": bool(correr("status", "--porcelain").strip())}
+        estado = correr("status", "--porcelain", "--untracked-files=all", "--", ".", *excluir)
+        return {"commit": correr("rev-parse", "HEAD").strip(), "dirty": bool(estado.strip())}
     except (OSError, subprocess.CalledProcessError):
         return {"commit": None, "dirty": None}
 
@@ -569,7 +582,7 @@ def generar_dataset(salida: Path, *, raiz: Path = RAIZ, ruta_prompt: Path = RUTA
                         f" --prompt {_relativa(ruta_prompt, raiz)}"
                         + (f" --buscador-variante {variante}" if variante else "")
                         + f" --semilla {semilla} --candidatos {candidatos}"),
-            "git": _git(raiz),
+            "git": _git(raiz, salida),
             "entradas_sha256": {**{r: _sha256(raiz / r) for r in ENTRADAS},
                                 **{f"normas/original/{p.name}": _sha256(p) for p in sorted(normas.iterdir())
                                    if p.is_file()}},
