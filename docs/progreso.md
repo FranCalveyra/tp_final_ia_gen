@@ -39,6 +39,8 @@ reemplaza esos entregables. `INFORME.md` todavía no existe.
 | Sin palabras comunes, 2 secciones | 50/60 | 0,850 | 0,483 | 591 | Candidato seleccionable `sin_comunes` |
 | Peso 0,25 para palabras comunes | 49/60 | 0,833 | 0,475 | 605 | No adoptado |
 | Fusión palabras/caracteres, 2 secciones | 48/60 | 0,817 | 0,467 | 612 | No adoptada |
+| `prefijos`: sin comunes + prefijo 4 + umbral 0,6, hasta 3 secciones (2026-11-10) | 55/60 | 0,933 | 0,686 | 549 | Candidato seleccionable; propuesto como default, sin adoptar |
+| Referencia de la cátedra, 2 secciones | 51/60 | 0,875 | 0,492 | 580 | Comparación |
 
 `sin_comunes` gana d022/d026/d028 pero pierde d011 contra baseline. No se ocultó esa
 regresión ni se cambió silenciosamente el default. Las fallas principales son de ranking
@@ -637,3 +639,23 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   inicial conservados como historia. El commit de esta actualización y el push deben verificarse por la
   sesión principal antes de informar éxito remoto; usar el hash comunicado por chat, no uno autorreferente.
 - Esta unidad solo cambió los dos documentos; diffcheck limpio. Sin tests, GPU, builds ni operaciones Git/cloud propias.
+
+
+### 2026-11-10: buscador `prefijos` (issue #6, CPU, rama `feat/6-buscador-eze`)
+
+- **Estado:** implementado y probado por interfaz pública; seleccionable con `BUSCADOR_VARIANTE=prefijos`.
+  Default sin cambios (`baseline`). Sin probar con el agente ni en GPU.
+- **Resultado dev (60 consultas):** 55/60, recall 0,933, precisión 0,686, 549 tokens/consulta, contra
+  referencia 51/60, 0,875, 0,492, 580. Gana 9 y pierde 2 consultas (d027, d052) contra `baseline`;
+  pérdidas explicadas por colisiones de prefijo y el umbral. b/c: mismo ranking; con evidencia ajustada a
+  sus valores, mismas cifras que original.
+- **Decisión:** proponer `prefijos` como default (más recall con menos tokens), pendiente de decisión del
+  equipo y de una comparación con el agente, porque cambia cuántas secciones ve (1 a 3, media 1,82).
+  Rechazados: chunks por párrafo, recorte de párrafos, otros stemmers, pesos de título y ajustes BM25.
+- **Evidencia:** [guía del buscador](buscador-baseline.md#candidato-prefijos-2026-11-10-issue-6) y
+  `corridas/rag-prefijos-20261110/` y `corridas/rag-exploracion-20261110/` (locales). Suite: 121 tests, 1 omitido opcional.
+- **Exploración reproducible:** `rtk proxy uv run --locked --no-sync python -m scripts.explorar_buscadores
+  --salida corridas/rag-exploracion-20261110/original.json` reproduce todas las filas rechazadas de la guía.
+- **Límite:** hiperparámetros elegidos con el mismo dev; no es evaluación independiente.
+- **Próximo paso:** correr práctica con el agente `baseline` vs `prefijos` (k y tokens por caso) antes de
+  cambiar el default.
