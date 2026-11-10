@@ -79,6 +79,37 @@ class KaggleTest(unittest.TestCase):
         self.assertEqual((config["lote"], config["dtype"], config["device_map"]), (4, "float16", "auto"))
         self.assertEqual(config["metricas"], str(destino / "metricas.jsonl"))
 
+    def _buscador_registrado(self, variante: str | None) -> dict:
+        with tempfile.TemporaryDirectory() as carpeta, patch.dict("os.environ"), \
+                patch.object(kb, "ejecutar_con_log", return_value=(0, "")), \
+                patch.object(kb, "describir_maquina", return_value={}):
+            os.environ.pop("BUSCADOR_VARIANTE", None)
+            if variante:
+                os.environ["BUSCADOR_VARIANTE"] = variante
+            destino = Path(carpeta) / "corrida"
+            kb.correr("original", 1, destino, "float16", "auto", "hf_secreto")
+            return json.loads((destino / "runner.json").read_text())["buscador"]
+
+    def test_runner_registra_la_variante_del_buscador(self):
+        self.assertEqual(self._buscador_registrado("prefijos"),
+                         {"variante": "prefijos", "sin_comunes": True, "prefijo": 4,
+                          "umbral_relativo": 0.6, "k_entorno": 3})
+
+    def test_runner_registra_baseline_si_no_hay_variante(self):
+        self.assertEqual(self._buscador_registrado(None),
+                         {"variante": "baseline", "sin_comunes": False, "prefijo": None,
+                          "umbral_relativo": 0.0, "k_entorno": 2})
+
+    def test_variante_de_buscador_desconocida_falla_antes_de_crear_la_salida(self):
+        with tempfile.TemporaryDirectory() as carpeta, \
+                patch.dict("os.environ", {"BUSCADOR_VARIANTE": "inexistente"}), \
+                patch.object(kb, "ejecutar_con_log") as ejecutar:
+            destino = Path(carpeta) / "corrida"
+            with self.assertRaisesRegex(ValueError, "BUSCADOR_VARIANTE"):
+                kb.correr("original", 1, destino, "float16", "auto", "hf_secreto")
+            self.assertFalse(destino.exists())
+        ejecutar.assert_not_called()
+
     def test_error_atrapado_por_el_kit_marca_la_corrida_fallida(self):
         def jugar_con_error(comando, env, log, token):
             salida = Path(comando[comando.index("--salida") + 1])
