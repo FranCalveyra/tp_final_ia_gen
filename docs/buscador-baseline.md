@@ -100,8 +100,8 @@ para desarrollo: **no son evaluación independiente ni resolución de pacientes*
 
 ## Candidato `prefijos` (2026-11-10, issue #6)
 
-Seleccionable con `BUSCADOR_VARIANTE=prefijos`; **el default sigue siendo `baseline`**
-hasta que el equipo decida (propuesta abajo). Misma unidad (sección completa con su
+Seleccionable con `BUSCADOR_VARIANTE=prefijos`; **el default sigue siendo `baseline`** por decisión
+del 2026-11-10, tras compararlos con el agente ([abajo](#comparación-con-el-agente-2026-11-10)). Misma unidad (sección completa con su
 línea `Valores:` de la carpeta recibida), mismo BM25 (k1=1,5, b=0,75) y texto devuelto sin
 cambios. Cambian tres cosas, todas generales, sin reglas por consulta ni valores fijos:
 
@@ -132,7 +132,7 @@ rtk proxy uv run --locked --no-sync python -m scripts.comparar_buscadores --norm
 | Referencia de la cátedra | 2 | 51/60 | 0,875 | 0,492 | 580 | — |
 | `baseline` | 2 | 48/60 | 0,817 | 0,467 | 618 | Default |
 | `sin_comunes` | 2 | 50/60 | 0,850 | 0,483 | 591 | Seleccionable |
-| **`prefijos`** | 3, umbral 0,6 | **55/60** | **0,933** | **0,686** | **549** | Seleccionable, propuesto |
+| **`prefijos`** | 3, umbral 0,6 | **55/60** | **0,933** | **0,686** | **549** | Seleccionable, no adoptado |
 | `prefijos_k2` | 2, umbral 0,6 | 53/60 | 0,900 | 0,717 | **449** | Solo script |
 | `prefijos_k2_sin_umbral` | 2 | 53/60 | 0,900 | 0,508 | 580 | Solo script |
 | `prefijo5_k3` | 3, umbral 0,6 | 53/60 | 0,900 | 0,667 | 542 | Solo script |
@@ -196,8 +196,82 @@ exactamente todas las filas de esta tabla, que se habían medido antes con un sc
 
 **Sobreajuste.** Prefijo (4), umbral (0,6) y k (3) se eligieron mirando estas 60 consultas;
 los resultados son de desarrollo, no evaluación independiente. Los vecinos (umbral 0,5–0,6,
-prefijo 5) dan 53–55/60, sin un pico aislado. Falta ver el efecto en el agente: con
-`prefijos` cambia la cantidad de secciones que recibe por búsqueda.
+prefijo 5) dan 53–55/60, sin un pico aislado. Con `prefijos` cambia la cantidad de secciones que
+recibe el agente por búsqueda; su efecto se midió en la [comparación con el agente](#comparación-con-el-agente-2026-11-10).
+
+### Comparación con el agente (2026-11-10)
+
+**Validado en GPU (Kaggle T4 x2), con el modelo sin entrenar.** Mejor recall en `evaluar_rag` no se
+tradujo en más casos resueltos: `prefijos` resolvió 6/50 contra 10/50 de `baseline`.
+
+**Método.** Notebook `franciscocalveyra/tp-admision-baseline` versión 22, commit `4e3613a` limpio
+(`sucio: false` en `runner.json`), Gemma 4 E4B sin entrenar (revisión `ee0ef60`), float16,
+`device_map=auto`, `MODELO_LOTE=4`, 512 tokens nuevos, contexto 8192, torch 2.15.0+cu132. Los 50 casos de
+práctica con normas `original`, una corrida por variante, una tras otra en la misma sesión; solo cambió
+`BUSCADOR_VARIANTE`. Puntuado local, sin GPU, con `admision.correr puntuar` contra
+`practica/esperadas-original.jsonl`. Las esperadas no se usaron para ajustar el buscador.
+
+| Métrica | `baseline` (default) | `prefijos` |
+|---|---:|---:|
+| Resueltos | **10/50** | 6/50 |
+| Parcial medio | **0,831** | 0,796 |
+| registro / box / circuito / plazo | 0,76 / 0,72 / 0,98 / 0,92 | 0,62 / 0,68 / 0,94 / 0,84 |
+| cobertura / entidad / aviso / verificación | 0,80 / 0,82 / 0,72 / 0,76 | 0,78 / 0,82 / 0,72 / 0,76 |
+| Llamadas / búsquedas por caso | 4,9 / 1,34 | 5,0 / 1,40 |
+| Caracteres de contexto por caso | 19.954 | 20.689 |
+| Segundos por caso (`jugar_lote`) | 15,2 | 15,7 |
+
+`numero_documento` dio 1,0 en las dos. `baseline` reproduce exactamente el baseline Kaggle anterior
+(10/50, 0,831; commit `a89f5b9`, 2026-11-04), así que la corrida es consistente con la previa.
+
+**Por caso.** `prefijos` gana `pev-005`, `pev-019` y `pev-037`; pierde `pev-010`, `pev-012`,
+`pev-017`, `pev-021`, `pev-024`, `pev-049` y `pev-050`. Prueba de signos sobre los 10 discordantes
+(3 contra 7): p bilateral ≈ 0,34. **No es concluyente** que `prefijos` sea peor; sí alcanza para no
+adoptarlo, porque tampoco hay señal de mejora.
+
+**Mecanismo observado.** `baseline` devuelve siempre 2 secciones. `prefijos` devolvió 1 sección en 30
+búsquedas, 3 en 26 y 2 en 14. Con 3 suele sumar secciones parecidas de otras áreas (por ejemplo
+NOR-DER-01 o NOR-GUA-02), justo las que la consigna advierte que no deciden la ficha. El contexto total por
+caso **subió** (+3,7 %) en vez de bajar como en `evaluar_rag`, y el agente cambió su recorrido: en
+`pev-021` nunca buscó el circuito con `prefijos`. La descripción de `buscar_normativa` del kit dice
+«devuelve las 2 secciones más relevantes» para cualquier variante. Son observaciones de trazas, no una
+causa demostrada.
+
+**Costo.** 2.968 s de sesión (≈ 49,5 min) para las dos corridas, de los que ~20 min fueron
+`pip install`; antes, un humo de 3 casos con `prefijos` (versión 19) usó 642 s. Tiempos T4: **no
+comparables con la A100-40GB** de la entrega.
+
+**Límites.** Una sola corrida por variante, 50 casos, normas `original` (sin b/c) y modelo **sin
+entrenar**: con el adapter el agente puede usar el contexto de otra manera. La práctica se usó solo
+para medir, no para ajustar umbral, prefijo ni k.
+
+**Decisión (usuario, 2026-11-10).** El default sigue en `baseline`; `entrega.py` no cambia.
+`prefijos` queda documentado y seleccionable como resultado negativo. Se puede volver a comparar con el
+modelo entrenado si alcanzan tiempo y cuota. El dataset de entrenamiento del #8 se genera con `baseline`.
+
+#### Reproducir la comparación
+
+En la celda de corrida de Kaggle (pasos previos en [kaggle.md](kaggle.md)), una sola celda con las
+dos variantes; la carpeta de salida debe ser nueva:
+
+```
+!cd /kaggle/working/repo && for b in baseline prefijos; do BUSCADOR_VARIANTE=$b MODELO_LOTE=4 python infra/kaggle_baseline.py --variante original --cantidad 50 --salida /kaggle/working/corridas/$b-original-n50-l4; done
+```
+
+`runner.json` registra commit, `sucio`, GPU y el bloque `buscador` (variante, `sin_comunes`, `prefijo`,
+`umbral_relativo`, `k_entorno`). Después de descargar la salida, puntuar localmente:
+
+```bash
+for b in baseline prefijos; do
+  rtk proxy uv run --locked --no-sync python -m admision.correr puntuar \
+    --trazas corridas/kaggle/v22/$b-original-n50-l4/salida/trazas.jsonl \
+    --esperadas practica/esperadas-original.jsonl \
+    --salida corridas/kaggle/v22/$b-original-n50-l4/puntuacion
+done
+```
+
+Artefactos locales, ignorados por Git: `corridas/kaggle/v22/{baseline,prefijos}-original-n50-l4/`
+(`runner.json`, `metricas.jsonl`, `salida/`, `puntuacion/resumen.json` y `resultados.jsonl`).
 
 ### Fuera de alcance
 
