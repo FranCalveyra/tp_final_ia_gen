@@ -1,6 +1,6 @@
 # Progreso y decisiones
 
-**Actualizado: 2026-11-09.** Hay generación y humo de entrenamiento LoRA con publicación/reanudación HF
+**Actualizado: 2026-11-10.** Hay generación y humo de entrenamiento LoRA con publicación/reanudación HF
 **en Kaggle T4**, no en A100. **Todavía no hubo entrenamiento con datos reales curados.** La carga solo texto
 está validada en T4. Esta bitácora centraliza evidencia y enlaza guías; no reemplaza el informe final.
 
@@ -23,6 +23,7 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | [#4 Lotes](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4) | **Cerrado completed (2026-11-05), alcance funcional T4.** Carga única, lote activo, conversación completa; 1→4 baja 33,3→15,6 s/caso, mismos 10/50 | Deuda A100-40GB continúa en KI-A100-001; adapter final pendiente y causa CUDA T4 de lotes grandes no identificada |
 | #5 Recursos | Métricas y borrador Parte 5 con inferencia T4 y humo de entrenamiento solo texto: 15,675 GB pico | Recursos/costos A100 y antes/después con adapter final; integrar `INFORME.md` |
 | [#6 Buscador](https://github.com/FranCalveyra/tp_final_ia_gen/issues/6) | **Implementado y comparado con el agente (2026-11-10).** `evaluar_rag`: `baseline` 48/60, `prefijos` 55/60 (referencia 51/60). Agente sin entrenar en Kaggle T4: `baseline` 10/50, `prefijos` 6/50; default `baseline` | Revisión del equipo de la Parte 2 del informe; opcional: repetir con el modelo entrenado |
+| [#7 Ciclo del agente](https://github.com/FranCalveyra/tp_final_ia_gen/issues/7) | **Implementado y probado con dobles CPU (2026-11-10).** `entrega.py` usa `AgentePrompt` + `PromptSpec`; tope de 40 llamadas del kit; guarda de contexto por caso; medición offline del contexto | Validar la entrega nueva en GPU; coordinar formato con Martu (#13) |
 | #10 Historial | **Implementado (2026-11-05).** Clasificador determinista, pruebas, `historial_clasificado.csv`, análisis reutilizable de costumbres e informe | Mantenerlo compatible con la curación del issue #11 |
 | #11 Costumbres | **Implementado (2026-11-05).** Trazas validadas, dos costumbres confirmadas, patrón por operador documentado y resumen para el equipo | Revisar con Martu y Eze antes de usarlo en el prompt final |
 | #13 Prompt | `PromptSpec`, coordinador configurable, medición, métrica 9/9 y runner con snapshots/hashes, probados con dobles CPU | Dataset/esperadas externos acordados; tokens y calidad con Gemma real; DSPy/GEPA |
@@ -105,7 +106,7 @@ uv run --locked --no-sync python -m unittest discover -s tests -v
 
 | Decisión | Motivo y costo / límite |
 |---|---|
-| Reutilizar `AgenteJSON` | Llegar a una primera medición sin reescribir coordinación; no significa inferencia más rápida. Hereda su default de 16 turnos, distinto de 40 llamadas máximas del entorno. |
+| `AgentePrompt` en la entrega (2026-11-10, antes `AgenteJSON`) | Mismo protocolo y textos que `AgenteJSON` con el baseline, pero configurable por `PromptSpec`. El corte sale del tope de 40 llamadas del kit, no de 16 turnos fijos. |
 | Secciones completas con valores YAML | No separar reglas de condiciones y valores; agrega contexto. Siempre cargar la carpeta recibida. |
 | Separar modelo, buscador y Modal | Cambiar generación sin tocar herramientas; la infraestructura no decide fichas. |
 | Dependencias CPU/GPU opcionales | Entorno local liviano; `package=false` evita builds del checkout. Lock y exports son reproducibles. |
@@ -481,18 +482,52 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
   3.12 del sistema porque no hay `uv`/`.venv`; no se instaló `transformers`, no se cargó
   Gemma ni se ejecutó GPU. [Uso, artefactos y fronteras](optimizacion-prompt.md#runner-reproducible).
 
+### 2026-11-10: ciclo del agente y contexto (issue #7)
+
+- **Entrega:** `entrega.construir_agente()` arma `AgentePrompt(ModeloLocal, PromptSpec)`. El prompt sale de
+  `PROMPT_SPEC` (ruta relativa a la raíz del repo) o, sin variable, de `configuraciones/prompts/baseline.json`;
+  se valida su sha256 antes de cargar el modelo. Prueba diferencial: 40 semillas × 4 casos con respuestas
+  aleatorias (acciones válidas, errores de herramienta, texto sin JSON, fichas incompletas) sobre el `Entorno`
+  y el buscador reales dan conversaciones, logs y fichas idénticas a la entrega anterior (`AgenteJSON`).
+- **Tope de llamadas:** el límite fijo de 16 turnos se reemplazó por `MAX_LLAMADAS × max_sin_json` = 120
+  turnos (40 llamadas con hasta dos reintentos sin JSON antes de cada una). El caso termina cuando el entorno
+  lo termina o al llegar a 40 llamadas. Es la única diferencia de conducta con la entrega anterior sin guarda
+  activada; en v22 el máximo observado fue 8 turnos, así que no habría cambiado ningún caso de esas corridas.
+- **Guarda de contexto:** `ModeloLocal.medir_contexto` mide una conversación con el mismo chat template que la
+  generación. Antes de cada llamada, un caso que no entra en `max_contexto − max_tokens_nuevos` termina sin
+  decisión y su conversación termina con un mensaje `[agente] Caso terminado sin registrar decisión…`; los
+  demás casos del lote siguen (antes el `ValueError` vaciaba todas las conversaciones). Sin esa capacidad en el
+  modelo, el agente se comporta como antes. Nada se recorta.
+- **Contexto, medido offline** con `python -m scripts.medir_contexto` sobre las 100 trazas v22 (Kaggle T4,
+  Gemma sin entrenar; artefactos locales `corridas/kaggle/v22/`), que reproduce exactamente las 100
+  conversaciones grabadas antes de comparar. Reparto de `caracteres_de_contexto`: sistema 55 %, búsquedas 25 %,
+  otras observaciones 13 %, respuestas 5 %, mensaje inicial 2 %. El mejor cambio sin pérdida del agente
+  (`{herramienta}:\n{observacion}`) ahorra 0,67 %; quitar el nombre de la herramienta, 1,4 %; compactar líneas en
+  blanco, 0,10 %; resumir secciones repetidas, 0,05–0,79 %. **No se adoptó ninguno**: el ahorro no justifica
+  regenerar los datos de #8, y los dos últimos cambian la presentación del buscador (#6). La palanca real es el
+  mensaje de sistema (#13). Detalle y contrato con Martu: [optimización de prompt](optimizacion-prompt.md#contrato-de-formato-7--13).
+- **Fuente única de formato:** un test rejuega todas las conversaciones de `generar_conversaciones` con
+  `AgentePrompt` y comprueba que son idénticas a lo que el agente arma en inferencia.
+- Verificación: suite CPU completa con `uv run --locked --no-sync python -m unittest discover -s tests`.
+  **Todo con dobles:** no se cargó Gemma ni su tokenizer (no está en caché local), no se usó GPU.
+- **Límites:** `medir_contexto` no se probó con el tokenizer real; el runner de #13 sigue fijando 16 turnos en
+  sus configuraciones (decisión de Martu); la guarda también actúa en ese runner porque usa `ModeloLocal`.
+- **Próximo paso:** validar la entrega nueva en GPU (50 casos, mismas condiciones que v22) y confirmar que
+  ningún caso cambia salvo los que superaban 16 turnos.
+
 ## Próximos pasos y bloqueos
 
-1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
-2. Confirmar accesos individuales Kaggle/HF/W&B del equipo con el [checklist de handoff](handoff-equipo.md#checklist-de-accesos-hecho-versus-pendiente-de-comprobar);
+1. Validar en GPU la entrega con `AgentePrompt` (issue #7) en las condiciones de v22.
+2. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
+3. Confirmar accesos individuales Kaggle/HF/W&B del equipo con el [checklist de handoff](handoff-equipo.md#checklist-de-accesos-hecho-versus-pendiente-de-comprobar);
    no crear Secrets ni habilitar facturación Modal, plataforma descartada.
-3. Coordinar conversaciones curadas y prompt final; no entrenar sobre práctica.
-4. Determinar disponibilidad y VRAM de una vía A100-40GB sin lanzar sesiones para probar permisos.
+4. Coordinar conversaciones curadas y prompt final; no entrenar sobre práctica.
+5. Determinar disponibilidad y VRAM de una vía A100-40GB sin lanzar sesiones para probar permisos.
    El menú del notebook baseline de `franciscocalveyra` ya se verificó sin A100; no se inspeccionó VRAM
    en sesión ni se verificaron otros contextos/cuentas. Kaggle reemplaza operativamente a Modal;
    su T4 x2 validada no demuestra hardware final.
    Cuando exista ruta y autorización específica, medir carga/backward/memoria y lotes allí.
-5. Completar accesos compartidos, mediciones de recursos y documentación final. Compartir el repo
+6. Completar accesos compartidos, mediciones de recursos y documentación final. Compartir el repo
    privado de HF y el proyecto W&B con la cátedra queda **para cerca de la entrega** (decisión del
    2026-11-03). La consigna no dice qué usuarios invitar: hay que preguntarle a la cátedra.
 
@@ -516,7 +551,7 @@ usado en Kaggle. Los Secrets de Modal quedan como referencia legacy, no como set
 | Persistencia Modal (legacy, no usar) | [entrenamiento-modal.md](entrenamiento-modal.md) |
 | Respaldo Kaggle (T4 x2), inferencia y entrenamiento humo | [kaggle.md](kaggle.md) |
 | Parte 5 del informe (recursos y producción), borrador con mediciones T4 | [informe-parte5.md](informe-parte5.md) |
-| Optimización de prompt, infraestructura inicial | [optimizacion-prompt.md](optimizacion-prompt.md) |
+| Optimización de prompt, infraestructura inicial y contrato de formato con #7 | [optimizacion-prompt.md](optimizacion-prompt.md) |
 
 ## Cómo mantener esta bitácora
 

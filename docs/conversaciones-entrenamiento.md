@@ -19,7 +19,8 @@ La conversación comienza `system`, `user`; luego alterna `assistant`, `user` y 
 Cada respuesta del asistente es **JSON estricto** con `herramienta` y `argumentos`.
 La última acción debe ser `registrar_decision`, sin observación posterior. Máximo 40 acciones.
 Las observaciones siguen el `formato_observacion` del prompt usado; por defecto (y en el baseline)
-`Resultado de <herramienta>:\n<texto no vacío>`, como en `AgenteJSON`. `validar_registro` y
+`Resultado de <herramienta>:\n<texto no vacío>`, como en `AgenteJSON`. El agente de la entrega y el
+generador renderizan con el mismo `PromptSpec`; un test exige que coincidan exactamente. `validar_registro` y
 `validar_archivo` aceptan el formato como parámetro; la CLI, `--prompt <PromptSpec.json>`.
 
 ## Herramientas y tipos

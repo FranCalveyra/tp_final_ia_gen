@@ -8,7 +8,8 @@ debe considerar tanto los nueve controles como el largo del prompt y conservar e
 reproducible de cada candidato.
 
 Esta primera unidad solo permite definir y ejecutar prompts configurables. No integra
-DSPy/GEPA, no genera datos y no cambia el agente usado por `entrega.py`.
+DSPy/GEPA ni genera datos. Desde el issue #7 (2026-11-10), `entrega.py` usa `AgentePrompt`
+con el `PromptSpec` de `PROMPT_SPEC` o el baseline (ver [contrato de formato](#contrato-de-formato-7--13)).
 
 Las unidades siguientes agregan medición de tokens, una métrica común y un runner
 auditable para candidatos. Todavía no se ejecutó Gemma ni se seleccionó un prompt: esas
@@ -47,7 +48,8 @@ configuraciones/prompts/*.json
 - `tests/test_agente_prompt.py`: equivalencia de conversaciones, herramientas, formatos,
   reintentos y lotes mediante un modelo simulado.
 
-No se modificó `admision/`, `entrega.py`, el buscador, el modelo ni el entrenamiento.
+Esta unidad no modificó `admision/`, el buscador, el modelo ni el entrenamiento; la conexión
+con `entrega.py` llegó después, con el issue #7.
 
 ## `PromptSpec`
 
@@ -67,7 +69,7 @@ Al cargar un JSON se rechazan campos desconocidos, placeholders incorrectos, tex
 vacíos y cualquier contenido que no coincida con su `sha256`. El nombre queda fuera del
 hash para que dos etiquetas del mismo contenido conserven la misma identidad semántica.
 
-Ejemplo de carga y uso, todavía fuera de `entrega.py`:
+Ejemplo de carga y uso (es lo que hace `entrega.construir_agente()`):
 
 ```python
 from pathlib import Path
@@ -93,7 +95,8 @@ El archivo baseline preserva byte por byte el resultado actual de:
 - `Resultado de <herramienta>:\n<observación>`;
 - la corrección usada luego de un JSON inválido.
 
-Además conserva los defaults de 16 turnos y tres respuestas consecutivas sin JSON. El
+Conserva tres respuestas consecutivas sin JSON. Desde el issue #7, el tope de turnos ya no es
+16 fijo: sin `max_turnos` explícito se deriva del tope de 40 llamadas del kit (ver abajo). El
 coordinador sigue usando `admision.ejemplo.extraer_json` y llama al entorno con los mismos
 argumentos. El hash actual del baseline es:
 
@@ -193,8 +196,10 @@ Solo compite una corrida con `estado=completada` y `proposito=evaluacion`. El ru
 marca `comparable` en `metricas.json` y `manifiesto.json`; si no lo es, deja
 `clave_comparacion=null` y `motivo_no_comparable`. `clave_comparacion(metricas)` exige
 `comparable=true` y `clave_de_manifiesto(manifiesto)` revisa además estado y propósito;
-ambas levantan `ValueError` en otro caso. Una corrida `completada_con_error` (por ejemplo,
-contexto excedido: el kit vacía todas las conversaciones) también sale con código 1.
+ambas levantan `ValueError` en otro caso. Una corrida `completada_con_error` (por ejemplo, un
+fallo del modelo: el kit vacía todas las conversaciones) también sale con código 1. Desde el
+issue #7, un caso que excede el contexto ya no hace fallar el lote: termina solo ese caso sin
+decisión (guarda de `AgentePrompt` con `ModeloLocal.medir_contexto`).
 
 ### Artefactos
 
@@ -284,6 +289,61 @@ Resultado: **119 tests ejecutados, 118 pasan y uno se omite** porque requiere un
 local explícito del tokenizer real. Los diez tests nuevos son CPU con modelos simulados.
 No se descargaron pesos, no se ejecutó GPU y no se midió calidad del modelo.
 
+## Contrato de formato (#7 ↔ #13)
+
+Qué ve el modelo depende de dos dueños y un único archivo:
+
+| Parte | Dueño | Dónde vive |
+|---|---|---|
+| `system_prompt`, `mensaje_inicial`, `mensaje_json_invalido` (textos) | Martu (#13) | archivo `PromptSpec` |
+| Ciclo: turnos, reintentos, tope de 40 llamadas, guarda de contexto | Eze (#7) | `admision_tp/agente_prompt.py` |
+| Presentación de observaciones (`formato_observacion`) | Eze (#7) | archivo `PromptSpec` |
+| Selección y texto de las secciones de búsqueda | #6 (cerrado) | `admision_tp/buscador.py` |
+
+Reglas:
+
+- Todo cambio de texto o formato es un **archivo nuevo** en `configuraciones/prompts/` con su
+  `sha256`; `baseline.json` no se edita. `entrega.py` toma el archivo de `PROMPT_SPEC` (relativo
+  a la raíz del repo) o el baseline, y falla antes de cargar el modelo si el hash no coincide.
+- Cualquier cambio de `PromptSpec` obliga a **regenerar los datos de #8** con ese archivo:
+  `python -m scripts.generar_conversaciones --prompt <spec>`. Agente y generador renderizan con
+  el mismo código (`AgentePrompt` + `PromptSpec.observacion_para`); un test rejuega las
+  conversaciones generadas con `AgentePrompt` y exige igualdad exacta.
+- El agente corta sin decisión un caso que no entra en el contexto, sin recortar nada; un
+  prompt más largo reduce el margen de los casos largos.
+- Las configuraciones del runner de #13 fijan `max_turnos: 16`; la entrega ya no. Si se quiere
+  que los candidatos se midan como la entrega, conviene quitar ese tope (decisión de #13).
+
+**Dónde está el contexto.** `python -m scripts.medir_contexto --trazas <trazas.jsonl> --prompt <spec>`
+rejuega trazas ya jugadas con otro `PromptSpec` (mismas respuestas y observaciones) y reparte
+`caracteres_de_contexto` del kit por tipo de mensaje. Antes de comparar, exige que el prompt de
+origen reproduzca exactamente cada conversación grabada. Sobre las 100 trazas v22 (Kaggle T4,
+Gemma sin entrenar, 50 casos × buscadores `baseline` y `prefijos`; artefactos locales no versionados):
+
+| Parte | `baseline` | `prefijos` |
+|---|---:|---:|
+| Mensaje de sistema | 55,0 % | 54,2 % |
+| Búsquedas | 24,8 % | 25,7 % |
+| Otras observaciones | 13,4 % | 13,3 % |
+| Respuestas del modelo | 5,0 % | 5,1 % |
+| Mensaje inicial | 1,8 % | 1,7 % |
+| Caracteres por caso | 19.954 | 20.689 |
+
+El mensaje de sistema (2.232 caracteres) se reenvía en cada turno: es la palanca principal. Con
+los ~5 turnos medios de v22 (máximo 8), cada 100 caracteres menos de sistema ahorran ~2,5 % por caso.
+
+Candidatos de formato que controla el agente (ahorro total sobre `caracteres_de_contexto`, mismas trazas):
+
+| Candidato | `baseline` | `prefijos` | Decisión |
+|---|---:|---:|---|
+| `{herramienta}:\n{observacion}` | 0,67 % | 0,67 % | No adoptado: sin pérdida, pero no justifica regenerar #8 |
+| `[{herramienta}]\n{observacion}` | 0,62 % | 0,62 % | No adoptado: ídem |
+| `{observacion}` sin herramienta | 1,43 % | 1,45 % | No adoptado: exige relajar `PromptSpec` y debilita la validación herramienta/observación de #8 |
+| Unir líneas en blanco de las observaciones | 0,10 % | 0,10 % | No adoptado: cambia la presentación del buscador (#6) |
+| Reemplazar secciones ya mostradas por una referencia | 0,05 % | 0,79 % | No adoptado: cambia la presentación del buscador (#6) |
+
+Supuesto: el modelo responde lo mismo con el formato nuevo; la medición es de formato, no de conducta.
+
 ## Verificado y no verificado
 
 **Probado con dobles CPU:** equivalencia completa de mensajes entre `AgenteJSON` y
@@ -300,7 +360,8 @@ plantilla de chat, agregación de nueve controles, errores JSON, prioridad de ca
 separación temporal de esperadas, snapshots/hashes, salida exclusiva y fallos auditables.
 
 **No verificado:** comportamiento de una variante con Gemma real, cantidad real de tokens
-del baseline, calidad sobre casos, integración con `entrega.py` y ejecución en GPU. Los
+del baseline, calidad sobre casos y ejecución en GPU. La integración con `entrega.py`
+(issue #7) está probada con dobles CPU, no en GPU. Los
 manifiestos se probaron con dobles y archivos temporales. Esta infraestructura no demuestra
 ninguna mejora de prompt.
 
@@ -312,5 +373,6 @@ ninguna mejora de prompt.
 3. Medir el baseline con el tokenizer real fijado y Gemma sin entrenar, con autorización.
 4. Incorporar DSPy/GEPA con versiones fijadas, sin llamar servicios externos desde el
    agente operativo.
-5. Seleccionar el prompt con datos permitidos; recién después conectarlo desde `entrega.py`
-   y coordinarlo con las conversaciones de entrenamiento.
+5. Seleccionar el prompt con datos permitidos; publicarlo como archivo `PromptSpec`,
+   regenerar las conversaciones de #8 con él y recién entonces apuntar `PROMPT_SPEC` (o el
+   default de `entrega.py`) a ese archivo.

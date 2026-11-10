@@ -15,6 +15,7 @@ import unittest
 from admision.casos import cargar_casos
 from admision.entorno import nota_de_triage
 from admision_tp.buscador import BuscadorBM25
+from admision_tp.contexto import rejugar
 from admision_tp.conversaciones import validar_archivo
 from admision_tp.normas_variables import escribir_normas
 from admision_tp.prompts import PromptSpec
@@ -100,6 +101,16 @@ class DatasetGeneradoTest(unittest.TestCase):
             self.assertEqual(mensajes[0]["content"], PROMPT.system_prompt)
             self.assertEqual(mensajes[1]["content"], PROMPT.mensaje_inicial_para(paciente))
             self.assertNotIn("Resultado de ", "".join(m["content"] for m in mensajes[3::2]))
+
+    def test_formato_identico_al_que_arma_el_agente_en_inferencia(self):
+        """#7: los datos de #8 y el agente renderizan con el mismo código (AgentePrompt + PromptSpec)."""
+        for conversacion in self.conversaciones:
+            mensajes = conversacion["messages"]
+            traza = como_traza(conversacion)
+            paciente = traza["pasos"][0]["argumentos"]["paciente_id"]
+            rejugada = rejugar(PROMPT, paciente, [m["content"] for m in mensajes[2::2]],
+                               [paso["resultado"] for paso in traza["pasos"]], cerrado=True)
+            self.assertEqual(rejugada, mensajes, conversacion["id"])
 
     def test_busquedas_iguales_al_buscador_real_con_los_valores_de_cada_conversacion(self):
         with tempfile.TemporaryDirectory() as carpeta:

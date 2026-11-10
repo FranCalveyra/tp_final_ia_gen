@@ -46,6 +46,19 @@ class ModeloLocal:
         peft = PeftModel.from_pretrained(modelo, configuracion.adapter_repo, config=config, **origen)
         return peft.merge_and_unload()
 
+    def medir_contexto(self, conversacion: list[dict]) -> tuple[int, int]:
+        """Tokens de entrada de una conversación y máximo admitido para que `__call__` no falle.
+
+        Usa el mismo chat template que la generación; con padding a izquierda, el ancho de un
+        lote es el de su conversación más larga, así que si cada una entra, el lote entra.
+        """
+        # Como lote de uno, igual que en `__call__`: `input_ids` es siempre una lista por conversación.
+        entradas = self.procesador.apply_chat_template(
+            [conversacion], tokenize=True, add_generation_prompt=True, enable_thinking=False,
+            truncation=False, return_dict=True)
+        limite = self.configuracion.max_contexto - self.configuracion.max_tokens_nuevos
+        return len(entradas["input_ids"][0]), limite
+
     def __call__(self, conversaciones: list[list[dict]]) -> list[str]:
         if not conversaciones:
             return []

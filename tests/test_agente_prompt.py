@@ -4,7 +4,7 @@ import unittest
 from admision.casos import Caso
 from admision.ejemplo import AgenteJSON
 from admision.entorno import MAX_LLAMADAS, Entorno
-from admision_tp.agente_prompt import AgentePrompt
+from admision_tp.agente_prompt import MENSAJE_CONTEXTO_EXCEDIDO, AgentePrompt
 from admision_tp.prompts import PromptSpec, cargar_prompt_baseline
 
 
@@ -229,6 +229,119 @@ class EquivalenciaLimitesTest(unittest.TestCase):
         for paciente, conversacion in zip(("P-1", "P-2", "P-3"), mensajes):
             self.assertIn(paciente, conversacion[1]["content"])
         self.assertEqual([e.llamadas[-1][0] for e in entornos], ["registrar_decision"] * 3)
+
+
+class EntornoSinFin(EntornoSimulado):
+    """Nunca termina el caso por su cuenta: el tope tiene que ponerlo el agente."""
+
+    def paso(self, herramienta, argumentos):
+        self.llamadas.append((herramienta, argumentos))
+        return f"observación de {herramienta}", False
+
+
+class TopeDeLlamadasTest(unittest.TestCase):
+    """#7: el corte sale del tope de 40 llamadas del kit, no de 16 turnos fijos."""
+
+    def setUp(self):
+        self.baseline = cargar_prompt_baseline()
+
+    def test_turnos_derivados_del_tope_dejan_lugar_a_reintentos(self):
+        agente = AgentePrompt(ModeloPorPaciente({}), self.baseline)
+        self.assertEqual(agente.max_llamadas, MAX_LLAMADAS)
+        self.assertEqual(agente.max_turnos, MAX_LLAMADAS * agente.max_sin_json)
+
+    def test_entorno_real_termina_en_40_llamadas_aunque_haya_reintentos(self):
+        lectura = accion("leer_triage", paciente_id="P-1")
+        # Dos respuestas sin JSON antes de cada llamada: el peor caso que no corta por formato.
+        modelo = ModeloPorPaciente({"P-1": lambda turno: lectura if turno % 3 == 2 else "sin json"})
+        entorno = Entorno(caso_entorno(), buscador=None)
+        mensajes = AgentePrompt(modelo, self.baseline).jugar_lote([entorno])[0]
+        self.assertEqual(len(entorno.log), MAX_LLAMADAS)
+        self.assertTrue(entorno.terminado)
+        self.assertIsNone(entorno.decision)
+        self.assertEqual(sum(m["role"] == "assistant" for m in mensajes), 3 * MAX_LLAMADAS)
+        self.assertEqual(mensajes[-1], {"role": "assistant", "content": lectura})
+        # El caso terminado no vuelve a pedir respuestas al modelo.
+        self.assertEqual(len(modelo.llamadas), 3 * MAX_LLAMADAS)
+
+    def test_el_agente_no_pasa_de_40_llamadas_si_el_entorno_no_corta(self):
+        busqueda = accion("buscar_normativa", consulta="x")
+        entorno = EntornoSinFin()
+        mensajes = AgentePrompt(ModeloPorPaciente({"P-1": lambda turno: busqueda}),
+                                self.baseline).jugar_lote([entorno])[0]
+        self.assertEqual(len(entorno.llamadas), MAX_LLAMADAS)
+        self.assertEqual(sum(m["role"] == "assistant" for m in mensajes), MAX_LLAMADAS)
+
+    def test_tope_explicito_de_turnos_se_respeta(self):
+        busqueda = accion("buscar_normativa", consulta="x")
+        entorno = EntornoSinFin()
+        AgentePrompt(ModeloPorPaciente({"P-1": lambda turno: busqueda}), self.baseline,
+                     max_turnos=16).jugar_lote([entorno])
+        self.assertEqual(len(entorno.llamadas), 16)
+
+
+class ModeloConContexto(ModeloPorPaciente):
+    """Doble con la capacidad opcional: mide en caracteres y admite `limite`."""
+
+    def __init__(self, guiones, limite):
+        super().__init__(guiones)
+        self.limite = limite
+        self.mediciones = 0
+
+    def medir_contexto(self, conversacion):
+        self.mediciones += 1
+        return sum(len(m["content"]) for m in conversacion), self.limite
+
+
+class EntornoConObservacion(EntornoSimulado):
+    def __init__(self, paciente_id, observacion):
+        super().__init__(paciente_id)
+        self.observacion = observacion
+
+    def paso(self, herramienta, argumentos):
+        self.llamadas.append((herramienta, argumentos))
+        return self.observacion, herramienta == "registrar_decision"
+
+
+class GuardaDeContextoTest(unittest.TestCase):
+    def setUp(self):
+        self.baseline = cargar_prompt_baseline()
+        fin = accion("registrar_decision")
+        self.guiones = {p: [accion("leer_triage", paciente_id=p), fin] for p in ("P-1", "P-2", "P-3", "P-4")}
+        self.entornos = [EntornoConObservacion(p, "x" * (5000 if p == "P-3" else 10))
+                         for p in ("P-1", "P-2", "P-3", "P-4")]
+
+    def test_caso_que_no_entra_termina_sin_decision_y_los_demas_siguen(self):
+        modelo = ModeloConContexto(self.guiones, limite=len(self.baseline.system_prompt) + 1000)
+        conversaciones = AgentePrompt(modelo, self.baseline).jugar_lote(self.entornos)
+        self.assertEqual(modelo.llamadas, [["P-1", "P-2", "P-3", "P-4"], ["P-1", "P-2", "P-4"]])
+        for entorno in (self.entornos[0], self.entornos[1], self.entornos[3]):
+            self.assertEqual([n for n, _ in entorno.llamadas], ["leer_triage", "registrar_decision"])
+        self.assertEqual([n for n, _ in self.entornos[2].llamadas], ["leer_triage"])
+        cortada = conversaciones[2]
+        # Nada se recorta: la observación grande queda entera y el motivo, al final.
+        self.assertEqual(cortada[3]["content"], self.baseline.observacion_para("leer_triage", "x" * 5000))
+        tokens = sum(len(m["content"]) for m in cortada[:4])
+        self.assertEqual(cortada[4], {"role": "user", "content": MENSAJE_CONTEXTO_EXCEDIDO.format(
+            tokens=tokens, limite=modelo.limite)})
+        self.assertEqual(len(cortada), 5)
+        for conversacion in (conversaciones[0], conversaciones[1], conversaciones[3]):
+            self.assertEqual(json.loads(conversacion[-1]["content"])["herramienta"], "registrar_decision")
+
+    def test_contexto_que_entra_no_cambia_la_conversacion(self):
+        sin_capacidad = AgentePrompt(ModeloPorPaciente(self.guiones), self.baseline).jugar_lote(
+            [EntornoConObservacion(p, "x" * 10) for p in self.guiones])
+        modelo = ModeloConContexto(self.guiones, limite=10 ** 6)
+        con_capacidad = AgentePrompt(modelo, self.baseline).jugar_lote(
+            [EntornoConObservacion(p, "x" * 10) for p in self.guiones])
+        self.assertEqual(con_capacidad, sin_capacidad)
+        self.assertEqual(modelo.mediciones, 8)
+
+    def test_sistema_que_no_entra_corta_antes_de_la_primera_llamada(self):
+        modelo = ModeloConContexto(self.guiones, limite=10)
+        conversaciones = AgentePrompt(modelo, self.baseline).jugar_lote(self.entornos)
+        self.assertEqual(modelo.llamadas, [])
+        self.assertTrue(all(len(c) == 3 and c[2]["content"].startswith("[agente]") for c in conversaciones))
 
 
 if __name__ == "__main__":
