@@ -599,13 +599,18 @@ subprocess.run(["zip", "-qr", "/kaggle/working/prompt-dev-f2-prefijos.zip", BASE
 3. Publicar el ganador como `PROMPT_SPEC`, regenerar #8 con él y registrar antes/después en práctica
    (solo evaluación, nunca selección).
 
-### Decisiones abiertas y límites
+### Decisiones y límites
 
-- **Hipótesis desde práctica:** los candidatos nacen del perfil agregado de fallas en práctica
-  (v22). No se usa contenido de casos ni se elige con práctica, pero conviene que el equipo lo
-  acepte explícitamente; la alternativa es esperar la corrida baseline en el dev y rediseñar desde ahí.
-- **DSPy/GEPA:** no se incorporó. Con ~2 h de T4 por ronda de cinco candidatos, una búsqueda
-  automática con Gemma local no entra en el calendario; queda como paso posterior si la fase 2 deja margen.
+- **Hipótesis desde práctica (decidido por Eze, 2026-11-10):** los candidatos se **diseñaron**
+  a partir del perfil **agregado** de fallas en práctica (v22): el agente busca una sola vez en 35/50
+  casos y decide de memoria, y nunca aplica la costumbre del voluntariado. El análisis independiente
+  de #14 da el mismo perfil (ver [análisis de errores](analisis-errores.md)). Los prompts no copian
+  contenido de ningún caso de práctica. La **selección** se hace solo sobre el conjunto de desarrollo,
+  y la práctica se mide una sola vez por prompt, para reportar el antes y el después. Esta frontera
+  (diseño desde patrones generales, selección fuera de práctica) se informa así en la Parte 3.
+- **Búsqueda manual estructurada en lugar de DSPy/GEPA (decidido por Eze, 2026-11-10):** la
+  consigna sugiere DSPy/GEPA, pero no lo exige. Con ~2 h de T4 por ronda de cinco candidatos, una
+  búsqueda automática con Gemma local no entra en el calendario; queda como trabajo futuro.
 - **Deductor:** las esperadas dependen de que el deductor de Yas sea correcto. Se valida que sean
   resolubles en el `Entorno` y que no violen normas (`razones_normativas`), no contra fichas de práctica.
 - **Distribución:** el generador produce muchas `sin_cobertura` (21/40) y box `true` (28/40) con estos
