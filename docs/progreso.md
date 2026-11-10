@@ -1,6 +1,6 @@
 # Progreso y decisiones
 
-**Actualizado: 2026-11-05.** Hay generación y humo de entrenamiento LoRA con publicación/reanudación HF
+**Actualizado: 2026-11-09.** Hay generación y humo de entrenamiento LoRA con publicación/reanudación HF
 **en Kaggle T4**, no en A100. **Todavía no hubo entrenamiento con datos reales curados.** La carga solo texto
 está validada en T4. Esta bitácora centraliza evidencia y enlaza guías; no reemplaza el informe final.
 
@@ -22,6 +22,7 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | [#3 SFT](https://github.com/FranCalveyra/tp_final_ia_gen/issues/3) | Conversor, validación, snapshots/tokenización, Trainer LoRA y runner persistente; humo GPU T4 con HF/W&B y reanudación desde checkpoint HF | Cuatro criterios técnicos respaldados; aceptación/accesos y uso efectivo por Martu pendientes. KI-A100-001 mantiene deuda entrenamiento/evaluación/recursos |
 | [#4 Lotes](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4) | **Cerrado completed (2026-11-05), alcance funcional T4.** Carga única, lote activo, conversación completa; 1→4 baja 33,3→15,6 s/caso, mismos 10/50 | Deuda A100-40GB continúa en KI-A100-001; adapter final pendiente y causa CUDA T4 de lotes grandes no identificada |
 | #5 Recursos | Métricas y borrador Parte 5 con inferencia T4 y humo de entrenamiento solo texto: 15,675 GB pico | Recursos/costos A100 y antes/después con adapter final; integrar `INFORME.md` |
+| #13 Prompt | `PromptSpec`, coordinador configurable, medición, métrica 9/9 y runner con snapshots/hashes, probados con dobles CPU | Dataset/esperadas externos acordados; tokens y calidad con Gemma real; DSPy/GEPA |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
 El formato de conversaciones es **propuesto**, pendiente de coordinación con Eze/Yas.
@@ -406,6 +407,46 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
   por la celda final de resumen; las dos corridas terminaron con `returncode 0`.
 - Ahorro modesto (~1 GB, ~5 %) sin ningún cambio de resultados. Se mantiene.
 
+### 2026-11-05: infraestructura de prompts configurables (issue #13, en progreso)
+
+- Se agregó `PromptSpec` con textos versionados, SHA-256 canónico y validación estricta de
+  placeholders e integridad al cargar. El baseline vive como configuración explícita y una
+  prueba lo compara con el mensaje y los formatos actuales de `admision.ejemplo`.
+- Se agregó `AgentePrompt`, que conserva el protocolo JSON y `jugar_lote` pero recibe todos
+  los textos mediante `PromptSpec`. Con el baseline, sus conversaciones, llamadas y entradas
+  al modelo simulado coinciden exactamente con `AgenteJSON`; otras variantes pueden cambiar
+  system, inicio, observaciones y corrección sin tocar el kit.
+- Verificación CPU focalizada: 10 tests, todos pasan. Suite completa: 119 ejecutados,
+  118 pasan y uno se omite porque requiere un snapshot local explícito del tokenizer real.
+  Solo se usaron modelos y entornos simulados para el código nuevo: no se cargó un modelo
+  real, no se generaron datos y no se implementó DSPy/GEPA. Diseño y comandos:
+  [optimización de prompt](optimizacion-prompt.md).
+
+### 2026-11-09: tokens y métrica de candidatos (issue #13, en progreso)
+
+- `admision_tp.evaluacion_prompts` mide los cuatro textos configurables y el contexto
+  inicial mediante IDs del tokenizer inyectado, sin aproximación por caracteres; conserva
+  opciones de chat y hash de plantilla. No descarga ni carga el tokenizer por su cuenta.
+- La métrica reutiliza los nueve `CONTROLES` y resultados de `admision.correr.puntuar`.
+  La clave prioriza casos 9/9, después parciales y finalmente errores/eficiencia; también
+  cuenta respuestas sin JSON con el mismo parser que el coordinador.
+- Verificación CPU focalizada: 5 tests con tokenizer, trazas y resultados artificiales,
+  todos pasan. Esto prueba el contrato y el orden, no tokens de Gemma ni calidad del agente.
+  [Diseño y límites](optimizacion-prompt.md#longitud-y-métrica-de-candidatos).
+
+### 2026-11-09: runner auditable de candidatos (issue #13, en progreso)
+
+- `scripts.evaluar_prompts` recibe prompt, configuración, casos, esperadas y normas desde
+  archivos externos. Juega antes de copiar/leer esperadas y luego reutiliza `puntuar`; no
+  genera oráculos, casos, costumbres ni conversaciones.
+- Cada salida es exclusiva y conserva snapshots, hashes por archivo, estado Git, identidad
+  de prompt, configuración inmutable, trazas, nueve controles, tiempos y métricas. Los
+  intentos fallidos también dejan manifiesto; no se sobrescriben.
+- Verificación focalizada completa del issue #13: 21 tests pasan; suite CPU: 137
+  ejecutados, 136 pasan y uno se omite por requerir tokenizer real local. Se usó Python
+  3.12 del sistema porque no hay `uv`/`.venv`; no se instaló `transformers`, no se cargó
+  Gemma ni se ejecutó GPU. [Uso, artefactos y fronteras](optimizacion-prompt.md#runner-reproducible).
+
 ## Próximos pasos y bloqueos
 
 1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
@@ -441,6 +482,7 @@ usado en Kaggle. Los Secrets de Modal quedan como referencia legacy, no como set
 | Persistencia Modal (legacy, no usar) | [entrenamiento-modal.md](entrenamiento-modal.md) |
 | Respaldo Kaggle (T4 x2), inferencia y entrenamiento humo | [kaggle.md](kaggle.md) |
 | Parte 5 del informe (recursos y producción), borrador con mediciones T4 | [informe-parte5.md](informe-parte5.md) |
+| Optimización de prompt, infraestructura inicial | [optimizacion-prompt.md](optimizacion-prompt.md) |
 
 ## Cómo mantener esta bitácora
 
