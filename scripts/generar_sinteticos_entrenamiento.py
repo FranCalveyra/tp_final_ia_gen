@@ -1,0 +1,344 @@
+"""Genera y resuelve conversaciones sintéticas difíciles sin usar casos de práctica."""
+
+from __future__ import annotations
+
+import json
+import unicodedata
+from collections import Counter
+from dataclasses import replace
+from pathlib import Path
+
+from admision.entorno import Entorno
+from admision.ejemplo import mensaje_de_sistema, primer_mensaje
+from admision.generador import generar
+from admision_tp.conversaciones import validar_registro
+from entrega import construir_buscador
+from scripts.clasificar_historial import (
+    SI,
+    aviso_segun_costumbre,
+    cargar_parametros,
+    circuito_esperado,
+    cobertura_esperada,
+    fuente_cobertura,
+    plazo_esperado,
+    razones_normativas,
+    registro_esperado,
+)
+
+
+CIRCUITOS = ("ecg", "codigo_acv", "sepsis_probable", "sepsis_posible", "ninguno")
+BUCKETS_ESPECIALES = ("art", "dos_credenciales", "acompanante", "sin_nadie")
+
+
+def normalizar(texto: str) -> str:
+    return "".join(
+        caracter for caracter in unicodedata.normalize("NFD", texto.casefold())
+        if unicodedata.category(caracter) != "Mn"
+    )
+
+
+def circuito_caso(caso) -> str:
+    motivo = normalizar(caso.motivo)
+    if motivo == "dolor toracico":
+        return "ecg"
+    if motivo.startswith("signos neurologicos"):
+        return "codigo_acv"
+    if caso.sepsis in ("probable", "con signos de shock"):
+        return "sepsis_probable"
+    if caso.sepsis != "no":
+        return "sepsis_posible"
+    return "ninguno"
+
+
+def dificultad_caso(caso) -> str:
+    if caso.trabajo:
+        return "art"
+    if len(caso.credenciales) == 2:
+        return "dos_credenciales"
+    if not caso.puede_responder and caso.acompanante:
+        return "acompanante"
+    if not caso.puede_responder:
+        return "sin_nadie"
+    return "general"
+
+
+def seleccionar_casos(casos: list, por_bucket: int = 60, por_circuito: int = 100) -> list:
+    seleccionados = []
+    usados = set()
+    for bucket in BUCKETS_ESPECIALES:
+        disponibles = [caso for caso in casos if dificultad_caso(caso) == bucket]
+        if len(disponibles) < por_bucket:
+            raise ValueError(f"no hay {por_bucket} casos para el bucket {bucket}")
+        for caso in disponibles[:por_bucket]:
+            seleccionados.append(caso)
+            usados.add(caso.id)
+
+    conteo_circuitos = Counter(circuito_caso(caso) for caso in seleccionados)
+    for circuito in CIRCUITOS:
+        disponibles = [
+            caso for caso in casos
+            if caso.id not in usados and circuito_caso(caso) == circuito
+        ]
+        faltan = por_circuito - conteo_circuitos[circuito]
+        if len(disponibles) < faltan:
+            raise ValueError(f"no hay suficientes casos para el circuito {circuito}")
+        for caso in disponibles[:faltan]:
+            seleccionados.append(caso)
+            usados.add(caso.id)
+        conteo_circuitos[circuito] += faltan
+    return sorted(seleccionados, key=lambda caso: caso.id)
+
+
+def serializar_credenciales(credenciales: tuple) -> str:
+    return "; ".join(
+        f"{entidad} ({'obra social' if tipo == 'obra_social' else 'prepaga'}) {numero}"
+        for tipo, entidad, numero in credenciales
+    )
+
+
+def serializar_declarada(declarada: tuple | None) -> str:
+    return serializar_credenciales((declarada,)) if declarada else ""
+
+
+def serializar_art(art: tuple | None) -> str:
+    return f"{art[0]} CUIL {art[1]}" if art else ""
+
+
+def costumbres_por_tipo(informe: dict) -> dict[str, dict]:
+    costumbres = {item["tipo"]: item for item in informe["costumbres"]}
+    faltantes = {"aviso_al_voluntariado", "seleccion_credencial"} - costumbres.keys()
+    if faltantes:
+        raise ValueError(f"faltan costumbres en el informe: {sorted(faltantes)}")
+    return costumbres
+
+
+def credencial_preferida(caso, costumbres: dict[str, dict]) -> tuple[str, str, str]:
+    """Costumbre de dos credenciales: se verifica sólo la preferida, sin recurrir a la otra."""
+    preferido = costumbres["seleccion_credencial"]["preferido"]
+    return next(credencial for credencial in caso.credenciales if credencial[0] == preferido)
+
+
+def _fuente_sintetica(caso, fila_base: dict[str, str], costumbres: dict[str, dict]) -> tuple[str, str, str] | None:
+    if caso.trabajo:
+        return "art", caso.art[0], caso.art[1]
+    if len(caso.credenciales) > 1:
+        return credencial_preferida(caso, costumbres)
+    return fuente_cobertura(fila_base)
+
+
+def deducir_ficha(
+    caso,
+    parametros: dict[str, int],
+    costumbres: dict[str, dict],
+) -> tuple[dict, dict]:
+    fila = {
+        "id": caso.id,
+        "edad": str(caso.edad),
+        "nivel": str(caso.nivel),
+        "motivo": caso.motivo,
+        "sospecha_sepsis": caso.sepsis,
+        "llegada": caso.llegada,
+        "documento_tipo": caso.documento_tipo or "",
+        "documento_numero": caso.documento_numero or "",
+        "credenciales": serializar_credenciales(caso.credenciales),
+        "lesion_trabajo": caso.trabajo or "no",
+        "cobertura_declarada": serializar_declarada(caso.declarada),
+        "art_declarada": serializar_art(caso.art),
+        "entidad_verificada": "",
+        "numero_verificado": "",
+        "respuesta_verificacion": "",
+        "acompanante": caso.acompanante or "",
+        "puede_responder": SI if caso.puede_responder else "no",
+    }
+    fuente = _fuente_sintetica(caso, fila, costumbres)
+    if fuente:
+        tipo, entidad, numero = fuente
+        fila["entidad_verificada"] = entidad
+        fila["numero_verificado"] = numero
+        clave = f"{entidad}|{numero}"
+        if caso.trabajo:
+            clave = f"{caso.art[0]}|{caso.art[1]}"
+        fila["respuesta_verificacion"] = "activa" if caso.afiliaciones.get(clave, False) else "inactiva"
+
+    fila["registro"] = registro_esperado(fila, parametros)
+    fila["numero_documento"] = fila["documento_numero"]
+    fila["box_antes_del_registro"] = SI if (
+        caso.nivel <= parametros["P-ADM-1"] or caso.edad >= parametros["P-ADM-2"]
+    ) else "no"
+    fila["circuito"] = circuito_esperado(fila)
+    fila["plazo_circuito_min"] = plazo_esperado(fila, parametros)
+
+    if fuente is None:
+        fila["cobertura"] = "sin_cobertura"
+        fila["entidad_a_notificar"] = ""
+    else:
+        tipo, entidad, numero = fuente
+        fila["cobertura"], fila["entidad_a_notificar"] = cobertura_esperada(
+            tipo, entidad, numero, fila["respuesta_verificacion"] == "activa", parametros
+        )
+    aviso_al_voluntariado = aviso_segun_costumbre(fila, costumbres["aviso_al_voluntariado"])
+    fila["aviso_al_voluntariado"] = SI if aviso_al_voluntariado else "no"
+
+    if razones_normativas(fila, parametros):
+        raise ValueError(f"la deducción sintética viola normas: {caso.id}")
+    fundamentos = ["NOR-ADM-01"]
+    if caso.edad >= parametros["P-ADM-2"]:
+        fundamentos.append("NOR-ADM-02")
+    if caso.documento_tipo and caso.documento_tipo != "DNI":
+        fundamentos.append("NOR-ADM-03")
+    if caso.credenciales or caso.declarada or caso.trabajo:
+        fundamentos.extend(["NOR-COB-01", "NOR-COB-02"])
+    if fila["cobertura"] == "sin_cobertura":
+        fundamentos.append("NOR-COB-03")
+    if fuente and fila["numero_verificado"].endswith(str(parametros["P-COB-2"])) and fuente[0] != "art":
+        fundamentos.append("NOR-COB-04")
+    fundamentos_por_circuito = {
+        "ecg": "NOR-TDE-01",
+        "codigo_acv": "NOR-TDE-02",
+        "codigo_sepsis": "NOR-TDE-03",
+    }
+    if fila["circuito"] in fundamentos_por_circuito:
+        fundamentos.append(fundamentos_por_circuito[fila["circuito"]])
+        if caso.llegada == "en ambulancia":
+            fundamentos.append("NOR-TDE-04")
+    ficha = {
+        "registro": fila["registro"],
+        "numero_documento": fila["numero_documento"] or None,
+        "box_antes_del_registro": fila["box_antes_del_registro"] == SI,
+        "circuito": fila["circuito"],
+        "plazo_circuito_min": int(fila["plazo_circuito_min"]) if fila["plazo_circuito_min"] else None,
+        "cobertura": fila["cobertura"],
+        "entidad_a_notificar": fila["entidad_a_notificar"] or None,
+        "aviso_al_voluntariado": aviso_al_voluntariado,
+        "fundamentos": list(dict.fromkeys(fundamentos)),
+    }
+    return fila, ficha
+
+
+def _registrar(mensajes: list[dict], entorno: Entorno, herramienta: str, argumentos: dict) -> None:
+    mensajes.append({
+        "role": "assistant",
+        "content": json.dumps(
+            {"herramienta": herramienta, "argumentos": argumentos},
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ),
+    })
+    observacion, terminado = entorno.paso(herramienta, argumentos)
+    if herramienta != "registrar_decision":
+        if terminado:
+            raise ValueError("el caso sintético terminó antes de registrar la ficha")
+        mensajes.append({
+            "role": "user",
+            "content": f"Resultado de {herramienta}:\n{observacion}",
+        })
+
+
+def caso_a_conversacion(caso, ficha: dict, buscador, costumbres: dict[str, dict]) -> dict:
+    """Recorre el caso en el entorno del kit con el buscador real del proyecto."""
+    entorno = Entorno(caso, buscador)
+    mensajes = [
+        {"role": "system", "content": mensaje_de_sistema()},
+        {"role": "user", "content": primer_mensaje(caso.paciente_id)},
+    ]
+    _registrar(mensajes, entorno, "leer_triage", {"paciente_id": caso.paciente_id})
+    _registrar(mensajes, entorno, "buscar_normativa", {"consulta": "registro y ubicación en el box"})
+    _registrar(mensajes, entorno, "buscar_normativa", {"consulta": f"circuito {circuito_caso(caso)} y plazo"})
+
+    quien = "paciente" if caso.puede_responder else "acompanante"
+    if not caso.credenciales:
+        if caso.puede_responder or caso.acompanante:
+            _registrar(mensajes, entorno, "buscar_normativa", {"consulta": "consulta de cobertura"})
+            _registrar(mensajes, entorno, "preguntar", {
+                "paciente_id": caso.paciente_id, "a_quien": quien, "tema": "cobertura",
+            })
+    if caso.trabajo and (caso.puede_responder or caso.acompanante):
+        _registrar(mensajes, entorno, "buscar_normativa", {"consulta": "ART y accidente laboral"})
+        _registrar(mensajes, entorno, "preguntar", {
+            "paciente_id": caso.paciente_id, "a_quien": quien, "tema": "art",
+        })
+    if caso.credenciales or caso.declarada or caso.trabajo:
+        _registrar(mensajes, entorno, "buscar_normativa", {"consulta": "verificación de afiliación"})
+        if ficha["cobertura"] == "art" or caso.trabajo:
+            entidad, numero = caso.art
+        elif len(caso.credenciales) > 1:
+            _, entidad, numero = credencial_preferida(caso, costumbres)
+        elif caso.credenciales:
+            entidad, numero = caso.credenciales[0][1], caso.credenciales[0][2]
+        elif caso.declarada:
+            entidad, numero = caso.declarada[1], caso.declarada[2]
+        else:
+            entidad = numero = ""
+        if entidad:
+            _registrar(mensajes, entorno, "verificar_afiliacion", {
+                "entidad": entidad, "numero_afiliado": numero,
+            })
+    _registrar(mensajes, entorno, "registrar_decision", ficha)
+    if not entorno.terminado or entorno.decision != ficha:
+        raise ValueError(f"el entorno rechazó la ficha sintética {caso.id}")
+    return {
+        "version": 1,
+        "id": caso.id,
+        "origen": "sintetico",
+        "referencias": [
+            "generador:admision.generador",
+            "configuracion:semilla-12012",
+            "normas:normas/original",
+            f"buscador:entrega.construir_buscador:{getattr(buscador, 'variante', type(buscador).__name__)}",
+            "costumbres:issue-11",
+        ],
+        "messages": mensajes,
+    }
+
+
+def generar_sinteticos(
+    ruta_normas: Path,
+    ruta_costumbres: Path,
+    semilla: int = 12012,
+    candidatos: int = 5000,
+) -> tuple[list[dict], list[dict], dict]:
+    costumbres = costumbres_por_tipo(json.loads(ruta_costumbres.read_text(encoding="utf-8")))
+    aviso = costumbres["aviso_al_voluntariado"]
+    parametros = cargar_parametros(ruta_normas)
+    # Mismo buscador que usa la entrega (variante por defecto y carpeta de normas recibida),
+    # para que las observaciones de buscar_normativa sean las que verá el agente.
+    buscador = construir_buscador(ruta_normas)
+    casos = generar(semilla=semilla, n=candidatos, prefijo=f"cand-{semilla}")
+    seleccionados = seleccionar_casos(casos)
+    conversaciones = []
+    auditoria = []
+    for indice, caso in enumerate(seleccionados, 1):
+        fila, ficha = deducir_ficha(caso, parametros, costumbres)
+        caso_final = replace(caso, id=f"S-{semilla}-{indice:04d}")
+        conversacion = caso_a_conversacion(caso_final, ficha, buscador, costumbres)
+        validar_registro(conversacion)
+        conversaciones.append(conversacion)
+        auditoria.append({
+            "id": conversacion["id"],
+            "caso_generado": caso.id,
+            "circuito": circuito_caso(caso),
+            "dificultad": dificultad_caso(caso),
+            "edad": caso.edad,
+            "acompanante": bool(caso.acompanante),
+            "cobertura": ficha["cobertura"],
+            "ficha": ficha,
+            "normas_verificadas": not razones_normativas(fila, parametros),
+        })
+    resumen = {
+        "semilla": semilla,
+        "candidatos_generados": candidatos,
+        "sinteticos_seleccionados": len(conversaciones),
+        "por_circuito": dict(sorted(Counter(item["circuito"] for item in auditoria).items())),
+        "por_dificultad": dict(sorted(Counter(item["dificultad"] for item in auditoria).items())),
+        "fichas_normativamente_validas": sum(item["normas_verificadas"] for item in auditoria),
+        "costumbre_aviso": {"umbral_edad": aviso["umbral_edad"], "condicion": aviso["condicion"]},
+        "avisos_al_voluntariado": sum(item["ficha"]["aviso_al_voluntariado"] for item in auditoria),
+        "credencial_preferida": costumbres["seleccion_credencial"]["preferido"],
+        "buscador": {
+            "construido_con": "entrega.construir_buscador",
+            "clase": type(buscador).__name__,
+            "variante": getattr(buscador, "variante", None),
+            "k_entorno": getattr(buscador, "k_entorno", None),
+        },
+    }
+    return conversaciones, auditoria, resumen

@@ -74,7 +74,8 @@ subprocess.run(["git", "-C", repo, "log", "--oneline", "-1"])
 
 Resultado en la salida: `salida/` (trazas del kit), `metricas.jsonl`, `casos.jsonl`, `normas/`, `runner.log` y
 `runner.json`. `runner.json` se escribe **al arrancar** con `estado: en_curso` (config, commit, si el árbol está
-sucio, GPU, versiones de torch/CUDA) y se completa al terminar con `estado` (`terminada` o `fallida`),
+sucio, GPU, versiones de torch/CUDA y `buscador`: la variante efectiva de `BUSCADOR_VARIANTE`, default `baseline`,
+con su configuración; una variante desconocida falla antes de crear la salida) y se completa al terminar con `estado` (`terminada` o `fallida`),
 `returncode`, `error_agente` y las últimas 200 líneas en `log_final`. `runner.log` se escribe línea a línea.
 Los dos tapan el token. Si una corrida quedó `en_curso` sin proceso vivo, se cortó: mirar el final de `runner.log`.
 **El kit atrapa los errores de `jugar_lote` y sale con 0**: el runner lee `salida/tiempos.json` y, si hay

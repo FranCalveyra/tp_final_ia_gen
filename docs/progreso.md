@@ -1,6 +1,6 @@
 # Progreso y decisiones
 
-**Actualizado: 2026-11-05.** Hay generación y humo de entrenamiento LoRA con publicación/reanudación HF
+**Actualizado: 2026-11-09.** Hay generación y humo de entrenamiento LoRA con publicación/reanudación HF
 **en Kaggle T4**, no en A100. **Todavía no hubo entrenamiento con datos reales curados.** La carga solo texto
 está validada en T4. Esta bitácora centraliza evidencia y enlaza guías; no reemplaza el informe final.
 
@@ -22,13 +22,45 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | [#3 SFT](https://github.com/FranCalveyra/tp_final_ia_gen/issues/3) | Conversor, validación, snapshots/tokenización, Trainer LoRA y runner persistente; humo GPU T4 con HF/W&B y reanudación desde checkpoint HF | Cuatro criterios técnicos respaldados; aceptación/accesos y uso efectivo por Martu pendientes. KI-A100-001 mantiene deuda entrenamiento/evaluación/recursos |
 | [#4 Lotes](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4) | **Cerrado completed (2026-11-05), alcance funcional T4.** Carga única, lote activo, conversación completa; 1→4 baja 33,3→15,6 s/caso, mismos 10/50 | Deuda A100-40GB continúa en KI-A100-001; adapter final pendiente y causa CUDA T4 de lotes grandes no identificada |
 | #5 Recursos | Métricas y borrador Parte 5 con inferencia T4 y humo de entrenamiento solo texto: 15,675 GB pico | Recursos/costos A100 y antes/después con adapter final; integrar `INFORME.md` |
+| #10 Historial | **Implementado (2026-11-05).** Clasificador determinista, pruebas, `historial_clasificado.csv`, análisis reutilizable de costumbres e informe | Mantenerlo compatible con la curación del issue #11 |
+| #11 Costumbres | **Implementado (2026-11-05).** Trazas validadas, dos costumbres confirmadas, patrón por operador documentado y resumen para el equipo | Revisar con Martu y Eze antes de usarlo en el prompt final |
+| #13 Prompt | `PromptSpec`, coordinador configurable, medición, métrica 9/9 y runner con snapshots/hashes, probados con dobles CPU | Dataset/esperadas externos acordados; tokens y calidad con Gemma real; DSPy/GEPA |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
 El formato de conversaciones es **propuesto**, pendiente de coordinación con Eze/Yas.
 El entrenamiento real también espera el prompt optimizado de Martu. Preparar código no
-reemplaza esos entregables. `INFORME.md` todavía no existe.
+reemplaza esos entregables. `INFORME.md` y el resumen del issue #11 contienen la síntesis actualizada.
+
+### 2026-11-05: clasificación del historial (issue #10)
+
+- Se agregó [`scripts/clasificar_historial.py`](../scripts/clasificar_historial.py), que carga los parámetros y las secciones observables de `normas/original/`, clasifica por precedencia normativa y aprende la costumbre etaria a partir de frecuencias.
+- Resultado corregido y reproducible: 1.631 `correcta`, 279 `error` y 90 `ruido`, sobre 2.000 filas. Se conservaron las costumbres etaria y de selección de prepaga; el issue #11 amplió la evidencia con las trazas.
+- Evidencia: [`INFORME.md`](../INFORME.md), [`costumbres.md`](../costumbres.md) y [`historial_costumbres.json`](../historial_costumbres.json). Pruebas: `python -m unittest tests.test_clasificar_historial -v` (3/3).
+- Limitación: el CSV no permite comprobar boxes disponibles, evaluación médica, retriage, camas, aislamiento ni derivaciones; esas normas quedaron documentadas como no verificables.
 
 ## Evidencia disponible
+
+### 2026-11-05: seleccion de datos de entrenamiento (issue #12)
+
+- Se seleccionaron 1.595 conversaciones reales: filas `correcta`, sin errores, ruido ni las 36 variaciones ambiguas de aviso a menores concentradas en operadores.
+- Se generaron 5.000 candidatos con `admision.generador`, semilla 12012, y se conservaron 500 sinteticos: 100 por circuito y al menos 60 por cada bucket especial (ART, dos credenciales, acompanante y sin nadie).
+- El dataset final contiene 2.095 conversaciones v1: 1.595 de historial y 500 sinteticas. Las 500 fichas sinteticas pasan las reglas normativas y el conjunto combinado pasa el validador sin errores.
+- Auditoria corregida: la costumbre etaria solo fija `no` para menores de 75. En mayores se usa la frecuencia observada 175/306 con umbral determinista por hash; quedaron 74 avisos y 37 sin aviso entre 111 mayores. Cambiaron 37 conversaciones sinteticas y el nuevo SHA-256 esta en el manifiesto.
+- No se usan casos de `practica/`. Procedencia, balance, IDs y SHA-256 quedan en [`datos/entrenamiento/manifiesto.json`](../datos/entrenamiento/manifiesto.json). Pruebas especificas: 8/8.
+
+### 2026-11-05: descubrimiento de costumbres (issue #11)
+
+- Las 2.000 trazas de `historial/trazas.jsonl` coinciden por ID, operador y ficha final con `historial/historial.csv`; se usan como evidencia del proceso, no como etiquetas independientes.
+- Costumbres confirmadas: no avisar al voluntariado a menores de 75 anos (1.298/1.415 `no` en filas limpias menores, ocho estratos `motivo x cobertura`) y priorizar prepaga con dos credenciales (162/171, 94,7%).
+- Patron adicional no confirmado como costumbre hospitalaria: OP-04, OP-11 y OP-17 concentran 117/225 avisos a menores, mientras los otros 17 operadores tienen 0/1.190. Se documentan los IDs y no se agrega una regla automatica.
+- Evidencia y resumen: [`costumbres.md`](../costumbres.md), [`historial_costumbres.json`](../historial_costumbres.json) y [`resumen para el equipo`](resumen-costumbres-issue-11.md). Pruebas especificas: 5/5.
+
+### 2026-11-05: auditoria y correccion de issue #10
+
+- Se corrigio la seleccion de cobertura con dos credenciales: ya no se asume la primera; se usa la credencial efectivamente verificada y se conserva la preferencia observada por prepaga como costumbre separada.
+- La deteccion de costumbres excluye errores normativos y compara estratos `motivo x cobertura`. Se conservaron 8 estratos comparables para la costumbre etaria y se documento la preferencia por prepaga en 162/171 filas limpias.
+- Nueva salida: 1.631 `correcta`, 279 `error`, 90 `ruido`. Cambiaron 115 filas respecto de `959838a`: 71 error->correcta, 34 ruido->correcta, 5 error->ruido y 5 correcta->ruido.
+- Pruebas especificas: 4/4. La suite completa sigue teniendo fallas ajenas en Kaggle/entrenamiento, integracion CPU, persistencia, preparacion y variantes del buscador.
 
 ### Buscador: conjunto de desarrollo, 60 consultas, normas originales
 
@@ -39,6 +71,8 @@ reemplaza esos entregables. `INFORME.md` todavía no existe.
 | Sin palabras comunes, 2 secciones | 50/60 | 0,850 | 0,483 | 591 | Candidato seleccionable `sin_comunes` |
 | Peso 0,25 para palabras comunes | 49/60 | 0,833 | 0,475 | 605 | No adoptado |
 | Fusión palabras/caracteres, 2 secciones | 48/60 | 0,817 | 0,467 | 612 | No adoptada |
+| `prefijos`: sin comunes + prefijo 4 + umbral 0,6, hasta 3 secciones (2026-11-10) | 55/60 | 0,933 | 0,686 | 549 | Candidato seleccionable; propuesto como default, sin adoptar |
+| Referencia de la cátedra, 2 secciones | 51/60 | 0,875 | 0,492 | 580 | Comparación |
 
 `sin_comunes` gana d022/d026/d028 pero pierde d011 contra baseline. No se ocultó esa
 regresión ni se cambió silenciosamente el default. Las fallas principales son de ranking
@@ -354,7 +388,7 @@ Datos sintéticos de `scripts.datos_humo` (4 conversaciones, 8 pasos, checkpoint
 ### 2026-11-04: borrador de la Parte 5 del informe (issue #5)
 
 - Borrador en [informe-parte5.md](informe-parte5.md) con lo medido en T4 (s/caso, VRAM, lotes, humo de
-  entrenamiento) y cada número con su artefacto. `INFORME.md` no se creó: es compartido.
+  entrenamiento) y cada número con su artefacto. `INFORME.md` se mantiene como informe compartido.
 - **Pendiente (PENDIENTE en el borrador):** todo lo que depende del modelo final o de A100-40GB (tiempo y VRAM de
   entrenamiento real, s/caso y costo en A100, lote máximo estable, antes/después). La VRAM de entrenamiento
   no se registró en el humo.
@@ -406,6 +440,46 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
   por la celda final de resumen; las dos corridas terminaron con `returncode 0`.
 - Ahorro modesto (~1 GB, ~5 %) sin ningún cambio de resultados. Se mantiene.
 
+### 2026-11-05: infraestructura de prompts configurables (issue #13, en progreso)
+
+- Se agregó `PromptSpec` con textos versionados, SHA-256 canónico y validación estricta de
+  placeholders e integridad al cargar. El baseline vive como configuración explícita y una
+  prueba lo compara con el mensaje y los formatos actuales de `admision.ejemplo`.
+- Se agregó `AgentePrompt`, que conserva el protocolo JSON y `jugar_lote` pero recibe todos
+  los textos mediante `PromptSpec`. Con el baseline, sus conversaciones, llamadas y entradas
+  al modelo simulado coinciden exactamente con `AgenteJSON`; otras variantes pueden cambiar
+  system, inicio, observaciones y corrección sin tocar el kit.
+- Verificación CPU focalizada: 10 tests, todos pasan. Suite completa: 119 ejecutados,
+  118 pasan y uno se omite porque requiere un snapshot local explícito del tokenizer real.
+  Solo se usaron modelos y entornos simulados para el código nuevo: no se cargó un modelo
+  real, no se generaron datos y no se implementó DSPy/GEPA. Diseño y comandos:
+  [optimización de prompt](optimizacion-prompt.md).
+
+### 2026-11-09: tokens y métrica de candidatos (issue #13, en progreso)
+
+- `admision_tp.evaluacion_prompts` mide los cuatro textos configurables y el contexto
+  inicial mediante IDs del tokenizer inyectado, sin aproximación por caracteres; conserva
+  opciones de chat y hash de plantilla. No descarga ni carga el tokenizer por su cuenta.
+- La métrica reutiliza los nueve `CONTROLES` y resultados de `admision.correr.puntuar`.
+  La clave prioriza casos 9/9, después parciales y finalmente errores/eficiencia; también
+  cuenta respuestas sin JSON con el mismo parser que el coordinador.
+- Verificación CPU focalizada: 5 tests con tokenizer, trazas y resultados artificiales,
+  todos pasan. Esto prueba el contrato y el orden, no tokens de Gemma ni calidad del agente.
+  [Diseño y límites](optimizacion-prompt.md#longitud-y-métrica-de-candidatos).
+
+### 2026-11-09: runner auditable de candidatos (issue #13, en progreso)
+
+- `scripts.evaluar_prompts` recibe prompt, configuración, casos, esperadas y normas desde
+  archivos externos. Juega antes de copiar/leer esperadas y luego reutiliza `puntuar`; no
+  genera oráculos, casos, costumbres ni conversaciones.
+- Cada salida es exclusiva y conserva snapshots, hashes por archivo, estado Git, identidad
+  de prompt, configuración inmutable, trazas, nueve controles, tiempos y métricas. Los
+  intentos fallidos también dejan manifiesto; no se sobrescriben.
+- Verificación focalizada completa del issue #13: 21 tests pasan; suite CPU: 137
+  ejecutados, 136 pasan y uno se omite por requerir tokenizer real local. Se usó Python
+  3.12 del sistema porque no hay `uv`/`.venv`; no se instaló `transformers`, no se cargó
+  Gemma ni se ejecutó GPU. [Uso, artefactos y fronteras](optimizacion-prompt.md#runner-reproducible).
+
 ## Próximos pasos y bloqueos
 
 1. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
@@ -441,6 +515,7 @@ usado en Kaggle. Los Secrets de Modal quedan como referencia legacy, no como set
 | Persistencia Modal (legacy, no usar) | [entrenamiento-modal.md](entrenamiento-modal.md) |
 | Respaldo Kaggle (T4 x2), inferencia y entrenamiento humo | [kaggle.md](kaggle.md) |
 | Parte 5 del informe (recursos y producción), borrador con mediciones T4 | [informe-parte5.md](informe-parte5.md) |
+| Optimización de prompt, infraestructura inicial | [optimizacion-prompt.md](optimizacion-prompt.md) |
 
 ## Cómo mantener esta bitácora
 
@@ -637,3 +712,98 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   inicial conservados como historia. El commit de esta actualización y el push deben verificarse por la
   sesión principal antes de informar éxito remoto; usar el hash comunicado por chat, no uno autorreferente.
 - Esta unidad solo cambió los dos documentos; diffcheck limpio. Sin tests, GPU, builds ni operaciones Git/cloud propias.
+
+### 2026-11-10: reproducibilidad byte a byte de clasificación y manifiesto
+
+- `scripts/clasificar_historial.py` escribía `historial_clasificado.csv` con CRLF (default de `csv`),
+  pero el versionado usa LF: regenerar daba mismo contenido con otros bytes. Ahora usa `lineterminator="\n"`;
+  es el único writer CSV del script. Test nuevo en `tests/test_clasificar_historial.py` exige salida sin `\r`.
+- `datos/entrenamiento/manifiesto.json` tenía `validacion.sha256` obsoleto (`9e62303a…`) frente al
+  `conversaciones.jsonl` versionado (`59d718a6…`). Se reemplazó por el manifiesto regenerado con
+  `python -m scripts.preparar_datos_entrenamiento --salida <tmp nuevo>`; el diff JSON muestra solo ese hash.
+  Test nuevo en `tests/test_preparar_datos_entrenamiento.py` compara el hash del manifiesto con el archivo.
+- Motivo: la sección de auditabilidad de la consigna exige artefactos regenerables y verificables.
+- Evidencia: regeneración en carpetas temporales nuevas; `cmp` idéntico para `historial_clasificado.csv`,
+  `costumbres.md`, `historial_costumbres.json`, `conversaciones.jsonl` y `auditoria_sinteticos.jsonl`.
+  Ninguna clasificación ni dato de entrenamiento cambió; ningún doc citaba el hash viejo.
+  Suite: `uv run --locked --no-sync python -m unittest discover -s tests` → 150 tests OK (1 skipped). Sin GPU ni builds.
+
+### 2026-11-10: corrección de curado y datos de entrenamiento (#10-#12)
+
+- **NOR-COB-04** (`scripts/clasificar_historial.py`, `cobertura_esperada`): con número terminado en
+  P-COB-2 la ficha es `sin_cobertura` y se notifica a la entidad esté activa o no la afiliación (§1, §3;
+  §4 excluye ART). Antes se exigía no notificar si estaba inactiva. El generador sintético usa la misma función.
+- **Voluntariado**: la costumbre se infiere buscando `edad >= umbral` + condición observable del triage sobre
+  filas limpias; sale 75 años y **sin acompañante** (1.609/1.760 limpias vs 1.507 sólo por edad). Los 17
+  operadores sin desvíos la cumplen 185/185, 141/141 y 1.348/1.348. Se quitó la compuerta de estratos
+  `motivo × cobertura`, que dejaba desvíos idénticos como `correcta` o `ruido` según el estrato.
+- **Dos credenciales**: costumbre completa = verificar sólo la prepaga; inactiva → `sin_cobertura` sin recurrir a
+  la obra social (45/45 filas; una verificación en 193/193 trazas). Sin cambios de etiqueta.
+- **Sintéticos**: aviso determinista por la costumbre completa (antes muestreo 175/306); búsquedas con
+  `entrega.construir_buscador` (BM25 `baseline`, `k_entorno=2`) en lugar de `BuscadorSintetico` (eliminado).
+  Las 400 conversaciones con circuito recuperan NOR-TDE-01/02/03. El selector de historial ya no excluye
+  "ambiguas": falla si una fila `correcta` contradice la costumbre.
+- Resultado: 1.600 `correcta` / 240 `error` / 160 `ruido` (antes 1.631/279/90). Cambios: 42 error→correcta,
+  3 error→ruido y 6 correcta→error por NOR-COB-04; 67 correcta→ruido por la costumbre del voluntariado (todas
+  de OP-04/11/17). Dataset: 1.600 reales + 500 sintéticos = 2.100 (antes 1.595 + 500 = 2.095); 53 fichas
+  sintéticas cambiaron y las 500 conversaciones sintéticas cambian sus observaciones de búsqueda.
+- Evidencia: clasificador y `preparar_datos_entrenamiento` regenerados dos veces en carpetas nuevas con `cmp`
+  idéntico; cruce con las 800 trazas de referencia (sólo verificación, no se agregan al dataset): 74/74, 67/67,
+  659/659 voluntariado; 62/62 notifican con terminación reservada inactiva; 65/65 verifican la prepaga y 20/20
+  inactivas → `sin_cobertura`. Suite: `uv run --locked --no-sync python -m unittest discover -s tests` →
+  159 tests OK (1 skipped). Sin GPU, builds ni descargas.
+- Límites: las normas siguen en `normas/original` (variar valores es decisión pendiente). En sintéticos,
+  NOR-COB-03 (246), NOR-ADM-03 (114) y NOR-COB-04 (38) aparecen en `fundamentos` sin ser recuperadas por ninguna
+  búsqueda del guion. La conversión de historial sigue usando los resultados de búsqueda originales de las
+  trazas (issue #8). NOR-ADM-01 §4 se codifica más estricto que el texto (box anticipado no exigido = error),
+  pero afecta 0 filas; quedó comentado. Detalle en [INFORME.md](../INFORME.md) y [costumbres.md](../costumbres.md).
+
+### 2026-11-10: robustez del runner de prompts (#13) para Kaggle
+
+- Alcance: solo el runner de evaluación de Martu; no se optimizó prompt, no hay DSPy/GEPA y
+  `entrega.py` no cambió. Detalle en [optimización de prompt](optimizacion-prompt.md#guardas-de-datos-y-propósito).
+- Guarda de práctica: el runner copiaba los casos antes de llamar a `jugar`, así que el chequeo
+  `revisar_que_no_haya_esperadas` del kit nunca veía la carpeta original (se habían corrido 50 casos de
+  `practica/`). Ahora se llama a esa función del kit sobre las rutas originales y se rechazan casos/esperadas
+  que resuelven dentro de `practica/` (también vía symlink). Solo `--solo-plomeria` lo permite, con
+  `proposito=plomeria` en el manifiesto. Toda corrida registra `proposito` y `guardas`.
+- Comparabilidad: solo `estado=completada` + `proposito=evaluacion` tiene `clave_comparacion`;
+  `clave_comparacion`/`clave_de_manifiesto` levantan `ValueError` para el resto. Test con un doble que
+  lanza el mismo `ValueError` de contexto excedido que `ModeloLocal`. El CLI sale con 1 si `completada_con_error`.
+- Kaggle: `configuraciones/evaluacion-prompt-kaggle-t4.json` (float16, `device_map=auto`); el ejemplo A100
+  no cambió. `HF_TOKEN` se toma del entorno o del Kaggle Secret como en `infra/kaggle_baseline.py`, sin registrarlo.
+- Casos/esperadas malformados: `ValueError` claro, manifiesto `fallida` y código 1, sin traceback.
+- Tests de equivalencia `AgentePrompt` = `AgenteJSON`: tres respuestas sin JSON, `max_turnos`, límite de
+  40 llamadas del `Entorno` real y lotes de distinto largo.
+- Evidencia: `UV_PROJECT_ENVIRONMENT=<.venv sincronizado del checkout principal> uv run --locked --no-sync
+  python -m unittest discover -s tests` → 169 tests OK (1 skipped), +19 nuevos. **Probado con dobles**:
+  sin tokenizer real, sin GPU ni Kaggle; la carga real del modelo en T4 y el Secret no se ejercitaron.
+- Próximo paso: correr plomería en Kaggle con autorización y, para seleccionar, un conjunto prompt-dev
+  generado fuera de práctica/test.
+
+### 2026-11-10: buscador `prefijos` (issue #6, CPU, rama `feat/6-buscador-eze`)
+
+- **Estado:** implementado y probado por interfaz pública; seleccionable con `BUSCADOR_VARIANTE=prefijos`.
+  Default sin cambios (`baseline`). Sin probar con el agente ni en GPU.
+- **Resultado dev (60 consultas):** 55/60, recall 0,933, precisión 0,686, 549 tokens/consulta, contra
+  referencia 51/60, 0,875, 0,492, 580. Gana 9 y pierde 2 consultas (d027, d052) contra `baseline`;
+  pérdidas explicadas por colisiones de prefijo y el umbral. b/c: mismo ranking; con evidencia ajustada a
+  sus valores, mismas cifras que original.
+- **Decisión:** proponer `prefijos` como default (más recall con menos tokens), pendiente de decisión del
+  equipo y de una comparación con el agente, porque cambia cuántas secciones ve (1 a 3, media 1,82).
+  Rechazados: chunks por párrafo, recorte de párrafos, otros stemmers, pesos de título y ajustes BM25.
+- **Evidencia:** [guía del buscador](buscador-baseline.md#candidato-prefijos-2026-11-10-issue-6) y
+  `corridas/rag-prefijos-20261110/` y `corridas/rag-exploracion-20261110/` (locales). Suite: 121 tests, 1 omitido opcional.
+- **Exploración reproducible:** `rtk proxy uv run --locked --no-sync python -m scripts.explorar_buscadores
+  --salida corridas/rag-exploracion-20261110/original.json` reproduce todas las filas rechazadas de la guía.
+- **Límite:** hiperparámetros elegidos con el mismo dev; no es evaluación independiente.
+- **Próximo paso:** correr práctica con el agente `baseline` vs `prefijos` (k y tokens por caso) antes de
+  cambiar el default.
+
+### 2026-11-10: runner Kaggle registra el buscador (issue #6)
+
+- **Estado:** implementado y probado con dobles. `runner.json` incluye `buscador` (variante efectiva de
+  `BUSCADOR_VARIANTE`, default `baseline`, y su configuración); una variante desconocida falla antes de crear
+  la salida, sin gastar GPU. Comprobado en CPU que el subproceso construye la misma variante que se registra.
+- **Motivo:** la comparación `baseline` vs `prefijos` con el agente necesita trazar cada resultado a su buscador.
+- **Evidencia:** suite 124 tests, 1 omitido opcional. Sin ejecución en Kaggle todavía.
