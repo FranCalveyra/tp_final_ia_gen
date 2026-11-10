@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "nombre": "parte4-cuatro-filas",
+  "descripcion": "PLANTILLA, no ejecutable: el runner la rechaza mientras tenga plantilla=true. Copiala, reemplazá los <...> por la ruta y el sha256 del prompt optimizado y por el repo y el commit HF (40 hex) del adapter publicado, y sacá el campo plantilla.",
+  "plantilla": true,
+  "cantidad": 50,
+  "versiones": ["original", "b", "c"],
+  "lote": 4,
+  "buscador": "baseline",
+  "configuraciones": [
+    {
+      "etiqueta": "sin_entrenar",
+      "descripcion": "Modelo base sin adapter y prompt baseline.",
+      "prompt": "configuraciones/prompts/baseline.json",
+      "prompt_sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474",
+      "adapter": null
+    },
+    {
+      "etiqueta": "solo_prompt",
+      "descripcion": "Modelo base sin adapter y prompt optimizado.",
+      "prompt": "<configuraciones/prompts/optimizado.json>",
+      "prompt_sha256": "<sha256 del prompt optimizado>",
+      "adapter": null
+    },
+    {
+      "etiqueta": "solo_entrenamiento",
+      "descripcion": "Adapter entrenado y prompt baseline.",
+      "prompt": "configuraciones/prompts/baseline.json",
+      "prompt_sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474",
+      "adapter": {"repo": "FranCalveyra/tp-admision", "revision": "<commit HF de 40 hex>", "subcarpeta": "final"}
+    },
+    {
+      "etiqueta": "ambos",
+      "descripcion": "Adapter entrenado y prompt optimizado.",
+      "prompt": "<configuraciones/prompts/optimizado.json>",
+      "prompt_sha256": "<sha256 del prompt optimizado>",
+      "adapter": {"repo": "FranCalveyra/tp-admision", "revision": "<commit HF de 40 hex>", "subcarpeta": "final"}
+    }
+  ]
+}

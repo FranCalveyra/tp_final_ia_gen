@@ -89,6 +89,8 @@ Los dos tapan el token. Si una corrida quedó `en_curso` sin proceso vivo, se co
 
 Para analizar: `zip -qr` de las carpetas, descargar desde el panel de archivos (no ejecuta celdas) y
 puntuar local con `admision.correr puntuar` (ver [modelo-modal.md](modelo-modal.md)).
+Para la tabla de la Parte 4 (varias configuraciones × original/b/c) usar el plan de
+[evaluacion.md](evaluacion.md): `infra/kaggle_evaluacion.py` en Kaggle y `scripts.tabla_evaluacion` local.
 
 ## Entrenamiento SFT (humo) en Kaggle
 
