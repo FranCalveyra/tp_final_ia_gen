@@ -710,3 +710,18 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   inicial conservados como historia. El commit de esta actualización y el push deben verificarse por la
   sesión principal antes de informar éxito remoto; usar el hash comunicado por chat, no uno autorreferente.
 - Esta unidad solo cambió los dos documentos; diffcheck limpio. Sin tests, GPU, builds ni operaciones Git/cloud propias.
+
+### 2026-11-10: reproducibilidad byte a byte de clasificación y manifiesto
+
+- `scripts/clasificar_historial.py` escribía `historial_clasificado.csv` con CRLF (default de `csv`),
+  pero el versionado usa LF: regenerar daba mismo contenido con otros bytes. Ahora usa `lineterminator="\n"`;
+  es el único writer CSV del script. Test nuevo en `tests/test_clasificar_historial.py` exige salida sin `\r`.
+- `datos/entrenamiento/manifiesto.json` tenía `validacion.sha256` obsoleto (`9e62303a…`) frente al
+  `conversaciones.jsonl` versionado (`59d718a6…`). Se reemplazó por el manifiesto regenerado con
+  `python -m scripts.preparar_datos_entrenamiento --salida <tmp nuevo>`; el diff JSON muestra solo ese hash.
+  Test nuevo en `tests/test_preparar_datos_entrenamiento.py` compara el hash del manifiesto con el archivo.
+- Motivo: la sección de auditabilidad de la consigna exige artefactos regenerables y verificables.
+- Evidencia: regeneración en carpetas temporales nuevas; `cmp` idéntico para `historial_clasificado.csv`,
+  `costumbres.md`, `historial_costumbres.json`, `conversaciones.jsonl` y `auditoria_sinteticos.jsonl`.
+  Ninguna clasificación ni dato de entrenamiento cambió; ningún doc citaba el hash viejo.
+  Suite: `uv run --locked --no-sync python -m unittest discover -s tests` → 150 tests OK (1 skipped). Sin GPU ni builds.

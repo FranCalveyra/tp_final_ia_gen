@@ -1,3 +1,4 @@
+import hashlib
 import json
 import tempfile
 import unittest
@@ -26,6 +27,12 @@ class PrepararDatosEntrenamientoTest(unittest.TestCase):
                 json.loads((salida / "manifiesto.json").read_text(encoding="utf-8")),
                 manifiesto,
             )
+
+    def test_manifiesto_versionado_coincide_con_el_dataset_versionado(self):
+        carpeta = RAIZ / "datos/entrenamiento"
+        manifiesto = json.loads((carpeta / "manifiesto.json").read_text(encoding="utf-8"))
+        digest = hashlib.sha256((carpeta / "conversaciones.jsonl").read_bytes()).hexdigest()
+        self.assertEqual(manifiesto["validacion"]["sha256"], digest)
 
     def test_no_se_puede_sobrescribir_la_salida(self):
         with tempfile.TemporaryDirectory() as carpeta:
