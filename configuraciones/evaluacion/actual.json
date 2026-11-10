@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "nombre": "parte4-actual",
+  "descripcion": "Estado al 2026-11-10: solo existe la fila sin entrenar (Gemma 4 E4B base + prompt baseline). Las filas solo_prompt, solo_entrenamiento y ambos se agregan cuando haya prompt optimizado y adapter publicado (ver plantilla-cuatro-filas.json).",
+  "cantidad": 50,
+  "versiones": ["original", "b", "c"],
+  "lote": 4,
+  "buscador": "baseline",
+  "configuraciones": [
+    {
+      "etiqueta": "sin_entrenar",
+      "descripcion": "Modelo base sin adapter y prompt baseline.",
+      "prompt": "configuraciones/prompts/baseline.json",
+      "prompt_sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474",
+      "adapter": null
+    }
+  ]
+}
