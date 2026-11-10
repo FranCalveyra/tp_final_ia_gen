@@ -132,7 +132,8 @@ debe fijar y hashear esas entradas.
 prompt, configuración, casos, respuestas esperadas y normas. No genera ninguna de ellas.
 Usa las fases públicas del kit de forma separada:
 
-1. reserva una salida nueva y copia prompt, configuración, casos y normas;
+1. reserva una salida nueva, verifica el origen de los datos (ver abajo) y copia prompt,
+   configuración, casos y normas;
 2. juega con `AgentePrompt` sin leer ni copiar las respuestas esperadas;
 3. recién después conserva una copia exacta de las esperadas y llama a
    `admision.correr.puntuar`;
@@ -161,6 +162,40 @@ rtk proxy uv run --locked --no-sync python -m scripts.evaluar_prompts \
 No usar `practica/`, test ni las 800 trazas de referencia como conjunto de selección.
 La ruta debe ser nueva: una corrida exitosa o fallida nunca se sobrescribe.
 
+En Kaggle (T4 x2) usar `configuraciones/evaluacion-prompt-kaggle-t4.json`: idéntica al
+ejemplo A100 salvo `dtype=float16` y `device_map=auto`, como `infra/kaggle_baseline.py`
+(T4 no tiene bf16 nativo). Las mediciones T4 son desarrollo y se reportan separadas de A100.
+El runner toma `HF_TOKEN` del entorno y, si falta, del Kaggle Secret `HF_TOKEN`
+(`kaggle_secrets` se importa solo en ese caso); sin token falla antes de cargar el modelo.
+El token no se imprime ni se guarda en manifiestos.
+
+### Guardas de datos y propósito
+
+Antes de copiar nada, el runner:
+
+- rechaza casos o esperadas cuya ruta resuelta (symlinks incluidos) cae dentro de
+  `practica/` del repo;
+- corre `admision.correr.revisar_que_no_haya_esperadas` del kit sobre las rutas
+  **originales** de casos y normas. La copia en `salida/entradas/` nunca tiene
+  `esperadas-*.jsonl` al lado, así que el chequeo que hace `jugar` sobre ella no alcanza.
+
+Si una guarda falla, la corrida queda `fallida` sin copiar entradas ni esperadas.
+Una prueba de plomería con práctica exige `--solo-plomeria` (o `proposito="plomeria"`):
+omite esas dos guardas, `jugar` sigue revisando la copia y el manifiesto registra
+`"proposito": "plomeria"`. Toda corrida registra `proposito` y `guardas`.
+
+Casos o esperadas malformados terminan en `ValueError` con mensaje claro
+(`casos con formato inválido (...)`), manifiesto `fallida` y código de salida 1, sin traceback.
+
+### Regla de comparabilidad
+
+Solo compite una corrida con `estado=completada` y `proposito=evaluacion`. El runner
+marca `comparable` en `metricas.json` y `manifiesto.json`; si no lo es, deja
+`clave_comparacion=null` y `motivo_no_comparable`. `clave_comparacion(metricas)` exige
+`comparable=true` y `clave_de_manifiesto(manifiesto)` revisa además estado y propósito;
+ambas levantan `ValueError` en otro caso. Una corrida `completada_con_error` (por ejemplo,
+contexto excedido: el kit vacía todas las conversaciones) también sale con código 1.
+
 ### Artefactos
 
 La salida contiene:
@@ -175,7 +210,7 @@ La salida contiene:
 Si una entrada, la carga o la ejecución falla, la carpeta queda reservada con
 `estado=fallida`, tipo/mensaje de error y todos los snapshots que pudieron conservarse.
 Si el modelo falla dentro del runner del kit, se preservan trazas y diagnóstico y el estado
-es `completada_con_error`; ese resultado no debe competir como si fuera una corrida sana.
+es `completada_con_error`; esa corrida queda sin clave de comparación (ver regla arriba).
 
 ## Crear una variante
 
@@ -254,7 +289,10 @@ No se descargaron pesos, no se ejecutó GPU y no se midió calidad del modelo.
 **Probado con dobles CPU:** equivalencia completa de mensajes entre `AgenteJSON` y
 `AgentePrompt` usando el baseline; orden y argumentos de las cinco herramientas; formato
 de observaciones; corrección de JSON; cambio aislado del system prompt; orden del lote;
-conversaciones completas; estabilidad e integridad del hash.
+conversaciones completas; estabilidad e integridad del hash. Desde 2026-11-10, también
+igualdad con `AgenteJSON` en los bordes: tres respuestas sin JSON seguidas, reinicio del
+contador, `max_turnos`, límite de 40 llamadas del `Entorno` real del kit y lotes con casos
+de distinto largo.
 
 **Probado con dobles CPU:** además de la compatibilidad anterior, conteo exacto por IDs
 del tokenizer inyectado, objeto mapping compatible con tokenizers reales, opciones de la
