@@ -22,6 +22,7 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | [#3 SFT](https://github.com/FranCalveyra/tp_final_ia_gen/issues/3) | Conversor, validación, snapshots/tokenización, Trainer LoRA y runner persistente; humo GPU T4 con HF/W&B y reanudación desde checkpoint HF | Cuatro criterios técnicos respaldados; aceptación/accesos y uso efectivo por Martu pendientes. KI-A100-001 mantiene deuda entrenamiento/evaluación/recursos |
 | [#4 Lotes](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4) | **Cerrado completed (2026-11-05), alcance funcional T4.** Carga única, lote activo, conversación completa; 1→4 baja 33,3→15,6 s/caso, mismos 10/50 | Deuda A100-40GB continúa en KI-A100-001; adapter final pendiente y causa CUDA T4 de lotes grandes no identificada |
 | #5 Recursos | Métricas y borrador Parte 5 con inferencia T4 y humo de entrenamiento solo texto: 15,675 GB pico | Recursos/costos A100 y antes/después con adapter final; integrar `INFORME.md` |
+| [#6 Buscador](https://github.com/FranCalveyra/tp_final_ia_gen/issues/6) | **Implementado y comparado con el agente (2026-11-10).** `evaluar_rag`: `baseline` 48/60, `prefijos` 55/60 (referencia 51/60). Agente sin entrenar en Kaggle T4: `baseline` 10/50, `prefijos` 6/50; default `baseline` | Revisión del equipo de la Parte 2 del informe; opcional: repetir con el modelo entrenado |
 | #10 Historial | **Implementado (2026-11-05).** Clasificador determinista, pruebas, `historial_clasificado.csv`, análisis reutilizable de costumbres e informe | Mantenerlo compatible con la curación del issue #11 |
 | #11 Costumbres | **Implementado (2026-11-05).** Trazas validadas, dos costumbres confirmadas, patrón por operador documentado y resumen para el equipo | Revisar con Martu y Eze antes de usarlo en el prompt final |
 | #13 Prompt | `PromptSpec`, coordinador configurable, medición, métrica 9/9 y runner con snapshots/hashes, probados con dobles CPU | Dataset/esperadas externos acordados; tokens y calidad con Gemma real; DSPy/GEPA |
@@ -71,7 +72,7 @@ reemplaza esos entregables. `INFORME.md` y el resumen del issue #11 contienen la
 | Sin palabras comunes, 2 secciones | 50/60 | 0,850 | 0,483 | 591 | Candidato seleccionable `sin_comunes` |
 | Peso 0,25 para palabras comunes | 49/60 | 0,833 | 0,475 | 605 | No adoptado |
 | Fusión palabras/caracteres, 2 secciones | 48/60 | 0,817 | 0,467 | 612 | No adoptada |
-| `prefijos`: sin comunes + prefijo 4 + umbral 0,6, hasta 3 secciones (2026-11-10) | 55/60 | 0,933 | 0,686 | 549 | Candidato seleccionable; propuesto como default, sin adoptar |
+| `prefijos`: sin comunes + prefijo 4 + umbral 0,6, hasta 3 secciones (2026-11-10) | 55/60 | 0,933 | 0,686 | 549 | Seleccionable; no adoptado tras compararlo con el agente (6/50 contra 10/50) |
 | Referencia de la cátedra, 2 secciones | 51/60 | 0,875 | 0,492 | 580 | Comparación |
 
 `sin_comunes` gana d022/d026/d028 pero pierde d011 contra baseline. No se ocultó esa
@@ -807,3 +808,18 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   la salida, sin gastar GPU. Comprobado en CPU que el subproceso construye la misma variante que se registra.
 - **Motivo:** la comparación `baseline` vs `prefijos` con el agente necesita trazar cada resultado a su buscador.
 - **Evidencia:** suite 124 tests, 1 omitido opcional. Sin ejecución en Kaggle todavía.
+
+### 2026-11-10: `prefijos` contra `baseline` con el agente (issue #6, Kaggle T4)
+
+- **Estado:** validado en GPU (Kaggle T4 x2), modelo **sin entrenar**. Notebook
+  `franciscocalveyra/tp-admision-baseline` v22, commit `4e3613a` limpio, float16, `device_map=auto`,
+  `MODELO_LOTE=4`, 50 casos de práctica, normas original; puntuado local con `admision.correr puntuar`.
+- **Resultado:** `baseline` 10/50, parcial 0,831 (reproduce el baseline del 2026-11-04); `prefijos` 6/50,
+  0,796. Gana 3 casos y pierde 7 (prueba de signos p≈0,34, no concluyente). Contexto por caso 19.954 →
+  20.689 caracteres: con 1 a 3 secciones por búsqueda el agente recibe más texto de otras áreas, no menos.
+- **Decisión (usuario):** default `baseline`, sin cambiar `entrega.py`; `prefijos` queda seleccionable como
+  resultado negativo documentado. El dataset del #8 se genera con `baseline`.
+- **Costo:** 2.968 s de sesión T4 (~20 min de `pip install`), más 642 s del humo v19. No comparable con A100.
+- **Evidencia:** [comparación con el agente](buscador-baseline.md#comparación-con-el-agente-2026-11-10),
+  Parte 2 de [INFORME.md](../INFORME.md#parte-2-buscador) y `corridas/kaggle/v22/` (local, ignorado por Git).
+- **Próximo paso:** si alcanzan tiempo y cuota, repetir con el modelo entrenado.
