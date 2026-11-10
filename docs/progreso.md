@@ -26,7 +26,7 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | [#7 Ciclo del agente](https://github.com/FranCalveyra/tp_final_ia_gen/issues/7) | **Implementado y validado en GPU T4 (2026-11-10).** `entrega.py` usa `AgentePrompt` + `PromptSpec`; tope de 40 llamadas del kit; guarda de contexto por caso; medición offline del contexto. Kaggle v23 (`AgentePrompt`, 50 casos) y v24 (entrega nueva, 10 casos): conversaciones idénticas a `AgenteJSON` (v22) | Enviar a Martu la nota de formato (#13); validación A100 sigue en KI-A100-001 |
 | #10 Historial | **Implementado (2026-11-05).** Clasificador determinista, pruebas, `historial_clasificado.csv`, análisis reutilizable de costumbres e informe | Mantenerlo compatible con la curación del issue #11 |
 | #11 Costumbres | **Implementado (2026-11-05).** Trazas validadas, dos costumbres confirmadas, patrón por operador documentado y resumen para el equipo | Revisar con Martu y Eze antes de usarlo en el prompt final |
-| #13 Prompt | `PromptSpec`, coordinador configurable, medición, métrica 9/9 y runner con snapshots/hashes, probados con dobles CPU | Dataset/esperadas externos acordados; tokens y calidad con Gemma real; DSPy/GEPA |
+| #13 Prompt | **En progreso (Eze, desde 2026-11-10).** `PromptSpec`, runner con snapshots/hashes, conjunto de desarrollo `datos/prompt-dev/v1` (2 carpetas de normas × 20 casos), 4 candidatos, configuración como la entrega y ranking; todo probado con dobles CPU | Correr la fase 1 en Kaggle (autorización GPU), elegir, fase 2 con `prefijos`, regenerar #8 con el prompt elegido |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
 El formato de conversaciones es **propuesto**, pendiente de coordinación con Eze/Yas.
@@ -527,7 +527,8 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
 
 ## Próximos pasos y bloqueos
 
-1. Enviar a Martu la nota de formato (#7 ↔ #13) y coordinar quién lleva la optimización de #13.
+1. #13 (Eze): autorizar y correr la celda de fase 1 en Kaggle (~1 h 35 min a 2 h de T4), rankear y pasar a la fase 2
+   ([optimización de prompt](optimizacion-prompt.md#fase-1-2026-11-10-eze-conjunto-de-desarrollo-candidatos-y-evaluación-preparada)).
 2. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
 3. Confirmar accesos individuales Kaggle/HF/W&B del equipo con el [checklist de handoff](handoff-equipo.md#checklist-de-accesos-hecho-versus-pendiente-de-comprobar);
    no crear Secrets ni habilitar facturación Modal, plataforma descartada.
@@ -906,3 +907,35 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Evidencia:** [comparación con el agente](buscador-baseline.md#comparación-con-el-agente-2026-11-10),
   Parte 2 de [INFORME.md](../INFORME.md#parte-2-buscador) y `corridas/kaggle/v22/` (local, ignorado por Git).
 - **Próximo paso:** si alcanzan tiempo y cuota, repetir con el modelo entrenado.
+
+### 2026-11-10: prompt, fase 1 (issue #13, Eze, CPU, rama `feat/13-prompt-eze`)
+
+- **Estado:** implementado y probado por interfaz pública con dobles CPU. **No se corrió ningún
+  candidato con Gemma ni en GPU**; no hay afirmaciones de calidad. #13 pasa de Martu a Eze.
+- **Conjunto de desarrollo** `datos/prompt-dev/v1` (`python -m scripts.generar_prompt_dev`, ~2 s):
+  semilla 20261110 (≠ 12012), 2 carpetas de normas (textos originales, valores sorteados entre los de las
+  800 trazas de referencia, nunca b/c) × 20 casos con cuotas exactas por circuito, dificultad de
+  cobertura y estrato del aviso. Esperadas del deductor fijo de Yas + `verificacion` en formato del kit;
+  las 40 se resuelven 9/9 en el `Entorno` del kit. Sin pacientes de práctica (solo `casos.jsonl`), de las
+  trazas de referencia/historial, de `datos/entrenamiento`, `datos/conversaciones/v2-baseline` ni de los
+  5.000 candidatos de la semilla 12012 (1 candidato excluido). Esperadas fuera del alcance de la guarda del kit.
+- **Candidatos** (solo cambia `system_prompt`; formato de #7 intacto): `corto-v1` (A), `procedimiento-v1` (B),
+  `procedimiento-costumbres-v1` (C), `procedimiento-costumbres-corto-v1` (D). Motivo: en v22 35/50 casos
+  buscaron una sola vez y los controles de box y aviso fallaron siempre por `false`. Ningún prompt trae
+  valores de normas; el 75 de C/D es el umbral de una costumbre inferida del historial, no un parámetro.
+- **Medición CPU** (`scripts.medir_contexto`, 50 trazas v22 rejugadas, mide formato y no conducta):
+  sistema 2.232 → A 1.632 / B 3.224 / C 3.639 / D 2.405 caracteres; contexto por caso 19.954 → 17.002 /
+  24.835 / 26.877 / 20.805. Tabla y tokens estimados en
+  [optimización de prompt](optimizacion-prompt.md#medición-cpu).
+- **Runner:** acepta todas las variantes del buscador (antes solo `baseline`/`sin_comunes`); nuevas
+  configuraciones `evaluacion-prompt-kaggle-t4-l4.json` (lote 4, `max_turnos` 120 = tope de la entrega)
+  y `...-prefijos.json`. `scripts.rankear_prompts` ordena por resueltos sumados y después tokens de sistema,
+  y rechaza corridas no comparables o incompletas.
+- **Kaggle preparado, no ejecutado:** celda única de fase 1 (5 prompts × 2 carpetas, ~1 h 35 min a 2 h de T4)
+  y celda de fase 2 (ganador con `prefijos`, ~25–45 min) en la guía. Requiere autorización de GPU.
+- **Evidencia:** `uv run --locked --no-sync python -m unittest discover -s tests` → 245 tests OK
+  (1 omitido), 17 nuevos (`test_prompt_dev`, `test_seleccion_prompts`). El manifiesto del dev registra
+  `dirty=true` (generado antes del commit); un test regenera el conjunto y exige bytes idénticos.
+- **Abierto:** aceptar que las hipótesis salen del perfil agregado de fallas en práctica (la selección no);
+  DSPy/GEPA postergado por costo de GPU; tokens reales de A–D recién con la corrida.
+- **Próximo paso:** autorizar y correr la fase 1 en Kaggle, rankear y revisar caso por caso.

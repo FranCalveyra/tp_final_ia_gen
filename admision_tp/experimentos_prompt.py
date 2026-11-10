@@ -14,7 +14,7 @@ from admision.casos import cargar_casos, cargar_esperadas
 from admision.correr import jugar, puntuar, revisar_que_no_haya_esperadas
 
 from .agente_prompt import AgentePrompt
-from .buscador import BuscadorBM25
+from .buscador import VARIANTES, BuscadorBM25
 from .configuracion import Configuracion
 from .evaluacion_prompts import (
     PROPOSITOS,
@@ -63,7 +63,8 @@ class ConfiguracionEvaluacionPrompt:
         for campo in ("max_tokens_nuevos", "max_contexto", "lote", "max_turnos", "max_sin_json"):
             if type(getattr(self, campo)) is not int or getattr(self, campo) <= 0:
                 raise ValueError(f"configuración de evaluación: {campo} requiere entero positivo")
-        if self.buscador_variante not in {"baseline", "sin_comunes"}:
+        # Las mismas variantes que acepta la entrega (`BUSCADOR_VARIANTE`).
+        if self.buscador_variante not in VARIANTES:
             raise ValueError("configuración de evaluación: buscador_variante inválida")
         # Reutiliza la validación de dtype, device_map y límites del modelo operativo.
         self.configuracion_modelo()
