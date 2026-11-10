@@ -100,6 +100,55 @@ class KaggleTest(unittest.TestCase):
                          {"variante": "baseline", "sin_comunes": False, "prefijo": None,
                           "umbral_relativo": 0.0, "k_entorno": 2})
 
+    def _prompt_registrado(self, prompt_spec: str | None) -> dict:
+        with tempfile.TemporaryDirectory() as carpeta, patch.dict("os.environ"), \
+                patch.object(kb, "ejecutar_con_log", return_value=(0, "")), \
+                patch.object(kb, "describir_maquina", return_value={}):
+            os.environ.pop("PROMPT_SPEC", None)
+            if prompt_spec is not None:
+                os.environ["PROMPT_SPEC"] = prompt_spec
+            destino = Path(carpeta) / "corrida"
+            kb.correr("original", 1, destino, "float16", "auto", "hf_secreto")
+            return json.loads((destino / "runner.json").read_text())["prompt"]
+
+    def test_runner_registra_el_prompt_baseline_por_defecto(self):
+        from admision_tp.prompts import PromptSpec, RUTA_BASELINE
+        esperado = PromptSpec.cargar(RUTA_BASELINE)
+        for valor in (None, ""):
+            self.assertEqual(self._prompt_registrado(valor),
+                             {"nombre": esperado.nombre, "version": esperado.version,
+                              "sha256": esperado.sha256, "archivo": "configuraciones/prompts/baseline.json"})
+
+    def test_runner_registra_el_prompt_de_prompt_spec(self):
+        from admision_tp.prompts import PromptSpec, RUTA_BASELINE
+        datos = json.loads(RUTA_BASELINE.read_text(encoding="utf-8"))
+        datos["nombre"] = "candidato-prueba"
+        datos["system_prompt"] = datos["system_prompt"] + " Respondé breve."
+        datos.pop("sha256", None)
+        with tempfile.TemporaryDirectory() as carpeta:
+            ruta = Path(carpeta) / "candidato.json"
+            spec = PromptSpec(**{k: datos[k] for k in ("version", "nombre", "system_prompt", "mensaje_inicial",
+                                                       "formato_observacion", "mensaje_json_invalido")})
+            ruta.write_text(json.dumps({**datos, "sha256": spec.sha256}, ensure_ascii=False), encoding="utf-8")
+            registrado = self._prompt_registrado(str(ruta))
+        self.assertEqual(registrado["nombre"], "candidato-prueba")
+        self.assertEqual(registrado["sha256"], spec.sha256)
+        self.assertNotEqual(registrado["sha256"], PromptSpec.cargar(RUTA_BASELINE).sha256)
+
+    def test_prompt_alterado_falla_antes_de_crear_la_salida(self):
+        from admision_tp.prompts import RUTA_BASELINE
+        datos = json.loads(RUTA_BASELINE.read_text(encoding="utf-8"))
+        datos["system_prompt"] = datos["system_prompt"] + " (alterado sin recalcular el hash)"
+        with tempfile.TemporaryDirectory() as carpeta, \
+                patch.object(kb, "ejecutar_con_log") as ejecutar:
+            ruta = Path(carpeta) / "alterado.json"
+            ruta.write_text(json.dumps(datos, ensure_ascii=False), encoding="utf-8")
+            destino = Path(carpeta) / "corrida"
+            with patch.dict("os.environ", {"PROMPT_SPEC": str(ruta)}), self.assertRaises(ValueError):
+                kb.correr("original", 1, destino, "float16", "auto", "hf_secreto")
+            self.assertFalse(destino.exists())
+        ejecutar.assert_not_called()
+
     def test_variante_de_buscador_desconocida_falla_antes_de_crear_la_salida(self):
         with tempfile.TemporaryDirectory() as carpeta, \
                 patch.dict("os.environ", {"BUSCADOR_VARIANTE": "inexistente"}), \
