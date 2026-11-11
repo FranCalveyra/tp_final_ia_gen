@@ -1,6 +1,6 @@
 # Progreso y decisiones
 
-**Actualizado: 2026-11-10.** Hay generación y humo de entrenamiento LoRA con publicación/reanudación HF
+**Actualizado: 2026-11-11.** Hay generación y humo de entrenamiento LoRA con publicación/reanudación HF
 **en Kaggle T4**, no en A100. **Todavía no hubo entrenamiento con datos reales curados.** La carga solo texto
 está validada en T4. Esta bitácora centraliza evidencia y enlaza guías; no reemplaza el informe final.
 
@@ -24,10 +24,10 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | #5 Recursos | Métricas y borrador Parte 5 con inferencia T4 y humo de entrenamiento solo texto: 15,675 GB pico | Recursos/costos A100 y antes/después con adapter final; integrar `INFORME.md` |
 | [#6 Buscador](https://github.com/FranCalveyra/tp_final_ia_gen/issues/6) | **Implementado y comparado con el agente (2026-11-10).** `evaluar_rag`: `baseline` 48/60, `prefijos` 55/60 (referencia 51/60). Agente sin entrenar en Kaggle T4: `baseline` 10/50, `prefijos` 6/50; default `baseline` | Revisión del equipo de la Parte 2 del informe; opcional: repetir con el modelo entrenado |
 | [#7 Ciclo del agente](https://github.com/FranCalveyra/tp_final_ia_gen/issues/7) | **Implementado y validado en GPU T4 (2026-11-10).** `entrega.py` usa `AgentePrompt` + `PromptSpec`; tope de 40 llamadas del kit; guarda de contexto por caso; medición offline del contexto. Kaggle v23 (`AgentePrompt`, 50 casos) y v24 (entrega nueva, 10 casos): conversaciones idénticas a `AgenteJSON` (v22) | Enviar a Martu la nota de formato (#13); validación A100 sigue en KI-A100-001 |
-| [#9 Evaluación completa](https://github.com/FranCalveyra/tp_final_ia_gen/issues/9) | **Implementado y probado con dobles (2026-11-10).** Plan JSON + `infra/kaggle_evaluacion.py` (Kaggle) y `scripts.tabla_evaluacion` (local); la tabla reproduce v22 (10/50, 0,831, 19.954) | Correr `actual.json` en GPU (autorización y cuota); filas `solo_prompt`, `solo_entrenamiento`, `ambos` cuando haya prompt optimizado y adapter publicado |
+| [#9 Evaluación completa](https://github.com/FranCalveyra/tp_final_ia_gen/issues/9) | **Cerrado; filas medidas en GPU T4 (2026-11-11).** `sin_entrenar` (v25) 10/10/7 y `solo_prompt` (v27, `procedimiento-v1`) 14/16/12 en práctica original/b/c | Filas `solo_entrenamiento` y `ambos` cuando haya adapter publicado (#15); A100 en KI-A100-001 |
 | #10 Historial | **Implementado (2026-11-05).** Clasificador determinista, pruebas, `historial_clasificado.csv`, análisis reutilizable de costumbres e informe | Mantenerlo compatible con la curación del issue #11 |
 | #11 Costumbres | **Implementado (2026-11-05).** Trazas validadas, dos costumbres confirmadas, patrón por operador documentado y resumen para el equipo | Revisar con Martu y Eze antes de usarlo en el prompt final |
-| #13 Prompt | **En progreso (Eze, desde 2026-11-10).** `PromptSpec`, runner con snapshots/hashes, conjunto de desarrollo `datos/prompt-dev/v1` (2 carpetas de normas × 20 casos), 4 candidatos, configuración como la entrega y ranking; todo probado con dobles CPU | Correr la fase 1 en Kaggle (autorización GPU), elegir, fase 2 con `prefijos`, regenerar #8 con el prompt elegido |
+| [#13 Prompt](https://github.com/FranCalveyra/tp_final_ia_gen/issues/13) | **Validado en GPU T4 (Eze, 2026-11-11).** Elegido `procedimiento-v1` en el dev (9/40 contra 8/40); `prefijos` pierde (4/40); C falla en CUDA de forma reproducible. Práctica (solo reporte): 42/150 contra 27/150, a ~2,6× de contexto | Decisión de equipo: default de `entrega.py` y prompt de las conversaciones de #8 ([detalle](optimizacion-prompt.md#decisión)) |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
 El formato de conversaciones es **propuesto**, pendiente de coordinación con Eze/Yas.
@@ -964,3 +964,24 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Limitación:** v22 no registró el prompt en `runner.json` (la tabla lo marca); v24 no tiene `runner.json`
   y se rechaza. El runner de planes no corrió en GPU.
 - **Próximo paso:** con autorización, correr `actual.json` (~50–65 min de T4 estimados) y armar la tabla.
+
+### 2026-11-11: prompt elegido y fila `solo_prompt` (issues #13 y #9, Kaggle T4 v25–v27)
+
+- **Estado:** validado en GPU T4. Detalle, tablas y comandos en
+  [optimización de prompt](optimizacion-prompt.md#resultados-kaggle-v25v27).
+- **Fase 1, dev (40 casos, v25–v26):** B `procedimiento-v1` 9/40, `baseline` 8/40, D 2/40, A 1/40. C
+  `procedimiento-costumbres-v1` termina con `CUDA error: unspecified launch failure` en 5 de 7 intentos, siempre en
+  el mismo punto: no comparable. Acortar empeora; el procedimiento sube las búsquedas de ~1,3 a ~3,6 por caso y
+  el contexto ~2,7×. Con `prefijos`, B cae a 4/40: se mantiene `baseline`.
+- **Decisión:** prompt elegido B con el criterio declarado (resueltos en el dev, después tokens). En el dev la
+  ventaja está dentro del ruido (signos p=1,0).
+- **Práctica, solo reporte (v27, 3 × 50 casos):** `solo_prompt` 14/16/12 contra
+  `sin_entrenar` 10/10/7 (v25), por encima de la referencia sin entrenar de la cátedra (12/15/12). Caso por caso:
+  23 ganados y 8 perdidos (versiones no independientes). Sube box, plazo y registro; bajan verificación y entidad;
+  el aviso no cambia. Análisis en [análisis de errores, pasadas 5–6](analisis-errores.md).
+- **Sin cambiar (decisión de equipo):** default de `entrega.py` (sigue `baseline`; recomendación: B) y prompt de las
+  conversaciones de #8 (Fran, #15).
+- **Cuota:** v25 ~1 h 58 min, v26 1 h 3 min, v27 1 h 12 min de T4 (límites 2× la estimación); usado 5 h 52 min de 30 h hasta el 14/11.
+- **Evidencia:** 259 tests CPU OK (1 omitido). Se quitó un prefijo de herramienta local que había quedado en
+  `docs/evaluacion.md`.
+- **Próximo paso:** decidir default y datos de #8 con Fran; si sobra GPU, diagnosticar el fallo de C con lote 1.

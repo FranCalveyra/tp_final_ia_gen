@@ -356,10 +356,10 @@ Candidatos de formato que controla el agente (ahorro total sobre `caracteres_de_
 
 Supuesto: el modelo responde lo mismo con el formato nuevo; la medición es de formato, no de conducta.
 
-## Fase 1 (2026-11-10, Eze): conjunto de desarrollo, candidatos y evaluación preparada
+## Fase 1 (2026-11-10, Eze): conjunto de desarrollo, candidatos y evaluación
 
-Estado: **implementado y probado en CPU con dobles**. No se corrió ningún candidato con Gemma ni
-en GPU: no hay todavía ninguna afirmación de calidad sobre estos prompts.
+Estado: **validado en GPU T4** (Kaggle v25–v27). Resultados, decisión y límites en
+[Resultados](#resultados-kaggle-v25v27); esta sección describe el diseño.
 
 ### Diagnóstico de partida (baseline, práctica, Kaggle v22)
 
@@ -474,7 +474,7 @@ con lote 4 y `max_turnos: 120` = `max_turnos_para(40, 3)`, el mismo tope que la 
 `AgentePrompt`. `...-t4-l4-prefijos.json` es idéntica salvo `buscador_variante: prefijos` (fase 2).
 Las cinco evaluaciones de fase 1 usan la misma configuración: si no, el ranking las rechaza.
 
-### Kaggle: celda de fase 1 (preparada, **no ejecutada**)
+### Kaggle: celda de fase 1 (ejecutada en v25 con el commit `f4d7300`)
 
 Notebook con GPU T4 x2, Internet y Secrets `HF_TOKEN` (lectura) y `GITHUB_TOKEN` (como en
 [kaggle.md](kaggle.md)). Una sola celda, ejecutada una vez, sin tocar el notebook hasta que termine.
@@ -560,7 +560,7 @@ carga ~25 min; baseline y A ~20 min (80 casos × 15 s); B, C y D, si siguen el p
 (~7–9 llamadas por caso), ~25 s/caso: ~50 min (120 casos). **Total ≈ 1 h 35 min a 2 h** de sesión.
 No es una garantía: la cuota y el tiempo real de Kaggle no se verificaron.
 
-### Fase 2 (después de elegir; celda preparada, **no ejecutada**)
+### Fase 2 (plan original; lo que se corrió está en [Resultados](#resultados-kaggle-v25v27))
 
 1. Elegir el ganador con `rankear_prompts`, mirando también ganancias y pérdidas caso por caso
    (`resultados.jsonl`) y que el baseline en el dev reproduzca el perfil de fallas de práctica.
@@ -615,7 +615,109 @@ subprocess.run(["zip", "-qr", "/kaggle/working/prompt-dev-f2-prefijos.zip", BASE
   resolubles en el `Entorno` y que no violen normas (`razones_normativas`), no contra fichas de práctica.
 - **Distribución:** el generador produce muchas `sin_cobertura` (21/40) y box `true` (28/40) con estos
   valores; se informa, no se reequilibra (cambiaría la distribución del generador de la cátedra).
-- **Tokens de A–D:** estimados por caracteres hasta medirlos con el tokenizer real en la fase 2.
+- **Tokens de A–D:** la tabla de "Medición CPU" es la estimación previa; los reales (453, 857, 969,
+  659) están en [Resultados](#resultados-kaggle-v25v27).
+
+## Resultados (Kaggle v25–v27)
+
+Gemma 4 E4B sin entrenar, 2× T4, float16, lote 4, `max_turnos` 120, semilla 20261109. Corridas en
+`corridas/kaggle/v25/prompt-dev-f1/`, `v26/prompt-dev-f1b/` y `v27/evaluacion-solo-prompt/` (no versionadas).
+Tokens del sistema medidos por el runner con el tokenizer real.
+
+### Fase 1: conjunto de desarrollo (40 casos, buscador `baseline`)
+
+```bash
+uv run --locked --no-sync python -m scripts.rankear_prompts \
+  corridas/kaggle/v25/prompt-dev-f1/{baseline,corto-v1,procedimiento-v1,procedimiento-costumbres-corto-v1}-n{1,2}
+```
+
+| Prompt | n1 | n2 | **Total /40** | Tokens sistema | Contexto/caso (caracteres) | Búsquedas/caso |
+|---|---:|---:|---:|---:|---:|---:|
+| B `procedimiento-v1` | 4 | 5 | **9** | 857 | 51.475 / 54.583 | 3,5 / 3,65 |
+| `baseline` | 4 | 4 | **8** | 615 | 20.104 / 17.732 | 1,45 / 1,25 |
+| D `procedimiento-costumbres-corto-v1` | 0 | 2 | **2** | 659 | 24.372 / 20.140 | 1,45 / 1,3 |
+| A `corto-v1` | 0 | 1 | **1** | 453 | 13.655 / 14.202 | 0,95 / 0,95 |
+| C `procedimiento-costumbres-v1` | falla | 6 | **no comparable** | 969 | — / 54.444 | — / 3,3 |
+
+Controles sumados (B contra baseline): `registro` 33 vs 27, `box_antes_del_registro` 32 vs 24, `circuito`
+40 vs 38, `plazo_circuito_min` 32 vs 30, `cobertura` 33 vs 32; pierde en `entidad_a_notificar` 32 vs 35
+y `verificacion` 27 vs 33; `aviso_al_voluntariado` igual (32). El baseline en el dev reproduce el
+perfil de práctica: ~1,3 búsquedas por caso y fallas en registro, box y plazo.
+
+**Caso por caso hay mucho recambio.** B en n1 gana 3 casos y pierde otros 3; en n2 gana 2 y pierde 1.
+Con 20 casos por carpeta, 1–2 casos de diferencia están dentro del ruido: B **no es una mejora
+demostrada**, es el único candidato que no empeora. Lo que sí es claro:
+
+1. **Acortar empeora.** A y D pierden casi todo: sin las descripciones detalladas de las herramientas,
+   el modelo busca todavía menos (0,95 por caso con A) y falla `plazo_circuito_min` (18 y 13 de 40).
+2. **El procedimiento cambia la conducta como se buscaba:** B y C buscan 3–4 veces por caso en vez de
+   una, y `box_antes_del_registro` y `circuito` suben a 0,95–1,0 por carpeta. El costo es **~2,7× el
+   contexto por caso** (~53.000 contra ~19.000 caracteres), y eso cuenta en la nota.
+3. **C falla en GPU de forma reproducible.** `jugar_lote` termina con `AcceleratorError: CUDA error:
+   unspecified launch failure` en n1 con el buscador `baseline` (3 de 3 intentos, v25 y v26) y en n2
+   con `prefijos` (2 de 2), siempre en el mismo punto (mismo parcial 0,511 y 0,339: la generación es
+   determinista). B, con el mismo procedimiento y contexto parecido, nunca falló (4 corridas). La
+   causa no está diagnosticada (kernel de T4 en float16 con alguna secuencia concreta es la hipótesis);
+   como el kit vacía las conversaciones del lote, la corrida no es comparable y el ranking la rechaza.
+   Lo que corrió completo es prometedor (n2 6/20 con `baseline`; n1 5/20 con `prefijos`, contra 1/20
+   de B), pero **no se puede elegir un prompt que no termina en el hardware de evaluación**.
+
+### Paso 6: buscador `prefijos` (v26)
+
+| Prompt | Buscador | n1 | n2 | Total /40 | Contexto/caso |
+|---|---|---:|---:|---:|---:|
+| B `procedimiento-v1` | `baseline` | 4 | 5 | **9** | ~53.000 |
+| B `procedimiento-v1` | `prefijos` | 1 | 3 | **4** | ~47.000 |
+| C `procedimiento-costumbres-v1` | `prefijos` | 5 | falla | no comparable | 51.684 (n1) |
+
+`prefijos` vuelve a perder con el prompt elegido, como con el baseline en práctica (v22: 6/50 contra
+10/50). **Se mantiene el buscador `baseline`.**
+
+### Decisión
+
+Con el criterio declarado antes de correr (más casos resueltos en el dev y, a igualdad, menos tokens),
+**el prompt elegido es B `procedimiento-v1`** con el buscador `baseline`. En el dev la evidencia es débil
+(+1 caso sobre 40); en práctica (solo reporte, abajo) la ganancia es clara: 42/150 contra 27/150. Cuesta
+~2,6× de contexto por caso. Lo que **no** se cambió en este issue, porque son decisiones de entrega y de
+entrenamiento que hay que tomar en equipo:
+
+- **`entrega.py` sigue apuntando al baseline.** Recomendación: pasar el default a B (más casos resueltos
+  en las tres versiones de práctica, a costa de contexto). Mientras tanto, para usar B:
+  `PROMPT_SPEC=configuraciones/prompts/procedimiento-v1.json`.
+- **Las conversaciones de #8 no se regeneraron con B.** Cambia los datos de entrenamiento de Fran (#15)
+  y lo que significa la fila `solo_entrenamiento` (adapter + el prompt con el que se entrenó). Si se
+  decide: `python -m scripts.generar_conversaciones --prompt configuraciones/prompts/procedimiento-v1.json
+  --salida datos/conversaciones/<nueva>`. Ojo: lo que B no arregla (verificación, entidad, aviso) es
+  justamente lo que el entrenamiento tiene que enseñar ([pasada 5](analisis-errores.md)).
+
+### Fase 2: práctica, solo para reportar (v27)
+
+`configuraciones/evaluacion/solo-prompt.json` (fila `solo_prompt`), puntuado con `scripts.tabla_evaluacion`.
+La práctica no se usó para elegir.
+
+```bash
+uv run --locked --no-sync python -m scripts.tabla_evaluacion \
+  --evaluacion corridas/kaggle/v25/evaluacion-actual --evaluacion corridas/kaggle/v27/evaluacion-solo-prompt \
+  --salida corridas/tablas/2026-11-11-v25-v27
+```
+
+| Configuración | original | b | c | Total | Contexto/caso | Búsquedas/caso | s/caso (lote) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `sin_entrenar` (baseline, v25) | 10/50 | 10/50 | 7/50 | 27/150 | ~19.800 | 1,33 | ~15,7 |
+| **`solo_prompt` (B, v27)** | **14/50** | **16/50** | **12/50** | **42/150** | ~52.500 | 3,53 | ~25,3 |
+| *Referencia cátedra, sin entrenar* | 12/50 | 15/50 | 12/50 | 39/150 | | | |
+
+- **Caso por caso** (`scripts.analizar_errores comparar`, [pasada 6](analisis-errores.md)): original gana 7 y
+  pierde 3, b gana 9 y pierde 3, c gana 7 y pierde 2. Juntas: 23 contra 8, signos p≈0,011; las tres versiones
+  comparten pacientes (cambian las normas), así que no son independientes y el p es optimista. Por versión,
+  p=0,15–0,34.
+- **Por control**, igual que en el dev: `box_antes_del_registro` 0,72 → 0,90–0,96, `plazo` 0,92 → 0,96–1,00,
+  `registro` sube en las tres; bajan `verificacion` (0,74–0,76 → 0,60–0,66) y `entidad_a_notificar`
+  (→ 0,72). `aviso_al_voluntariado` queda en 0,72: B no tiene la costumbre.
+- **Costo:** ~2,6× contexto y ~1,6× tiempo de lote por caso. No hay casos sin decisión.
+
+La práctica **confirma la dirección** que el dev mostraba débil y supera a la referencia sin entrenar de
+la cátedra en las tres versiones. No se usó para elegir: B ya era el elegido por el criterio declarado.
 
 ## Verificado y no verificado
 
@@ -632,19 +734,21 @@ del tokenizer inyectado, objeto mapping compatible con tokenizers reales, opcion
 plantilla de chat, agregación de nueve controles, errores JSON, prioridad de casos completos,
 separación temporal de esperadas, snapshots/hashes, salida exclusiva y fallos auditables.
 
-**No verificado:** comportamiento de una variante con Gemma real, cantidad real de tokens
-del baseline, calidad sobre casos y ejecución en GPU. La integración con `entrega.py`
-(issue #7) está probada con dobles CPU, no en GPU. Los
-manifiestos se probaron con dobles y archivos temporales. Esta infraestructura no demuestra
-ninguna mejora de prompt.
+**Validado en GPU T4 (2026-11-10/11):** los cinco prompts con Gemma real sobre el conjunto de
+desarrollo, tokens reales de cada uno, `prefijos` con B y C, y B en práctica (v25–v27, ver
+[Resultados](#resultados-kaggle-v25v27)). La integración con `entrega.py` se validó en v24.
+
+**No verificado:** A100 (KI-A100-001: tiempos y resultados de T4 no son los de la entrega), la causa
+del fallo CUDA de C, y si la ventaja de B sobre el baseline (+1 caso) se sostiene con más casos.
 
 ## Próximos pasos
 
 1. ~~Conjunto prompt-dev independiente de práctica/test~~: `datos/prompt-dev/v1` (fase 1).
-2. Con autorización de GPU, correr la celda de fase 1 en Kaggle y rankear (baseline incluido:
-   mide también el baseline con el tokenizer real sobre el dev).
-3. Fase 2: el ganador con `prefijos`; decidir el prompt y el buscador.
-4. DSPy/GEPA con versiones fijadas, solo si queda margen, sin servicios externos en el agente operativo.
-5. Seleccionar el prompt con datos permitidos; publicarlo como archivo `PromptSpec`,
-   regenerar las conversaciones de #8 con él y recién entonces apuntar `PROMPT_SPEC` (o el
-   default de `entrega.py`) a ese archivo.
+2. ~~Fase 1 en Kaggle y ranking~~ (v25–v26): B `procedimiento-v1`.
+3. ~~`prefijos` con el elegido~~ (v26): pierde; se queda `baseline`.
+4. ~~B en práctica para la fila `solo_prompt`~~ (v27).
+5. **Decisión de equipo (Eze + Fran):** default de `entrega.py` y prompt de las conversaciones de #8,
+   a la luz de la fila `solo_prompt` y del costo de contexto ×2,7.
+6. Si sobra GPU: diagnosticar el fallo CUDA de C (correr el caso que lo dispara con lote 1) y probarlo
+   en A100; C es el candidato con mejores parciales cuando termina.
+7. DSPy/GEPA con versiones fijadas, solo si queda margen, sin servicios externos en el agente operativo.
