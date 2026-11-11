@@ -1031,4 +1031,9 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Corrida v29** (commit `10e117c`): falló en el paso 0 con `RuntimeError: indices should be either on cpu or on
   the same device as the indexed tensor (cuda:1)`. Con `device_map="auto"` la última capa queda en la segunda GPU y la
   máscara se había creado en la de `input_ids`. Arreglo: máscara en CPU (`e30ad97`). Unos 15 min de T4.
+- **v30:** falló antes de cargar el modelo por timeout de W&B en `wandb.init` (~6 min). **v31** (con
+  `WANDB_INIT_TIMEOUT=300`): repitió el error de dispositivo. La máscara en CPU no alcanza: el hook de accelerate
+  (`hooks.py:192`) mueve todos los tensores del forward a la primera GPU. Arreglo: posiciones como lista de `int`,
+  que `send_to_device` devuelve intacta (accelerate 1.15.0, `operations.py:174-176`); unión de posiciones del lote
+  y `-100` donde una fila no tiene objetivo. Equivalencia con torch CPU revalidada.
 - **Próximo paso:** relanzar en Kaggle y medir la VRAM del resto del paso (activaciones de hasta 6.322 tokens).

@@ -96,13 +96,17 @@ def formar_lote(ejemplos, pad_token_id):
 
 
 def posiciones_supervisadas(labels):
-    """Qué posiciones predicen un token supervisado y cuáles son esos tokens, en orden de fila.
+    """Posiciones que predicen algún token supervisado del lote y el objetivo de cada fila en ellas.
 
     La posición i predice el token i+1 (mismo desplazamiento que ForCausalLMLoss de Transformers).
+    Se usa la unión de las filas; donde una fila no tiene objetivo queda -100 (ignorado).
+    Las posiciones son una lista de int: accelerate mueve los tensores del forward a la primera GPU
+    y Gemma corta en la última (Kaggle v29 y v31); una lista no se mueve.
     """
-    conservar = [[siguiente != -100 for siguiente in fila[1:]] + [False] for fila in labels]
-    objetivos = [v for fila in labels for v in fila[1:] if v != -100]
-    return conservar, objetivos
+    largo = max(len(fila) for fila in labels)
+    posiciones = [i for i in range(largo - 1) if any(fila[i + 1] != -100 for fila in labels)]
+    objetivos = [[fila[i + 1] for i in posiciones] for fila in labels]
+    return posiciones, objetivos
 
 
 def perdida_supervisada(torch, modelo, entradas, num_items_in_batch=None):
@@ -110,17 +114,16 @@ def perdida_supervisada(torch, modelo, entradas, num_items_in_batch=None):
 
     Equivale a la pérdida del modelo, pero no materializa logits de contexto y padding: con el
     vocabulario de Gemma (262k) y ~3.300 tokens por conversación, esos logits en fp32 no entran
-    en una T4 (OOM en Kaggle v28). `logits_to_keep` booleano devuelve (n_conservadas, vocab).
+    en una T4 (OOM en Kaggle v28). Con una lista, `logits_to_keep` devuelve (lote, n, vocab).
     """
-    conservar, objetivos = posiciones_supervisadas(entradas["labels"].tolist())
-    # En CPU: con device_map="auto" la última capa puede quedar en otra GPU que input_ids (Kaggle v29).
-    conservar = torch.tensor(conservar, dtype=torch.bool)
+    posiciones, objetivos = posiciones_supervisadas(entradas["labels"].tolist())
     logits = modelo(input_ids=entradas["input_ids"], attention_mask=entradas["attention_mask"],
-                    logits_to_keep=conservar).logits.float()
-    objetivos = torch.tensor(objetivos, dtype=torch.long, device=logits.device)
+                    logits_to_keep=posiciones).logits.float()
+    logits = logits.reshape(-1, logits.shape[-1])
+    objetivos = torch.tensor(objetivos, dtype=torch.long, device=logits.device).reshape(-1)
     if num_items_in_batch is None:
-        return torch.nn.functional.cross_entropy(logits, objetivos)
-    suma = torch.nn.functional.cross_entropy(logits, objetivos, reduction="sum")
+        return torch.nn.functional.cross_entropy(logits, objetivos, ignore_index=-100)
+    suma = torch.nn.functional.cross_entropy(logits, objetivos, ignore_index=-100, reduction="sum")
     if torch.is_tensor(num_items_in_batch):
         num_items_in_batch = num_items_in_batch.to(suma.device)
     return suma / num_items_in_batch

@@ -294,20 +294,26 @@ class PosicionesSupervisadasTest(unittest.TestCase):
 
     def test_cada_posicion_predice_el_token_siguiente(self):
         # Contexto (-100), respuesta [5, 6], cierre fuera de la máscara y padding.
-        conservar, objetivos = posiciones_supervisadas([[-100, -100, 5, 6, -100, -100]])
-        self.assertEqual(conservar, [[False, True, True, False, False, False]])
-        self.assertEqual(objetivos, [5, 6])
+        posiciones, objetivos = posiciones_supervisadas([[-100, -100, 5, 6, -100, -100]])
+        self.assertEqual(posiciones, [1, 2])
+        self.assertEqual(objetivos, [[5, 6]])
 
-    def test_lote_conserva_orden_por_fila(self):
-        conservar, objetivos = posiciones_supervisadas([[-100, 7, -100, 8], [-100, -100, 9, -100]])
-        self.assertEqual(conservar, [[True, False, True, False], [False, True, False, False]])
-        self.assertEqual(objetivos, [7, 8, 9])
+    def test_lote_usa_la_union_y_marca_lo_ajeno_como_ignorado(self):
+        posiciones, objetivos = posiciones_supervisadas([[-100, 7, -100, 8], [-100, -100, 9, -100]])
+        self.assertEqual(posiciones, [0, 1, 2])
+        self.assertEqual(objetivos, [[7, -100, 8], [-100, 9, -100]])
 
     def test_ultima_posicion_nunca_se_conserva(self):
         # La última posición no tiene token siguiente aunque su etiqueta esté supervisada.
-        conservar, objetivos = posiciones_supervisadas([[-100, 3, 4]])
-        self.assertEqual(conservar, [[True, True, False]])
-        self.assertEqual(objetivos, [3, 4])
+        posiciones, objetivos = posiciones_supervisadas([[-100, 3, 4]])
+        self.assertEqual(posiciones, [0, 1])
+        self.assertEqual(objetivos, [[3, 4]])
+
+    def test_posiciones_son_enteros_de_python(self):
+        # accelerate mueve los tensores del forward a la primera GPU (Kaggle v31); una lista no se mueve.
+        posiciones, _ = posiciones_supervisadas([[-100, 3, 4]])
+        self.assertIs(type(posiciones), list)
+        self.assertTrue(all(type(p) is int for p in posiciones))
 
 
 class ObjetivoLoraTest(unittest.TestCase):
