@@ -1,0 +1,538 @@
+{
+  "version": 1,
+  "comando": "python -m scripts.generar_prompt_dev --semilla 20261110 --carpetas 2 --casos-por-carpeta 20 --candidatos 4000",
+  "git": {
+    "commit": "5600a69ab7ea3b5bd95c5a1a24623f9a8c9d95b3",
+    "dirty": true
+  },
+  "proposito": "seleccion de prompt (issue #13); nunca entrenamiento",
+  "generador": "admision.generador.generar",
+  "semilla": 20261110,
+  "candidatos": 4000,
+  "carpetas": 2,
+  "casos_por_carpeta": 20,
+  "deductor": "scripts.generar_sinteticos_entrenamiento.deducir_ficha (reglas + costumbres)",
+  "costumbres": {
+    "aviso_umbral_edad": 75,
+    "aviso_condicion": "sin_acompanante",
+    "credencial_preferida": "prepaga"
+  },
+  "parametros": {
+    "originales": {
+      "P-ADM-1": 2,
+      "P-ADM-2": 67,
+      "P-ADM-3": 2,
+      "P-COB-1": 3,
+      "P-COB-2": 7,
+      "P-DER-1": 30,
+      "P-GUA-1": 5,
+      "P-GUA-2": 10,
+      "P-GUA-3": 30,
+      "P-GUA-4": 60,
+      "P-GUA-5": 120,
+      "P-GUA-6": 5,
+      "P-GUA-7": 2,
+      "P-GUA-8": 5,
+      "P-INT-1": 60,
+      "P-INT-2": 60,
+      "P-INT-3": 240,
+      "P-INT-4": 1,
+      "P-INT-5": 30,
+      "P-TDE-1": 10,
+      "P-TDE-2": 10,
+      "P-TDE-3": 15,
+      "P-TDE-4": 60,
+      "P-TDE-5": 5
+    },
+    "valores_de_la_referencia": {
+      "P-ADM-1": [
+        1,
+        2,
+        3
+      ],
+      "P-ADM-2": [
+        55,
+        60,
+        65,
+        67,
+        70,
+        72,
+        75,
+        80
+      ],
+      "P-ADM-3": [
+        1,
+        2,
+        3
+      ],
+      "P-COB-1": [
+        3
+      ],
+      "P-COB-2": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "P-TDE-1": [
+        10,
+        15,
+        20,
+        25
+      ],
+      "P-TDE-2": [
+        10,
+        15,
+        20,
+        25
+      ],
+      "P-TDE-3": [
+        10,
+        15,
+        20,
+        30
+      ],
+      "P-TDE-4": [
+        30,
+        45,
+        60,
+        90
+      ],
+      "P-TDE-5": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    "regla": "un valor por parámetro sorteado entre los observados en entrenamiento/trazas.jsonl; conjuntos distintos entre sí y del original"
+  },
+  "cuotas_por_carpeta": {
+    "circuito": {
+      "ecg": 4,
+      "codigo_acv": 4,
+      "sepsis_probable": 4,
+      "sepsis_posible": 4,
+      "ninguno": 4
+    },
+    "bucket": {
+      "art": 3,
+      "dos_credenciales": 3,
+      "acompanante": 3,
+      "sin_nadie": 3,
+      "general": 8
+    },
+    "aviso": {
+      "mayor_sin_acompanante": 4,
+      "mayor_con_acompanante": 2
+    }
+  },
+  "exclusion": {
+    "fuentes": [
+      "practica/casos.jsonl",
+      "entrenamiento/trazas.jsonl",
+      "historial/trazas.jsonl",
+      "datos/entrenamiento/conversaciones.jsonl",
+      "datos/conversaciones/v2-baseline/conversaciones.jsonl",
+      "admision.generador semilla 12012 n=5000"
+    ],
+    "identidad": "cuerpo de la nota de triage, id + nombre y edad, y cada número de documento/afiliado/CUIL",
+    "candidatos_excluidos": {
+      "numero_compartido": 1,
+      "paciente_id_repetido_en_candidatos": 715
+    },
+    "uso_de_practica": "solo practica/casos.jsonl para excluir pacientes; nunca esperadas",
+    "normas_b_c": "no se leen"
+  },
+  "por_carpeta": {
+    "n1": {
+      "parametros": {
+        "P-ADM-1": 1,
+        "P-ADM-2": 70,
+        "P-ADM-3": 1,
+        "P-COB-1": 3,
+        "P-COB-2": 9,
+        "P-DER-1": 30,
+        "P-GUA-1": 5,
+        "P-GUA-2": 10,
+        "P-GUA-3": 30,
+        "P-GUA-4": 60,
+        "P-GUA-5": 120,
+        "P-GUA-6": 5,
+        "P-GUA-7": 2,
+        "P-GUA-8": 5,
+        "P-INT-1": 60,
+        "P-INT-2": 60,
+        "P-INT-3": 240,
+        "P-INT-4": 1,
+        "P-INT-5": 30,
+        "P-TDE-1": 25,
+        "P-TDE-2": 10,
+        "P-TDE-3": 30,
+        "P-TDE-4": 60,
+        "P-TDE-5": 5
+      },
+      "distintos_del_original": {
+        "P-ADM-1": 1,
+        "P-ADM-2": 70,
+        "P-ADM-3": 1,
+        "P-COB-2": 9,
+        "P-TDE-1": 25,
+        "P-TDE-3": 30
+      },
+      "balance": {
+        "casos": 20,
+        "edad": {
+          "18-59": 10,
+          "60-74": 4,
+          "75+": 6
+        },
+        "circuito_triage": {
+          "codigo_acv": 4,
+          "ecg": 4,
+          "ninguno": 4,
+          "sepsis_posible": 4,
+          "sepsis_probable": 4
+        },
+        "dificultad": {
+          "acompanante": 3,
+          "art": 3,
+          "dos_credenciales": 3,
+          "general": 8,
+          "sin_nadie": 3
+        },
+        "grupo_aviso": {
+          "mayor_con_acompanante": 2,
+          "mayor_sin_acompanante": 4,
+          "menor": 14
+        },
+        "acompanante": {
+          "false": 14,
+          "true": 6
+        },
+        "edad_box": {
+          "false": 14,
+          "true": 6
+        },
+        "documento": {
+          "cédula": 3,
+          "dni": 7,
+          "ninguno": 7,
+          "pasaporte": 3
+        },
+        "llegada": {
+          "en ambulancia": 4,
+          "por sus propios medios": 16
+        },
+        "registro": {
+          "definitivo": 12,
+          "provisorio": 8
+        },
+        "box_antes_del_registro": {
+          "false": 11,
+          "true": 9
+        },
+        "circuito": {
+          "codigo_acv": 4,
+          "codigo_sepsis": 8,
+          "ecg": 4,
+          "ninguno": 4
+        },
+        "cobertura": {
+          "art": 3,
+          "obra_social": 2,
+          "prepaga": 5,
+          "sin_cobertura": 10
+        },
+        "aviso_al_voluntariado": {
+          "false": 16,
+          "true": 4
+        },
+        "verificacion_requerida": {
+          "false": 5,
+          "true": 15
+        },
+        "prohibidas": {
+          "0": 16,
+          "1": 4
+        }
+      }
+    },
+    "n2": {
+      "parametros": {
+        "P-ADM-1": 2,
+        "P-ADM-2": 67,
+        "P-ADM-3": 3,
+        "P-COB-1": 3,
+        "P-COB-2": 7,
+        "P-DER-1": 30,
+        "P-GUA-1": 5,
+        "P-GUA-2": 10,
+        "P-GUA-3": 30,
+        "P-GUA-4": 60,
+        "P-GUA-5": 120,
+        "P-GUA-6": 5,
+        "P-GUA-7": 2,
+        "P-GUA-8": 5,
+        "P-INT-1": 60,
+        "P-INT-2": 60,
+        "P-INT-3": 240,
+        "P-INT-4": 1,
+        "P-INT-5": 30,
+        "P-TDE-1": 25,
+        "P-TDE-2": 20,
+        "P-TDE-3": 30,
+        "P-TDE-4": 45,
+        "P-TDE-5": 6
+      },
+      "distintos_del_original": {
+        "P-ADM-3": 3,
+        "P-TDE-1": 25,
+        "P-TDE-2": 20,
+        "P-TDE-3": 30,
+        "P-TDE-4": 45,
+        "P-TDE-5": 6
+      },
+      "balance": {
+        "casos": 20,
+        "edad": {
+          "18-59": 11,
+          "60-74": 3,
+          "75+": 6
+        },
+        "circuito_triage": {
+          "codigo_acv": 4,
+          "ecg": 4,
+          "ninguno": 4,
+          "sepsis_posible": 4,
+          "sepsis_probable": 4
+        },
+        "dificultad": {
+          "acompanante": 3,
+          "art": 3,
+          "dos_credenciales": 3,
+          "general": 8,
+          "sin_nadie": 3
+        },
+        "grupo_aviso": {
+          "mayor_con_acompanante": 2,
+          "mayor_sin_acompanante": 4,
+          "menor": 14
+        },
+        "acompanante": {
+          "false": 12,
+          "true": 8
+        },
+        "edad_box": {
+          "false": 12,
+          "true": 8
+        },
+        "documento": {
+          "cédula": 1,
+          "dni": 6,
+          "ninguno": 8,
+          "pasaporte": 5
+        },
+        "llegada": {
+          "en ambulancia": 10,
+          "por sus propios medios": 10
+        },
+        "registro": {
+          "definitivo": 7,
+          "provisorio": 13
+        },
+        "box_antes_del_registro": {
+          "false": 1,
+          "true": 19
+        },
+        "circuito": {
+          "codigo_acv": 4,
+          "codigo_sepsis": 8,
+          "ecg": 4,
+          "ninguno": 4
+        },
+        "cobertura": {
+          "art": 3,
+          "obra_social": 4,
+          "prepaga": 2,
+          "sin_cobertura": 11
+        },
+        "aviso_al_voluntariado": {
+          "false": 16,
+          "true": 4
+        },
+        "verificacion_requerida": {
+          "false": 6,
+          "true": 14
+        },
+        "prohibidas": {
+          "0": 15,
+          "1": 5
+        }
+      }
+    }
+  },
+  "balance_total": {
+    "casos": 40,
+    "edad": {
+      "18-59": 21,
+      "60-74": 7,
+      "75+": 12
+    },
+    "circuito_triage": {
+      "codigo_acv": 8,
+      "ecg": 8,
+      "ninguno": 8,
+      "sepsis_posible": 8,
+      "sepsis_probable": 8
+    },
+    "dificultad": {
+      "acompanante": 6,
+      "art": 6,
+      "dos_credenciales": 6,
+      "general": 16,
+      "sin_nadie": 6
+    },
+    "grupo_aviso": {
+      "mayor_con_acompanante": 4,
+      "mayor_sin_acompanante": 8,
+      "menor": 28
+    },
+    "acompanante": {
+      "false": 26,
+      "true": 14
+    },
+    "edad_box": {
+      "false": 26,
+      "true": 14
+    },
+    "documento": {
+      "cédula": 4,
+      "dni": 13,
+      "ninguno": 15,
+      "pasaporte": 8
+    },
+    "llegada": {
+      "en ambulancia": 14,
+      "por sus propios medios": 26
+    },
+    "registro": {
+      "definitivo": 19,
+      "provisorio": 21
+    },
+    "box_antes_del_registro": {
+      "false": 12,
+      "true": 28
+    },
+    "circuito": {
+      "codigo_acv": 8,
+      "codigo_sepsis": 16,
+      "ecg": 8,
+      "ninguno": 8
+    },
+    "cobertura": {
+      "art": 6,
+      "obra_social": 6,
+      "prepaga": 7,
+      "sin_cobertura": 21
+    },
+    "aviso_al_voluntariado": {
+      "false": 32,
+      "true": 8
+    },
+    "verificacion_requerida": {
+      "false": 11,
+      "true": 29
+    },
+    "prohibidas": {
+      "0": 31,
+      "1": 9
+    }
+  },
+  "entradas_sha256": {
+    "practica/casos.jsonl": "959cb88edbdd6d40b7a979ac99dcf601593587fd8e9c8469ec1f3f02c25b80ca",
+    "entrenamiento/trazas.jsonl": "adc42d2769cdb90e8509ab4fc71daf02f8c8934137315d06e9f87bd402ff7290",
+    "historial/trazas.jsonl": "02a7a25bb73bfa199fe0a8a74d5a8332815b786e37056692a58167c9ec69cda8",
+    "datos/entrenamiento/conversaciones.jsonl": "f7b8fa8ab03a0e29fac41cc4339f34362bd0c10f85bd71ffec47d3fbc8987d6c",
+    "datos/conversaciones/v2-baseline/conversaciones.jsonl": "3e6b88970a23b7a1cde7fe5d2791b06f9d391282516d31445f05e07670aad2ee",
+    "historial_costumbres.json": "9edaf8a658c944f93e5c601bfe9e64f2048d3fa9cde990d08be99e8431270f06",
+    "normas/original/NOR-ADM-01.md": "03bbeab6030af42aad7ca933651c7df1791c21db6d1852156c859becdaadf19f",
+    "normas/original/NOR-ADM-02.md": "7b1e3943b6aa4458acf2e3510b0dc8349e0278c9d76e501070d9a8901e104a9e",
+    "normas/original/NOR-ADM-03.md": "5950ed28b4f5b6e9cd64137864f65c3ff339d81e3d0ebf6b348a0bd0dbf89392",
+    "normas/original/NOR-COB-01.md": "f20632f4d54d6c6110ef4760543e05a133bcbbf90db81781199597f60f800a76",
+    "normas/original/NOR-COB-02.md": "532427b8391fc8da9d1d4af03d3648e5bc6b81642701fd4908c2c9e85fe9b83a",
+    "normas/original/NOR-COB-03.md": "abb0702c28d752014886d5745950fe8ad7b12b71bbdb7dc1f679ecf4b8efa9af",
+    "normas/original/NOR-COB-04.md": "4fdf755a60f421aa15ca855d56e5e39dfccb13b3005759450e0c1f3ec1e78407",
+    "normas/original/NOR-DER-01.md": "cda0005b01c74d01600f7095cf0a94e363a7303aebcb152f6373189d0db90e21",
+    "normas/original/NOR-GUA-01.md": "7ac1584da7eca5687eb2503e54890c2fc3e47ea7da1034e49c8116a8771c3825",
+    "normas/original/NOR-GUA-02.md": "d3fe66b6e3d7de64418e03ea10531377a73bec5fb821720590185d99a92f6254",
+    "normas/original/NOR-GUA-03.md": "a61659a2065a58cd1bbfb2269f7e2af4d0af70c1326303af3e8fead23df5d6cf",
+    "normas/original/NOR-INT-01.md": "363d7ad1526616805c603c928b2a371b800fd8472eba6b19fe15d5678e365a56",
+    "normas/original/NOR-INT-02.md": "1cc7d83839166416181fdd6dfe6209a78571b8726701e4a9daeb834f1354be2c",
+    "normas/original/NOR-INT-03.md": "d3bee5c8db58a18fd36ab7f7215fd85da3cc3b63718c64d5a5f301816fb7ea09",
+    "normas/original/NOR-INT-04.md": "a4b9028f021cc0589fce90deadda541c8bf687fb1f912f90ec17180d7877cbc5",
+    "normas/original/NOR-INT-05.md": "fc45f7cdbfdbfab270814584a4396bb4c96b32bdd10a02911cb81a8ffcb70287",
+    "normas/original/NOR-TDE-01.md": "3b797e5d473c507eec41cd23f6695df6fff1454c946d49b4f1a69dbc59f5508e",
+    "normas/original/NOR-TDE-02.md": "d28774bbd789d45c0b613c408839db97a9a2fe199bc9ab15b7d06044dfc517e5",
+    "normas/original/NOR-TDE-03.md": "b7a2bc69aac41d272097f9bfb267c7a019e7861acbe4419fadbd50df85272929",
+    "normas/original/NOR-TDE-04.md": "8bb96dc7a512ce45db04276446d076b2cc1b016587f2aac300637263f140ada7",
+    "normas/original/parametros.yaml": "ebe040bc692498c85877714d6adcaf1611da63c901f55e8b2fc4012e85873420"
+  },
+  "archivos_sha256": {
+    "auditoria.jsonl": "48176e7922423a9dbea3e9d64fc8b1a8f2b44f06e7aff2be842b2a7d7cbd4807",
+    "entradas/n1/casos.jsonl": "631a4926e10516a79ca1c30d3c5fde40acbef46200626576ea0a2307b1a07f23",
+    "entradas/n1/normas/NOR-ADM-01.md": "03bbeab6030af42aad7ca933651c7df1791c21db6d1852156c859becdaadf19f",
+    "entradas/n1/normas/NOR-ADM-02.md": "7b1e3943b6aa4458acf2e3510b0dc8349e0278c9d76e501070d9a8901e104a9e",
+    "entradas/n1/normas/NOR-ADM-03.md": "5950ed28b4f5b6e9cd64137864f65c3ff339d81e3d0ebf6b348a0bd0dbf89392",
+    "entradas/n1/normas/NOR-COB-01.md": "f20632f4d54d6c6110ef4760543e05a133bcbbf90db81781199597f60f800a76",
+    "entradas/n1/normas/NOR-COB-02.md": "532427b8391fc8da9d1d4af03d3648e5bc6b81642701fd4908c2c9e85fe9b83a",
+    "entradas/n1/normas/NOR-COB-03.md": "abb0702c28d752014886d5745950fe8ad7b12b71bbdb7dc1f679ecf4b8efa9af",
+    "entradas/n1/normas/NOR-COB-04.md": "4fdf755a60f421aa15ca855d56e5e39dfccb13b3005759450e0c1f3ec1e78407",
+    "entradas/n1/normas/NOR-DER-01.md": "cda0005b01c74d01600f7095cf0a94e363a7303aebcb152f6373189d0db90e21",
+    "entradas/n1/normas/NOR-GUA-01.md": "7ac1584da7eca5687eb2503e54890c2fc3e47ea7da1034e49c8116a8771c3825",
+    "entradas/n1/normas/NOR-GUA-02.md": "d3fe66b6e3d7de64418e03ea10531377a73bec5fb821720590185d99a92f6254",
+    "entradas/n1/normas/NOR-GUA-03.md": "a61659a2065a58cd1bbfb2269f7e2af4d0af70c1326303af3e8fead23df5d6cf",
+    "entradas/n1/normas/NOR-INT-01.md": "363d7ad1526616805c603c928b2a371b800fd8472eba6b19fe15d5678e365a56",
+    "entradas/n1/normas/NOR-INT-02.md": "1cc7d83839166416181fdd6dfe6209a78571b8726701e4a9daeb834f1354be2c",
+    "entradas/n1/normas/NOR-INT-03.md": "d3bee5c8db58a18fd36ab7f7215fd85da3cc3b63718c64d5a5f301816fb7ea09",
+    "entradas/n1/normas/NOR-INT-04.md": "a4b9028f021cc0589fce90deadda541c8bf687fb1f912f90ec17180d7877cbc5",
+    "entradas/n1/normas/NOR-INT-05.md": "fc45f7cdbfdbfab270814584a4396bb4c96b32bdd10a02911cb81a8ffcb70287",
+    "entradas/n1/normas/NOR-TDE-01.md": "3b797e5d473c507eec41cd23f6695df6fff1454c946d49b4f1a69dbc59f5508e",
+    "entradas/n1/normas/NOR-TDE-02.md": "d28774bbd789d45c0b613c408839db97a9a2fe199bc9ab15b7d06044dfc517e5",
+    "entradas/n1/normas/NOR-TDE-03.md": "b7a2bc69aac41d272097f9bfb267c7a019e7861acbe4419fadbd50df85272929",
+    "entradas/n1/normas/NOR-TDE-04.md": "8bb96dc7a512ce45db04276446d076b2cc1b016587f2aac300637263f140ada7",
+    "entradas/n1/normas/parametros.yaml": "ebbf3787e77098641a4764a0fcda73f2bcf5f12d6cfd3aea194663cc91d8b54b",
+    "entradas/n2/casos.jsonl": "ca538b01284447b2ebead68ccb5670fa8dfd8b9ff68284c6a618016410004667",
+    "entradas/n2/normas/NOR-ADM-01.md": "03bbeab6030af42aad7ca933651c7df1791c21db6d1852156c859becdaadf19f",
+    "entradas/n2/normas/NOR-ADM-02.md": "7b1e3943b6aa4458acf2e3510b0dc8349e0278c9d76e501070d9a8901e104a9e",
+    "entradas/n2/normas/NOR-ADM-03.md": "5950ed28b4f5b6e9cd64137864f65c3ff339d81e3d0ebf6b348a0bd0dbf89392",
+    "entradas/n2/normas/NOR-COB-01.md": "f20632f4d54d6c6110ef4760543e05a133bcbbf90db81781199597f60f800a76",
+    "entradas/n2/normas/NOR-COB-02.md": "532427b8391fc8da9d1d4af03d3648e5bc6b81642701fd4908c2c9e85fe9b83a",
+    "entradas/n2/normas/NOR-COB-03.md": "abb0702c28d752014886d5745950fe8ad7b12b71bbdb7dc1f679ecf4b8efa9af",
+    "entradas/n2/normas/NOR-COB-04.md": "4fdf755a60f421aa15ca855d56e5e39dfccb13b3005759450e0c1f3ec1e78407",
+    "entradas/n2/normas/NOR-DER-01.md": "cda0005b01c74d01600f7095cf0a94e363a7303aebcb152f6373189d0db90e21",
+    "entradas/n2/normas/NOR-GUA-01.md": "7ac1584da7eca5687eb2503e54890c2fc3e47ea7da1034e49c8116a8771c3825",
+    "entradas/n2/normas/NOR-GUA-02.md": "d3fe66b6e3d7de64418e03ea10531377a73bec5fb821720590185d99a92f6254",
+    "entradas/n2/normas/NOR-GUA-03.md": "a61659a2065a58cd1bbfb2269f7e2af4d0af70c1326303af3e8fead23df5d6cf",
+    "entradas/n2/normas/NOR-INT-01.md": "363d7ad1526616805c603c928b2a371b800fd8472eba6b19fe15d5678e365a56",
+    "entradas/n2/normas/NOR-INT-02.md": "1cc7d83839166416181fdd6dfe6209a78571b8726701e4a9daeb834f1354be2c",
+    "entradas/n2/normas/NOR-INT-03.md": "d3bee5c8db58a18fd36ab7f7215fd85da3cc3b63718c64d5a5f301816fb7ea09",
+    "entradas/n2/normas/NOR-INT-04.md": "a4b9028f021cc0589fce90deadda541c8bf687fb1f912f90ec17180d7877cbc5",
+    "entradas/n2/normas/NOR-INT-05.md": "fc45f7cdbfdbfab270814584a4396bb4c96b32bdd10a02911cb81a8ffcb70287",
+    "entradas/n2/normas/NOR-TDE-01.md": "3b797e5d473c507eec41cd23f6695df6fff1454c946d49b4f1a69dbc59f5508e",
+    "entradas/n2/normas/NOR-TDE-02.md": "d28774bbd789d45c0b613c408839db97a9a2fe199bc9ab15b7d06044dfc517e5",
+    "entradas/n2/normas/NOR-TDE-03.md": "b7a2bc69aac41d272097f9bfb267c7a019e7861acbe4419fadbd50df85272929",
+    "entradas/n2/normas/NOR-TDE-04.md": "8bb96dc7a512ce45db04276446d076b2cc1b016587f2aac300637263f140ada7",
+    "entradas/n2/normas/parametros.yaml": "46b02d351228ec7df146f71c52716b909a77ce49fb3615c3d66beada9a3a2503",
+    "esperadas/esperadas-n1.jsonl": "44dea75daf5b2668614ee3def23417b2e17e33708e50d98e123495b92e21b4df",
+    "esperadas/esperadas-n2.jsonl": "14c5f91bd1ef2790e9e52af8d9f2c53f582648ad3b1302ef96ac5b3e69a1821d"
+  },
+  "uso": "python -m scripts.evaluar_prompts --prompt <spec> --configuracion <config> --casos <salida>/entradas/n<k>/casos.jsonl --esperadas <salida>/esperadas/esperadas-n<k>.jsonl --normas <salida>/entradas/n<k>/normas --salida <nueva>"
+}

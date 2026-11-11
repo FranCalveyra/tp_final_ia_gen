@@ -1,0 +1,500 @@
+{
+  "version": 2,
+  "contrato_conversaciones": 1,
+  "comando": "python -m scripts.generar_conversaciones --prompt configuraciones/prompts/procedimiento-v1.json --semilla 12012 --candidatos 5000",
+  "git": {
+    "commit": "b59239d1310efa63fa7efd541970cb1b4d99b273",
+    "dirty": false
+  },
+  "entradas_sha256": {
+    "entrenamiento/trazas.jsonl": "adc42d2769cdb90e8509ab4fc71daf02f8c8934137315d06e9f87bd402ff7290",
+    "historial/trazas.jsonl": "02a7a25bb73bfa199fe0a8a74d5a8332815b786e37056692a58167c9ec69cda8",
+    "historial/historial.csv": "bb3ed701bd4b1c6b35384ed8852011f29e7e499ca02bb3113b537daf064c232f",
+    "historial_clasificado.csv": "f602f5d9c591c56db7e56d621cb21878e3d279a949c113e7455505b6e538e122",
+    "historial_costumbres.json": "9edaf8a658c944f93e5c601bfe9e64f2048d3fa9cde990d08be99e8431270f06",
+    "practica/casos.jsonl": "959cb88edbdd6d40b7a979ac99dcf601593587fd8e9c8469ec1f3f02c25b80ca",
+    "normas/original/NOR-ADM-01.md": "03bbeab6030af42aad7ca933651c7df1791c21db6d1852156c859becdaadf19f",
+    "normas/original/NOR-ADM-02.md": "7b1e3943b6aa4458acf2e3510b0dc8349e0278c9d76e501070d9a8901e104a9e",
+    "normas/original/NOR-ADM-03.md": "5950ed28b4f5b6e9cd64137864f65c3ff339d81e3d0ebf6b348a0bd0dbf89392",
+    "normas/original/NOR-COB-01.md": "f20632f4d54d6c6110ef4760543e05a133bcbbf90db81781199597f60f800a76",
+    "normas/original/NOR-COB-02.md": "532427b8391fc8da9d1d4af03d3648e5bc6b81642701fd4908c2c9e85fe9b83a",
+    "normas/original/NOR-COB-03.md": "abb0702c28d752014886d5745950fe8ad7b12b71bbdb7dc1f679ecf4b8efa9af",
+    "normas/original/NOR-COB-04.md": "4fdf755a60f421aa15ca855d56e5e39dfccb13b3005759450e0c1f3ec1e78407",
+    "normas/original/NOR-DER-01.md": "cda0005b01c74d01600f7095cf0a94e363a7303aebcb152f6373189d0db90e21",
+    "normas/original/NOR-GUA-01.md": "7ac1584da7eca5687eb2503e54890c2fc3e47ea7da1034e49c8116a8771c3825",
+    "normas/original/NOR-GUA-02.md": "d3fe66b6e3d7de64418e03ea10531377a73bec5fb821720590185d99a92f6254",
+    "normas/original/NOR-GUA-03.md": "a61659a2065a58cd1bbfb2269f7e2af4d0af70c1326303af3e8fead23df5d6cf",
+    "normas/original/NOR-INT-01.md": "363d7ad1526616805c603c928b2a371b800fd8472eba6b19fe15d5678e365a56",
+    "normas/original/NOR-INT-02.md": "1cc7d83839166416181fdd6dfe6209a78571b8726701e4a9daeb834f1354be2c",
+    "normas/original/NOR-INT-03.md": "d3bee5c8db58a18fd36ab7f7215fd85da3cc3b63718c64d5a5f301816fb7ea09",
+    "normas/original/NOR-INT-04.md": "a4b9028f021cc0589fce90deadda541c8bf687fb1f912f90ec17180d7877cbc5",
+    "normas/original/NOR-INT-05.md": "fc45f7cdbfdbfab270814584a4396bb4c96b32bdd10a02911cb81a8ffcb70287",
+    "normas/original/NOR-TDE-01.md": "3b797e5d473c507eec41cd23f6695df6fff1454c946d49b4f1a69dbc59f5508e",
+    "normas/original/NOR-TDE-02.md": "d28774bbd789d45c0b613c408839db97a9a2fe199bc9ab15b7d06044dfc517e5",
+    "normas/original/NOR-TDE-03.md": "b7a2bc69aac41d272097f9bfb267c7a019e7861acbe4419fadbd50df85272929",
+    "normas/original/NOR-TDE-04.md": "8bb96dc7a512ce45db04276446d076b2cc1b016587f2aac300637263f140ada7",
+    "normas/original/parametros.yaml": "ebe040bc692498c85877714d6adcaf1611da63c901f55e8b2fc4012e85873420"
+  },
+  "uso_de_practica": "solo practica/casos.jsonl, para excluir casos repetidos; nunca esperadas",
+  "prompt": {
+    "nombre": "procedimiento-v1",
+    "version": 1,
+    "sha256": "8c692c2c67850f1448b5f4ecbda6037713110983c41b0e9da933612d2291ecdd",
+    "archivo": "configuraciones/prompts/procedimiento-v1.json",
+    "textos_usados": [
+      "system_prompt",
+      "mensaje_inicial",
+      "formato_observacion"
+    ],
+    "mensaje_json_invalido": "no aplica: las demostraciones no tienen respuestas inválidas"
+  },
+  "buscador": {
+    "variante": "baseline",
+    "clase": "BuscadorBM25",
+    "configuracion": {
+      "sin_comunes": false,
+      "prefijo": null,
+      "umbral_relativo": 0.0,
+      "k_entorno": 2
+    },
+    "k_entorno": 2,
+    "construido_con": "entrega.construir_buscador"
+  },
+  "semilla": 12012,
+  "candidatos_sinteticos": 5000,
+  "parametros": {
+    "originales": {
+      "P-ADM-1": 2,
+      "P-ADM-2": 67,
+      "P-ADM-3": 2,
+      "P-COB-1": 3,
+      "P-COB-2": 7,
+      "P-DER-1": 30,
+      "P-GUA-1": 5,
+      "P-GUA-2": 10,
+      "P-GUA-3": 30,
+      "P-GUA-4": 60,
+      "P-GUA-5": 120,
+      "P-GUA-6": 5,
+      "P-GUA-7": 2,
+      "P-GUA-8": 5,
+      "P-INT-1": 60,
+      "P-INT-2": 60,
+      "P-INT-3": 240,
+      "P-INT-4": 1,
+      "P-INT-5": 30,
+      "P-TDE-1": 10,
+      "P-TDE-2": 10,
+      "P-TDE-3": 15,
+      "P-TDE-4": 60,
+      "P-TDE-5": 5
+    },
+    "valores_de_la_referencia": {
+      "P-ADM-1": [
+        1,
+        2,
+        3
+      ],
+      "P-ADM-2": [
+        55,
+        60,
+        65,
+        67,
+        70,
+        72,
+        75,
+        80
+      ],
+      "P-ADM-3": [
+        1,
+        2,
+        3
+      ],
+      "P-COB-1": [
+        3
+      ],
+      "P-COB-2": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "P-TDE-1": [
+        10,
+        15,
+        20,
+        25
+      ],
+      "P-TDE-2": [
+        10,
+        15,
+        20,
+        25
+      ],
+      "P-TDE-3": [
+        10,
+        15,
+        20,
+        30
+      ],
+      "P-TDE-4": [
+        30,
+        45,
+        60,
+        90
+      ],
+      "P-TDE-5": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    "carpetas_de_normas_distintas": 1206,
+    "regla_no_observados": "valor original solo si la ficha no viola normas con ningún valor conocido; si no, la traza se excluye"
+  },
+  "curado_de_trazas": [
+    "si NOR-COB-02 es rectora y no se recupera, se inserta la búsqueda «accidente de trabajo ART» después de la consulta combinada de ART (la original no cambia)",
+    "se quitan de fundamentos las secciones no recuperadas en la conversación; si no queda ninguna, se quita la clave"
+  ],
+  "por_origen": {
+    "referencia": 800,
+    "historial": 1600,
+    "sintetico": 500
+  },
+  "entradas_por_origen": {
+    "referencia": 800,
+    "historial": 1600,
+    "sintetico": 500
+  },
+  "seleccion_historial": {
+    "total_historial": 2000,
+    "correctas_clasificadas": 1600,
+    "excluidas_error": 240,
+    "excluidas_ruido": 160,
+    "seleccionadas": 1600
+  },
+  "exclusiones": {
+    "referencia": {},
+    "historial": {},
+    "sintetico": {}
+  },
+  "estadisticas": {
+    "historial": {
+      "conversaciones": 1600,
+      "cobertura_evidencia": {
+        "con_todas_las_rectoras": 1600,
+        "rectoras_recuperadas_sobre_requeridas": {
+          "1/1": 142,
+          "2/2": 596,
+          "3/3": 574,
+          "4/4": 226,
+          "5/5": 60,
+          "6/6": 2
+        },
+        "rectora_faltante_por_seccion": {},
+        "con_todos_los_fundamentos": 1600,
+        "fundamento_faltante_por_seccion": {}
+      },
+      "curado": {
+        "busquedas_insertadas": 93,
+        "conversaciones_con_fundamentos_quitados": 1543,
+        "conversaciones_sin_fundamentos": 0,
+        "fundamentos_quitados_por_seccion": {
+          "NOR-COB-01": 310,
+          "NOR-COB-02": 472,
+          "NOR-COB-03": 761
+        }
+      },
+      "parametros": {
+        "conjuntos_distintos": 1,
+        "con_todos_los_valores_originales": 1600,
+        "con_supuestos_originales": 1592,
+        "valores": {
+          "P-ADM-1": {
+            "2": 1600
+          },
+          "P-ADM-2": {
+            "67": 1600
+          },
+          "P-ADM-3": {
+            "2": 1600
+          },
+          "P-COB-1": {
+            "3": 1600
+          },
+          "P-COB-2": {
+            "7": 1600
+          },
+          "P-TDE-1": {
+            "10": 1600
+          },
+          "P-TDE-2": {
+            "10": 1600
+          },
+          "P-TDE-3": {
+            "15": 1600
+          },
+          "P-TDE-4": {
+            "60": 1600
+          },
+          "P-TDE-5": {
+            "5": 1600
+          }
+        }
+      },
+      "caracteres_por_conversacion": {
+        "n": 1600,
+        "min": 8926,
+        "mediana": 11823.0,
+        "media": 11642.27,
+        "max": 15931
+      },
+      "llamadas_por_conversacion": {
+        "n": 1600,
+        "min": 4,
+        "mediana": 7.0,
+        "media": 6.6,
+        "max": 10
+      }
+    },
+    "referencia": {
+      "conversaciones": 800,
+      "cobertura_evidencia": {
+        "con_todas_las_rectoras": 800,
+        "rectoras_recuperadas_sobre_requeridas": {
+          "1/1": 47,
+          "2/2": 255,
+          "3/3": 305,
+          "4/4": 150,
+          "5/5": 41,
+          "6/6": 2
+        },
+        "rectora_faltante_por_seccion": {},
+        "con_todos_los_fundamentos": 800,
+        "fundamento_faltante_por_seccion": {}
+      },
+      "curado": {
+        "busquedas_insertadas": 49,
+        "conversaciones_con_fundamentos_quitados": 783,
+        "conversaciones_sin_fundamentos": 0,
+        "fundamentos_quitados_por_seccion": {
+          "NOR-COB-01": 158,
+          "NOR-COB-02": 187,
+          "NOR-COB-03": 438
+        }
+      },
+      "parametros": {
+        "conjuntos_distintos": 706,
+        "con_todos_los_valores_originales": 2,
+        "con_supuestos_originales": 798,
+        "valores": {
+          "P-ADM-1": {
+            "1": 292,
+            "2": 249,
+            "3": 259
+          },
+          "P-ADM-2": {
+            "55": 114,
+            "60": 108,
+            "65": 98,
+            "67": 100,
+            "70": 104,
+            "72": 93,
+            "75": 96,
+            "80": 87
+          },
+          "P-ADM-3": {
+            "1": 63,
+            "2": 678,
+            "3": 59
+          },
+          "P-COB-1": {
+            "3": 800
+          },
+          "P-COB-2": {
+            "0": 56,
+            "1": 70,
+            "2": 66,
+            "3": 49,
+            "4": 72,
+            "5": 72,
+            "6": 72,
+            "7": 237,
+            "8": 59,
+            "9": 47
+          },
+          "P-TDE-1": {
+            "10": 591,
+            "15": 81,
+            "20": 67,
+            "25": 61
+          },
+          "P-TDE-2": {
+            "10": 704,
+            "15": 39,
+            "20": 33,
+            "25": 24
+          },
+          "P-TDE-3": {
+            "10": 76,
+            "15": 564,
+            "20": 81,
+            "30": 79
+          },
+          "P-TDE-4": {
+            "30": 74,
+            "45": 85,
+            "60": 564,
+            "90": 77
+          },
+          "P-TDE-5": {
+            "2": 70,
+            "3": 75,
+            "4": 66,
+            "5": 527,
+            "6": 62
+          }
+        }
+      },
+      "caracteres_por_conversacion": {
+        "n": 800,
+        "min": 8929,
+        "mediana": 11818.0,
+        "media": 11674.77,
+        "max": 15961
+      },
+      "llamadas_por_conversacion": {
+        "n": 800,
+        "min": 4,
+        "mediana": 7.0,
+        "media": 6.65,
+        "max": 10
+      }
+    },
+    "sintetico": {
+      "conversaciones": 500,
+      "cobertura_evidencia": {
+        "con_todas_las_rectoras": 500,
+        "rectoras_recuperadas_sobre_requeridas": {
+          "1/1": 29,
+          "2/2": 166,
+          "3/3": 200,
+          "4/4": 85,
+          "5/5": 19,
+          "6/6": 1
+        },
+        "rectora_faltante_por_seccion": {},
+        "con_todos_los_fundamentos": 500,
+        "fundamento_faltante_por_seccion": {}
+      },
+      "curado": {
+        "busquedas_insertadas": 0,
+        "conversaciones_con_fundamentos_quitados": 0,
+        "conversaciones_sin_fundamentos": 0,
+        "fundamentos_quitados_por_seccion": {}
+      },
+      "parametros": {
+        "conjuntos_distintos": 500,
+        "con_todos_los_valores_originales": 0,
+        "con_supuestos_originales": 0,
+        "valores": {
+          "P-ADM-1": {
+            "1": 173,
+            "2": 179,
+            "3": 148
+          },
+          "P-ADM-2": {
+            "55": 55,
+            "60": 61,
+            "65": 57,
+            "67": 76,
+            "70": 59,
+            "72": 65,
+            "75": 65,
+            "80": 62
+          },
+          "P-ADM-3": {
+            "1": 154,
+            "2": 178,
+            "3": 168
+          },
+          "P-COB-1": {
+            "3": 500
+          },
+          "P-COB-2": {
+            "0": 45,
+            "1": 45,
+            "2": 51,
+            "3": 56,
+            "4": 49,
+            "5": 55,
+            "6": 58,
+            "7": 53,
+            "8": 52,
+            "9": 36
+          },
+          "P-TDE-1": {
+            "10": 114,
+            "15": 127,
+            "20": 132,
+            "25": 127
+          },
+          "P-TDE-2": {
+            "10": 137,
+            "15": 130,
+            "20": 124,
+            "25": 109
+          },
+          "P-TDE-3": {
+            "10": 128,
+            "15": 124,
+            "20": 127,
+            "30": 121
+          },
+          "P-TDE-4": {
+            "30": 118,
+            "45": 127,
+            "60": 122,
+            "90": 133
+          },
+          "P-TDE-5": {
+            "2": 92,
+            "3": 100,
+            "4": 101,
+            "5": 104,
+            "6": 103
+          }
+        }
+      },
+      "caracteres_por_conversacion": {
+        "n": 500,
+        "min": 11327,
+        "mediana": 16610.0,
+        "media": 16213.14,
+        "max": 22931
+      },
+      "llamadas_por_conversacion": {
+        "n": 500,
+        "min": 5,
+        "mediana": 8.0,
+        "media": 8.36,
+        "max": 12
+      }
+    }
+  },
+  "longitudes": "caracteres, no tokens: la tokenización real no se ejecutó",
+  "salida": {
+    "conversaciones_sha256": "3213595f6a3cd3b7b21c003c6357a6617d89cd0236f8068d296b26bbf5e09834",
+    "registros": 2900,
+    "validos": 2900,
+    "auditoria_sha256": "ce5d036886050045f8981dfef68cb7363ef4ecd0911db8d5a3e3e88f5af76438"
+  }
+}

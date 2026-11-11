@@ -173,6 +173,22 @@ ART; NOR-COB-04 si el número verificado (no ART) termina en P-COB-2; la secció
 si llegó en ambulancia con circuito. También se mide si cada sección citada en `fundamentos` aparece en
 alguna búsqueda. El guion sintético busca cada sección rectora y cada fundamento que cita.
 
+**Dataset v3 con el prompt elegido en #13 (2026-11-11).** La consigna pide entrenar con el prompt optimizado;
+`procedimiento-v1` se eligió en el conjunto de desarrollo ([optimización de prompt](optimizacion-prompt.md#decisión)):
+
+```bash
+uv run --locked --no-sync python -m scripts.generar_conversaciones \
+  --prompt configuraciones/prompts/procedimiento-v1.json --salida datos/conversaciones/v3-procedimiento
+```
+
+~20 s de CPU; 2.900/2.900 válidas, commit `b59239d` con `dirty=false`, regeneración byte a byte idéntica.
+Comparado con `v2-baseline`: las 2.900 conversaciones cambian **solo el mensaje de sistema**; el resto de los
+mensajes, los metadatos y `auditoria.jsonl` son idénticos. v2 queda sin tocar. **Qué dataset se entrena lo
+decide #15 (Fran)**: con v3 la fila `ambos` usa el mismo prompt del entrenamiento y `solo_entrenamiento` debería
+usar también `procedimiento-v1` o declararse como cambio de prompt. Las demostraciones no se reescribieron para
+seguir el procedimiento al pie de la letra: conservan sus búsquedas (3,1 por conversación en referencia e
+historial, 4,9 en sintéticas), cerca de las 3,5 que hace el modelo sin entrenar con este prompt.
+
 **Límites.** No se tokenizó (requiere descargar el tokenizador real): los largos son caracteres.
 La identidad de contaminación es exacta (triage/números), no detecta paráfrasis.
 Resultados de la versión generada: [bitácora](progreso.md) e [INFORME](../INFORME.md#parte-1-conversaciones).

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "nombre": "parte4-solo-prompt",
+  "descripcion": "Fila solo_prompt (#13, 2026-11-11): Gemma 4 E4B base + procedimiento-v1, el prompt elegido en el conjunto de desarrollo (9/40 contra 8/40 del baseline; ver docs/optimizacion-prompt.md). Práctica solo para reportar el antes y después: no se usa para elegir. La fila sin_entrenar es actual.json (Kaggle v25).",
+  "cantidad": 50,
+  "versiones": ["original", "b", "c"],
+  "lote": 4,
+  "buscador": "baseline",
+  "configuraciones": [
+    {
+      "etiqueta": "solo_prompt",
+      "descripcion": "Modelo base sin adapter y prompt procedimiento-v1 (elegido en datos/prompt-dev/v1).",
+      "prompt": "configuraciones/prompts/procedimiento-v1.json",
+      "prompt_sha256": "8c692c2c67850f1448b5f4ecbda6037713110983c41b0e9da933612d2291ecdd",
+      "adapter": null
+    }
+  ]
+}

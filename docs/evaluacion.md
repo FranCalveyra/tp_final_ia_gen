@@ -51,7 +51,7 @@ el MCP de Kaggle (`download_notebook_output`) a una carpeta **nueva** `corridas/
 ## 2. Puntuar y armar la tabla (local, sin GPU)
 
 ```
-rtk proxy uv run --locked --no-sync python -m scripts.tabla_evaluacion \
+uv run --locked --no-sync python -m scripts.tabla_evaluacion \
     --evaluacion corridas/kaggle/vNN/evaluacion-actual --salida corridas/tablas/<fecha>-<nombre>
 ```
 
@@ -78,7 +78,7 @@ celda también se rechazan: hay que elegir una explícitamente.
 ## Comprobación con artefactos reales (2026-11-10)
 
 ```
-rtk proxy uv run --locked --no-sync python -m scripts.tabla_evaluacion \
+uv run --locked --no-sync python -m scripts.tabla_evaluacion \
     --corrida sin_entrenar=corridas/kaggle/v22/baseline-original-n50-l4 \
     --salida corridas/tablas/2026-11-10-v22-sin-entrenar
 ```
@@ -88,6 +88,19 @@ parcial 0,831, 19.954 caracteres de contexto por caso, 15,16 s/caso; `resultados
 al puntuado antes a mano. b y c salen «— sin corrida». El runner de v22 es anterior al registro del prompt en
 `runner.json`, así que la tabla dice «prompt no registrado» y lo marca como aviso. `corridas/kaggle/v24/` se
 rechaza: solo tiene `trazas.jsonl`, sin `runner.json`.
+
+## Corridas en GPU (Kaggle T4, 2026-11-10/11)
+
+| Plan | Sesión | Fila | original | b | c | Contexto/caso |
+|---|---|---|---:|---:|---:|---:|
+| `actual.json` | v25 | `sin_entrenar` | 10/50 | 10/50 | 7/50 | ~19.800 |
+| `solo-prompt.json` | v27 | `solo_prompt` (`procedimiento-v1`) | 14/50 | 16/50 | 12/50 | ~52.500 |
+
+`sin_entrenar` × original reproduce v22 exacto (10/50, parcial 0,831, 19.954 caracteres). Tabla completa:
+`python -m scripts.tabla_evaluacion --evaluacion corridas/kaggle/v25/evaluacion-actual --evaluacion
+corridas/kaggle/v27/evaluacion-solo-prompt --salida corridas/tablas/<nueva>`. Cada sesión de una fila tardó
+~40 min (baseline) y ~65 min (B) de jugar, más instalación. El prompt de `solo_prompt` se eligió en el conjunto
+de desarrollo ([optimización de prompt](optimizacion-prompt.md#decisión)), no en práctica.
 
 ## Límites y costo
 
