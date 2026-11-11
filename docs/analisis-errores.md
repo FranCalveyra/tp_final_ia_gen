@@ -168,6 +168,65 @@ Todas: Gemma 4 E4B **sin entrenar**, Kaggle T4, normas original, 50 casos de pr�
 - **Decisión:** solo confirma que la entrega nueva no cambia decisiones en esos 10 casos; no es una medición
   completa.
 
+### 2026-11-11 · Pasada 5: #13 `procedimiento-v1` contra `baseline` en el conjunto de desarrollo
+
+- **Corridas:** `corridas/kaggle/v25/prompt-dev-f1/{baseline,procedimiento-v1}-{n1,n2}` (runner del #13, commit
+  `f4d7300` limpio, buscador `baseline`, `datos/prompt-dev/v1`, **no práctica**). Salidas:
+  `corridas/analisis/2026-11-11-cmp-v25-procedimiento-vs-baseline-{n1,n2}/`. Las corridas descargadas no traían
+  `entradas/normas/`; se copió `datos/prompt-dev/v1/entradas/n<k>/normas` tras verificar que cada archivo coincide
+  con el sha256 del manifiesto de la corrida.
+- **Resultado:** n1 4 → 4 (gana 3, pierde 3), n2 4 → 5 (gana 2, pierde 1); signos p=1,0 en ambas. El baseline en el
+  dev repite el perfil de la pasada 1: buscador y modelo «no buscó» como fuentes principales, aviso solo costumbre.
+
+| Control | Arreglados n1/n2 | Rotos n1/n2 | Buscador antes → después (n1+n2) | Modelo antes → después (n1+n2) |
+|---|---|---|---|---|
+| registro | 4/4 | 0/2 | 7 → 0 | 6 → 7 |
+| box_antes_del_registro | 4/6 | 2/0 | 6 → 0 | 10 → 8 |
+| circuito | 0/2 | 0/0 | 0 → 0 | 2 → 0 |
+| plazo_circuito_min | 2/4 | 3/1 | 5 → 0 | 5 → 8 |
+| cobertura | 0/3 | 1/1 | 1 → 2 | 7 → 4 |
+| entidad_a_notificar | 0/1 | 3/1 | 1 → 1 | 4 → 6 |
+| aviso_al_voluntariado | 0/0 | 0/0 | 0 → 0 | 0 → 0 (8 → 8 costumbre) |
+| verificacion | 1/0 | 4/3 | 1 → 1 | 6 → 11 |
+
+- Costo: ~19.000 → ~53.000 caracteres/caso, 1,35 → 3,6 búsquedas, 4,8 → 6,75 llamadas.
+- **Hallazgo:** el procedimiento hace lo que se buscaba en el RAG: las fallas atribuibles al buscador pasan de 21 a
+  4 (registro, box y plazo quedan en 0), porque cada tema se busca por separado. Pero el modelo **decide mal con la
+  evidencia delante**: suben las fallas «buscó y decidió mal» en `verificacion` (6 → 11), `plazo` y `entidad`. El
+  aviso no se mueve (es costumbre; B no la menciona). La ganancia neta en casos es ruido.
+- **Para #15 (Fran):** el prompt solo ya no puede arreglar lo que queda: con la evidencia correcta en contexto, el
+  modelo base no aplica bien verificación, plazo y entidad, ni la costumbre del aviso. Eso es lo que tienen que
+  enseñar las conversaciones de #8 (decidir y verificar con la sección recuperada, y la costumbre). Comparar el
+  checkpoint contra estas corridas con `comparar`.
+- **C (`procedimiento-costumbres-v1`) no se analizó:** falla en GPU de forma reproducible (ver
+  [optimizacion-prompt.md](optimizacion-prompt.md#resultados-kaggle-v25v27)).
+
+### 2026-11-11 · Pasada 6: fila `solo_prompt` contra `sin_entrenar` en práctica (solo reporte)
+
+- **Corridas:** `corridas/kaggle/v25/evaluacion-actual/sin_entrenar-<v>` (prompt `baseline`, commit `f4d7300`) contra
+  `corridas/kaggle/v27/evaluacion-solo-prompt/solo_prompt-<v>` (prompt `procedimiento-v1`, commit `a5745f0`), v =
+  original, b, c; buscador `baseline`, lote 4, T4. Salidas: `corridas/analisis/2026-11-11-cmp-v27-solo-prompt-vs-sin-entrenar-<v>/`.
+  El prompt ya estaba elegido en el dev (pasada 5): esto no se usó para elegir.
+- **Resultado:** original 10 → 14 (gana 7, pierde 3), b 10 → 16 (9/3), c 7 → 12 (7/2); signos p=0,34 / 0,15 / 0,18
+  por versión. Las tres versiones comparten pacientes, así que no se suman como independientes.
+
+| Control (original) | Arreglados | Rotos | Fuentes antes (F/C/B/M) | Fuentes después (F/C/B/M) |
+|---|---|---|---|---|
+| registro | 4 | 1 | 0/0/8/4 | 0/0/0/9 |
+| box_antes_del_registro | 11 | 2 | 0/0/10/4 | 0/0/0/5 |
+| plazo_circuito_min | 3 | 0 | 0/0/2/2 | 0/0/0/1 |
+| cobertura | 4 | 5 | 0/1/2/7 | 0/3/0/8 |
+| entidad_a_notificar | 3 | 8 | 0/0/3/6 | 0/2/0/12 |
+| aviso_al_voluntariado | 0 | 0 | 0/14/0/0 | 0/14/0/0 |
+| verificacion | 3 | 11 | 0/1/2/9 | 0/3/0/17 |
+
+- **Hallazgo:** el mismo patrón que en el dev, más marcado. Las fallas del buscador pasan a 0 en registro, box y
+  plazo (en las tres versiones), y box gana 11–12 casos por versión. Lo que empeora es decisión del modelo con la
+  evidencia correcta: verificación (7–11 rotos por versión) y entidad a notificar (5–8). El aviso queda en 14
+  fallas de costumbre en las tres. **Línea de base para #15:** comparar `solo_entrenamiento` y `ambos` contra
+  estas corridas con `comparar`; el entrenamiento tiene que bajar «modelo» en verificación/entidad y «costumbre»
+  en el aviso sin devolver las fallas del buscador.
+
 ## Uso para #13 y #15
 
 - **Qué conclusiones se usaron para diseñar candidatos de #13** (solo patrones genéricos, sin contenido de casos
