@@ -1,19 +1,28 @@
-# Optimización de prompt — infraestructura inicial
+# Optimización de prompt
 
 ## Objetivo
 
 El issue #13 implementa la Parte 3 de la misión: optimizar el mensaje de sistema y el
-formato de los mensajes con Gemma 4 sin entrenar, antes del SFT. La comparación futura
-debe considerar tanto los nueve controles como el largo del prompt y conservar evidencia
-reproducible de cada candidato.
+formato de los mensajes con Gemma 4 sin entrenar, antes del SFT. La comparación considera
+los nueve controles y el largo del prompt, y conserva evidencia reproducible de cada candidato.
 
-Esta primera unidad solo permite definir y ejecutar prompts configurables. No integra
-DSPy/GEPA ni genera datos. Desde el issue #7 (2026-11-10), `entrega.py` usa `AgentePrompt`
-con el `PromptSpec` de `PROMPT_SPEC` o el baseline (ver [contrato de formato](#contrato-de-formato-7--13)).
+## Estado (2026-11-11)
 
-Las unidades siguientes agregan medición de tokens, una métrica común y un runner
-auditable para candidatos. Todavía no se seleccionó un prompt: la optimización queda para
-corridas autorizadas sobre datos externos permitidos (no práctica).
+- **Elegido:** B `procedimiento-v1` en el conjunto de desarrollo `datos/prompt-dev/v1`
+  (9/40 contra 8/40 del baseline; 857 contra 615 tokens). Práctica solo se usó para reportar:
+  14/16/12 contra 10/10/7. Detalle en [Resultados](#resultados-kaggle-v25v27) y [Decisión](#decisión).
+- **Método:** búsqueda manual entre cinco candidatos, no DSPy/GEPA (la misión lo sugiere,
+  no lo exige). Los candidatos se diseñaron mirando el perfil agregado de fallas de práctica
+  v22; la selección se hizo solo en el conjunto de desarrollo (ver [Decisiones y límites](#decisiones-y-límites)).
+- **Pendiente:** solo se optimizó el mensaje de sistema. El formato de los mensajes
+  (`mensaje_inicial`, `formato_observacion`, `mensaje_json_invalido`) sigue igual al baseline
+  en los cinco candidatos; optimizarlo requiere otra corrida en GPU.
+- **Abierto:** `entrega.py` sigue usando el baseline. Pasarlo a B y elegir con qué conversaciones
+  entrena #15 (`v2-baseline` o `v3-procedimiento`) se decide en equipo.
+
+Desde el issue #7 (2026-11-10), `entrega.py` usa `AgentePrompt` con el `PromptSpec` de
+`PROMPT_SPEC` o el baseline (ver [contrato de formato](#contrato-de-formato-7--13)). Las secciones
+siguientes describen la infraestructura en el orden en que se construyó.
 
 **Validado con Gemma real (2026-11-10, Kaggle v23):** `AgentePrompt` con el prompt `baseline`
 reproduce exactamente al `AgenteJSON` del kit (50/50 conversaciones idénticas, 10/50 en
@@ -447,7 +456,8 @@ Contexto (`caracteres_de_contexto` del kit) rejugando las 50 trazas v22 `baselin
 (`scripts.medir_contexto`). **Mide formato, no conducta:** supone las mismas respuestas del modelo.
 Si B/C/D logran que el modelo busque más, cada caso tendrá más llamadas y más contexto que esto.
 Tokens: solo el baseline está medido con el tokenizer real (615, v23); el resto es estimación
-proporcional a caracteres (615/2.232) hasta que el runner lo mida en GPU.
+proporcional a caracteres (615/2.232). **Los tokens reales de A–D (453, 857, 969, 659) están
+en [Resultados](#resultados-kaggle-v25v27);** esta tabla queda como estimación previa.
 
 | Prompt | Caracteres sistema | vs baseline | Tokens sistema | Contexto/caso (v22 rejugado) | vs baseline |
 |---|---:|---:|---:|---:|---:|
