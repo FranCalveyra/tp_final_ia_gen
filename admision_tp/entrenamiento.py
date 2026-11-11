@@ -113,7 +113,8 @@ def perdida_supervisada(torch, modelo, entradas, num_items_in_batch=None):
     en una T4 (OOM en Kaggle v28). `logits_to_keep` booleano devuelve (n_conservadas, vocab).
     """
     conservar, objetivos = posiciones_supervisadas(entradas["labels"].tolist())
-    conservar = torch.tensor(conservar, dtype=torch.bool, device=entradas["input_ids"].device)
+    # En CPU: con device_map="auto" la última capa puede quedar en otra GPU que input_ids (Kaggle v29).
+    conservar = torch.tensor(conservar, dtype=torch.bool)
     logits = modelo(input_ids=entradas["input_ids"], attention_mask=entradas["attention_mask"],
                     logits_to_keep=conservar).logits.float()
     objetivos = torch.tensor(objetivos, dtype=torch.long, device=logits.device)
