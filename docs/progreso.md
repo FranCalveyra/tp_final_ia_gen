@@ -27,7 +27,7 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | [#9 Evaluación completa](https://github.com/FranCalveyra/tp_final_ia_gen/issues/9) | **Cerrado; filas medidas en GPU T4 (2026-11-11).** `sin_entrenar` (v25) 10/10/7 y `solo_prompt` (v27, `procedimiento-v1`) 14/16/12 en práctica original/b/c | Filas `solo_entrenamiento` y `ambos` cuando haya adapter publicado (#15); A100 en KI-A100-001 |
 | #10 Historial | **Implementado (2026-11-05).** Clasificador determinista, pruebas, `historial_clasificado.csv`, análisis reutilizable de costumbres e informe | Mantenerlo compatible con la curación del issue #11 |
 | #11 Costumbres | **Implementado (2026-11-05).** Trazas validadas, dos costumbres confirmadas, patrón por operador documentado y resumen para el equipo | Revisar con Martu y Eze antes de usarlo en el prompt final |
-| [#13 Prompt](https://github.com/FranCalveyra/tp_final_ia_gen/issues/13) | **Validado en GPU T4 (Eze, 2026-11-11).** Elegido `procedimiento-v1` en el dev (9/40 contra 8/40); `prefijos` pierde (4/40); C falla en CUDA de forma reproducible. Práctica (solo reporte): 42/150 contra 27/150, a ~2,6× de contexto | Decisión de equipo: default de `entrega.py` y prompt de las conversaciones de #8 ([detalle](optimizacion-prompt.md#decisión)) |
+| [#13 Prompt](https://github.com/FranCalveyra/tp_final_ia_gen/issues/13) | **Validado en GPU T4 (Eze, 2026-11-11).** Elegido `procedimiento-v1` en el dev (9/40 contra 8/40); `prefijos` pierde (4/40); C falla en CUDA de forma reproducible. Práctica (solo reporte): 42/150 contra 27/150, a ~2,6× de contexto | #8 regenerado con B en `v3-procedimiento`. Decisión de equipo: default de `entrega.py` y qué dataset entrena #15 ([detalle](optimizacion-prompt.md#decisión)) |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
 El formato de conversaciones es **propuesto**, pendiente de coordinación con Eze/Yas.
@@ -979,8 +979,10 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   `sin_entrenar` 10/10/7 (v25), por encima de la referencia sin entrenar de la cátedra (12/15/12). Caso por caso:
   23 ganados y 8 perdidos (versiones no independientes). Sube box, plazo y registro; bajan verificación y entidad;
   el aviso no cambia. Análisis en [análisis de errores, pasadas 5–6](analisis-errores.md).
-- **Sin cambiar (decisión de equipo):** default de `entrega.py` (sigue `baseline`; recomendación: B) y prompt de las
-  conversaciones de #8 (Fran, #15).
+- **#8 regenerado con B:** `datos/conversaciones/v3-procedimiento` (~20 s CPU, 2.900 válidas, `dirty=false`,
+  regeneración idéntica); frente a v2 solo cambia el mensaje de sistema. v2 queda igual.
+- **Sin cambiar (decisión de equipo):** default de `entrega.py` (sigue `baseline`; recomendación: B) y qué dataset
+  entrena #15 (Fran; la consigna pide el prompt optimizado, o sea v3).
 - **Cuota:** v25 ~1 h 58 min, v26 1 h 3 min, v27 1 h 12 min de T4 (límites 2× la estimación); usado 5 h 52 min de 30 h hasta el 14/11.
 - **Evidencia:** 259 tests CPU OK (1 omitido). Se quitó un prefijo de herramienta local que había quedado en
   `docs/evaluacion.md`.

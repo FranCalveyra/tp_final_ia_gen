@@ -678,17 +678,16 @@ demostrada**, es el único candidato que no empeora. Lo que sí es claro:
 Con el criterio declarado antes de correr (más casos resueltos en el dev y, a igualdad, menos tokens),
 **el prompt elegido es B `procedimiento-v1`** con el buscador `baseline`. En el dev la evidencia es débil
 (+1 caso sobre 40); en práctica (solo reporte, abajo) la ganancia es clara: 42/150 contra 27/150. Cuesta
-~2,6× de contexto por caso. Lo que **no** se cambió en este issue, porque son decisiones de entrega y de
-entrenamiento que hay que tomar en equipo:
+~2,6× de contexto por caso. Qué cambia y qué queda para decidir en equipo:
 
 - **`entrega.py` sigue apuntando al baseline.** Recomendación: pasar el default a B (más casos resueltos
   en las tres versiones de práctica, a costa de contexto). Mientras tanto, para usar B:
   `PROMPT_SPEC=configuraciones/prompts/procedimiento-v1.json`.
-- **Las conversaciones de #8 no se regeneraron con B.** Cambia los datos de entrenamiento de Fran (#15)
-  y lo que significa la fila `solo_entrenamiento` (adapter + el prompt con el que se entrenó). Si se
-  decide: `python -m scripts.generar_conversaciones --prompt configuraciones/prompts/procedimiento-v1.json
-  --salida datos/conversaciones/<nueva>`. Ojo: lo que B no arregla (verificación, entidad, aviso) es
-  justamente lo que el entrenamiento tiene que enseñar ([pasada 5](analisis-errores.md)).
+- **Las conversaciones de #8 se regeneraron con B en una carpeta nueva**, `datos/conversaciones/v3-procedimiento`
+  (la consigna pide entrenar con el prompt optimizado); `v2-baseline` queda igual. Solo cambia el mensaje de
+  sistema ([detalle](conversaciones-entrenamiento.md)). Cuál se entrena lo decide #15 (Fran), porque define
+  qué prompt usan las filas `solo_entrenamiento` y `ambos`. Lo que B no arregla (verificación, entidad,
+  aviso) es justamente lo que el entrenamiento tiene que enseñar ([pasada 5](analisis-errores.md)).
 
 ### Fase 2: práctica, solo para reportar (v27)
 
@@ -747,8 +746,9 @@ del fallo CUDA de C, y si la ventaja de B sobre el baseline (+1 caso) se sostien
 2. ~~Fase 1 en Kaggle y ranking~~ (v25–v26): B `procedimiento-v1`.
 3. ~~`prefijos` con el elegido~~ (v26): pierde; se queda `baseline`.
 4. ~~B en práctica para la fila `solo_prompt`~~ (v27).
-5. **Decisión de equipo (Eze + Fran):** default de `entrega.py` y prompt de las conversaciones de #8,
-   a la luz de la fila `solo_prompt` y del costo de contexto ×2,7.
-6. Si sobra GPU: diagnosticar el fallo CUDA de C (correr el caso que lo dispara con lote 1) y probarlo
+5. ~~Regenerar #8 con el elegido~~: `datos/conversaciones/v3-procedimiento`.
+6. **Decisión de equipo (Eze + Fran):** default de `entrega.py` y si #15 entrena con v3 (recomendado por la
+   consigna) o v2, a la luz de la fila `solo_prompt` y del costo de contexto ×2,6.
+7. Si sobra GPU: diagnosticar el fallo CUDA de C (correr el caso que lo dispara con lote 1) y probarlo
    en A100; C es el candidato con mejores parciales cuando termina.
-7. DSPy/GEPA con versiones fijadas, solo si queda margen, sin servicios externos en el agente operativo.
+8. DSPy/GEPA con versiones fijadas, solo si queda margen, sin servicios externos en el agente operativo.

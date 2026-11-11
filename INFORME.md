@@ -327,3 +327,55 @@ alcanzan tiempo y cuota, se repetirá la comparación con el modelo entrenado.
 - Resultados de agente en T4; falta medir en A100-40GB.
 - Artefactos de las corridas locales e ignorados por Git: `corridas/kaggle/v22/` (runner, métricas, trazas
   y puntuación) y `corridas/rag-*-20261110/` (comparaciones de `evaluar_rag`).
+
+## Parte 3: prompt
+
+Con Gemma 4 E4B **sin entrenar** se optimizó solo el mensaje de sistema; el formato de los mensajes (mensaje
+inicial, observaciones y aviso de JSON inválido) quedó como el de la cátedra porque cambiarlo ahorraba ≤1,4 % del
+contexto y obligaba a regenerar las conversaciones. Detalle, comandos y corridas en
+[optimización de prompt](docs/optimizacion-prompt.md#resultados-kaggle-v25v27).
+
+**Cómo se eligió sin tocar práctica ni test.** Los candidatos se diseñaron desde el perfil agregado de fallas
+del modelo sin entrenar (busca una vez y decide de memoria; nunca aplica la costumbre del voluntariado) y se
+eligieron en un conjunto de desarrollo propio, `datos/prompt-dev/v1`: 40 casos nuevos del generador de la
+cátedra (semilla 20261110, sin pacientes de práctica ni de entrenamiento) con dos carpetas de normas de
+valores distintos a los originales. Criterio declarado antes de correr: más casos resueltos, y a igualdad
+menos tokens. Se probó búsqueda manual estructurada en lugar de DSPy/GEPA por costo de GPU.
+
+| Prompt (mensaje de sistema) | Tokens | Dev (40 casos) | Contexto/caso en dev |
+|---|---:|---:|---:|
+| `baseline` (cátedra) | 615 | 8/40 | ~19.000 caracteres |
+| A `corto-v1`: mismas reglas, descripciones compactas | 453 | 1/40 | ~14.000 |
+| **B `procedimiento-v1`: + un procedimiento (buscar cada tema por separado, verificar antes de decidir)** | **857** | **9/40** | ~53.000 |
+| C: B + las dos costumbres del historial | 969 | no comparable (falla CUDA en T4) | ~53.000 |
+| D: C compactado | 659 | 2/40 | ~22.000 |
+
+Tokens medidos con el tokenizer real de Gemma (plantilla de chat, sin razonamiento). Kaggle T4 x2, float16,
+lote 4, buscador `baseline`; con el buscador `prefijos`, B baja a 4/40.
+
+**Antes y después en práctica (solo para reportar, no para elegir):**
+
+| Normas | Sin optimizar (`baseline`) | Optimizado (B) | Referencia cátedra sin entrenar |
+|---|---:|---:|---:|
+| original | 10/50 | **14/50** | 12/50 |
+| b | 10/50 | **16/50** | 15/50 |
+| c | 7/50 | **12/50** | 12/50 |
+
+Comando: `python infra/kaggle_evaluacion.py --plan configuraciones/evaluacion/<actual|solo-prompt>.json` en
+Kaggle (v25 y v27, commit `f4d7300` y `a5745f0`), puntuado con `python -m scripts.tabla_evaluacion`. Punto de
+control: modelo base sin entrenar `google/gemma-4-E4B-it@ee0ef60`.
+
+**Qué cambió y a qué costo.** El procedimiento hace que el modelo busque ~3,5 veces por caso en vez de ~1,3: las
+fallas atribuibles al buscador desaparecen y suben `box_antes_del_registro` (0,72 → 0,90–0,96), `plazo` y
+`registro`. Pero con la evidencia delante el modelo sin entrenar decide peor la verificación de afiliación
+(0,75 → 0,60–0,66) y la entidad a notificar, y el aviso al voluntariado no cambia (es una costumbre que B no
+menciona). El prompt es 39 % más largo (857 contra 615 tokens) y el contexto por caso, ~2,6× mayor: más
+cómputo y VRAM por caso. Acortar el prompt (A, D) empeoró mucho: las descripciones de las herramientas son las
+que hacen que el modelo busque.
+
+**Límites.** En el dev la ventaja de B es +1 caso (dentro del ruido; prueba de signos p=1,0); en práctica es
+consistente en las tres versiones (23 casos ganados y 8 perdidos sumando versiones que comparten pacientes).
+C, el candidato con mejores parciales, termina con `CUDA error: unspecified launch failure` en 5 de 7 intentos
+en T4 y no se pudo comparar. Todo es T4: falta A100-40GB. Las conversaciones de entrenamiento con B están en
+`datos/conversaciones/v3-procedimiento`; el default de `entrega.py` sigue siendo `baseline` hasta que el equipo
+lo decida con el modelo entrenado.
