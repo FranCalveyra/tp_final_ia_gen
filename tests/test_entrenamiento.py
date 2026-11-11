@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import patch
 
 from admision_tp.entrenamiento import (EJECUCION, POLITICA, cargar_entradas, entrenar, formar_lote,
-                                      publicar_checkpoint, validar_reanudacion)
+                                      posiciones_supervisadas, publicar_checkpoint, validar_reanudacion)
 from admision_tp.preparacion import _canonical, _sha, preparar_corrida
 from admision_tp.tokenizacion import tokenizar_preparacion
 from test_conversaciones import registro
@@ -287,6 +287,27 @@ class EntrenamientoTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PosicionesSupervisadasTest(unittest.TestCase):
+    """La pérdida solo proyecta al vocabulario las posiciones que predicen un token del asistente."""
+
+    def test_cada_posicion_predice_el_token_siguiente(self):
+        # Contexto (-100), respuesta [5, 6], cierre fuera de la máscara y padding.
+        conservar, objetivos = posiciones_supervisadas([[-100, -100, 5, 6, -100, -100]])
+        self.assertEqual(conservar, [[False, True, True, False, False, False]])
+        self.assertEqual(objetivos, [5, 6])
+
+    def test_lote_conserva_orden_por_fila(self):
+        conservar, objetivos = posiciones_supervisadas([[-100, 7, -100, 8], [-100, -100, 9, -100]])
+        self.assertEqual(conservar, [[True, False, True, False], [False, True, False, False]])
+        self.assertEqual(objetivos, [7, 8, 9])
+
+    def test_ultima_posicion_nunca_se_conserva(self):
+        # La última posición no tiene token siguiente aunque su etiqueta esté supervisada.
+        conservar, objetivos = posiciones_supervisadas([[-100, 3, 4]])
+        self.assertEqual(conservar, [[True, True, False]])
+        self.assertEqual(objetivos, [3, 4])
 
 
 class ObjetivoLoraTest(unittest.TestCase):

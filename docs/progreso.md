@@ -1014,3 +1014,18 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Evidencia:** 259 tests CPU OK (1 omitido). Se quitó un prefijo de herramienta local que había quedado en
   `docs/evaluacion.md`.
 - **Próximo paso:** decidir default y datos de #8 con Fran; si sobra GPU, diagnosticar el fallo de C con lote 1.
+
+### 2026-11-11: primer SFT real, OOM en la pérdida (issues #3 y #15, Kaggle T4 v28)
+
+- **Decisión:** un solo entrenamiento con `v3-procedimiento` (la consigna pide entrenar con el prompt optimizado,
+  `mission.md:138`). El adapter se evalúa con `baseline` (fila `solo_entrenamiento`) y con B (fila `ambos`).
+  Límite: `solo_entrenamiento` se mide con un prompt distinto al del entrenamiento y puede subestimarse.
+- **Corrida v28** (commit `8843004` limpio, `sft-ejemplo.json`, 2.900 conversaciones, 363 pasos previstos):
+  tokenización OK (9,99 M tokens, 1,02 M supervisados; mediana 3.331, máx. 6.322 por conversación).
+  **Falló en el paso 0** por `torch.OutOfMemoryError` en `ForCausalLMLoss` (`logits.float()`, 3,29 GiB en GPU 0).
+  Sin publicaciones HF. Unos 10 min de T4. Artefactos: `corridas/kaggle/v28` (no versionados).
+- **Causa:** el modelo proyecta todas las posiciones al vocabulario de 262k, pero solo ~10 % está supervisado.
+  Los humos usaron conversaciones cortas y no lo mostraron.
+- **Arreglo:** `perdida_supervisada` con `logits_to_keep` booleano, en un `Trainer` propio
+  ([detalle](entrenamiento-sft.md)). Probado con dobles y equivalencia numérica con torch CPU; **no validado en GPU**.
+- **Próximo paso:** relanzar en Kaggle y medir la VRAM del resto del paso (activaciones de hasta 6.322 tokens).

@@ -95,6 +95,36 @@ def formar_lote(ejemplos, pad_token_id):
             for campo, relleno in (("input_ids", pad_token_id), ("attention_mask", 0), ("labels", -100))}
 
 
+def posiciones_supervisadas(labels):
+    """Qué posiciones predicen un token supervisado y cuáles son esos tokens, en orden de fila.
+
+    La posición i predice el token i+1 (mismo desplazamiento que ForCausalLMLoss de Transformers).
+    """
+    conservar = [[siguiente != -100 for siguiente in fila[1:]] + [False] for fila in labels]
+    objetivos = [v for fila in labels for v in fila[1:] if v != -100]
+    return conservar, objetivos
+
+
+def perdida_supervisada(torch, modelo, entradas, num_items_in_batch=None):
+    """Entropía cruzada causal calculando logits solo donde hay objetivo.
+
+    Equivale a la pérdida del modelo, pero no materializa logits de contexto y padding: con el
+    vocabulario de Gemma (262k) y ~3.300 tokens por conversación, esos logits en fp32 no entran
+    en una T4 (OOM en Kaggle v28). `logits_to_keep` booleano devuelve (n_conservadas, vocab).
+    """
+    conservar, objetivos = posiciones_supervisadas(entradas["labels"].tolist())
+    conservar = torch.tensor(conservar, dtype=torch.bool, device=entradas["input_ids"].device)
+    logits = modelo(input_ids=entradas["input_ids"], attention_mask=entradas["attention_mask"],
+                    logits_to_keep=conservar).logits.float()
+    objetivos = torch.tensor(objetivos, dtype=torch.long, device=logits.device)
+    if num_items_in_batch is None:
+        return torch.nn.functional.cross_entropy(logits, objetivos)
+    suma = torch.nn.functional.cross_entropy(logits, objetivos, reduction="sum")
+    if torch.is_tensor(num_items_in_batch):
+        num_items_in_batch = num_items_in_batch.to(suma.device)
+    return suma / num_items_in_batch
+
+
 def validar_reanudacion(salida, checkpoint, identidad):
     raiz, checkpoint = Path(salida).resolve(), Path(checkpoint).resolve()
     if checkpoint.parent != raiz or not re.fullmatch(r"checkpoint-\d+", checkpoint.name):
@@ -270,8 +300,13 @@ def _ejecutar_cuda(config, registros, ejemplos, tokens, destino, auditoria, chec
             report_to="none", push_to_hub=False, remove_unused_columns=False)
         def collator(filas):
             return {k: torch.tensor(v, dtype=torch.long) for k, v in formar_lote(filas, tokenizer.pad_token_id).items()}
-        trainer = Trainer(model=modelo, args=args, train_dataset=ejemplos,
-                          data_collator=collator, processing_class=tokenizer, callbacks=[callback])
+        class TrainerSupervisado(Trainer):
+            # Misma normalización que la pérdida del modelo (suma / num_items_in_batch con acumulación).
+            def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
+                return perdida_supervisada(torch, model, inputs, num_items_in_batch)
+
+        trainer = TrainerSupervisado(model=modelo, args=args, train_dataset=ejemplos,
+                                     data_collator=collator, processing_class=tokenizer, callbacks=[callback])
         trainer.train(resume_from_checkpoint=str(checkpoint) if checkpoint else None)
         trainer.save_model(str(destino / "final"))
         tokenizer.save_pretrained(destino / "final")

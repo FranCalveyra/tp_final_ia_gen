@@ -86,6 +86,13 @@ Para T4 x2 **de desarrollo**, agregar `--precision fp16 --dispositivos auto`; el
 LoRA apunta solo a atención del modelo de lenguaje (`LORA_OBJETIVO`), r=8/alpha16/dropout0; carga sin torres
 visión/audio. Eso evita módulos no soportados y reduce VRAM, pero no garantiza el ajuste final en A100.
 
+**Pérdida solo en posiciones supervisadas.** `perdida_supervisada` pide al modelo logits únicamente donde la
+posición predice un token del asistente (`logits_to_keep` booleano de Transformers). Con el vocabulario de Gemma
+(262k) y ~3.300 tokens por conversación, los logits completos en fp32 no entran en una T4: el primer SFT real
+(Kaggle v28) cayó por OOM en el paso 0 dentro de `ForCausalLMLoss`. Solo ~10 % de los tokens está supervisado.
+La pérdida y los gradientes son idénticos a la pérdida completa: verificado con torch real en CPU sobre un modelo
+de juguete con softcapping, con y sin `num_items_in_batch`. Los tests del repo cubren el desplazamiento con dobles.
+
 ### 4. Reanudar: mismo código, entradas, modo y política
 
 ```bash
