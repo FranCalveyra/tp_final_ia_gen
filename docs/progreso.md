@@ -1028,4 +1028,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   Los humos usaron conversaciones cortas y no lo mostraron.
 - **Arreglo:** `perdida_supervisada` con `logits_to_keep` booleano, en un `Trainer` propio
   ([detalle](entrenamiento-sft.md)). Probado con dobles y equivalencia numérica con torch CPU; **no validado en GPU**.
+- **Corrida v29** (commit `10e117c`): falló en el paso 0 con `RuntimeError: indices should be either on cpu or on
+  the same device as the indexed tensor (cuda:1)`. Con `device_map="auto"` la última capa queda en la segunda GPU y la
+  máscara se había creado en la de `input_ids`. Arreglo: máscara en CPU (`e30ad97`). Unos 15 min de T4.
 - **Próximo paso:** relanzar en Kaggle y medir la VRAM del resto del paso (activaciones de hasta 6.322 tokens).
