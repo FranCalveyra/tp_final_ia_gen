@@ -28,6 +28,7 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | #10 Historial | **Implementado (2026-11-05).** Clasificador determinista, pruebas, `historial_clasificado.csv`, análisis reutilizable de costumbres e informe | Mantenerlo compatible con la curación del issue #11 |
 | #11 Costumbres | **Implementado (2026-11-05).** Trazas validadas, dos costumbres confirmadas, patrón por operador documentado y resumen para el equipo | Revisar con Martu y Eze antes de usarlo en el prompt final |
 | [#13 Prompt](https://github.com/FranCalveyra/tp_final_ia_gen/issues/13) | **Validado en GPU T4 (Eze, 2026-11-11).** Elegido `procedimiento-v1` en el dev (9/40 contra 8/40); `prefijos` pierde (4/40); C falla en CUDA de forma reproducible. Práctica (solo reporte): 42/150 contra 27/150, a ~2,6× de contexto | #8 regenerado con B en `v3-procedimiento`. Decisión de equipo: default de `entrega.py` y qué dataset entrena #15 ([detalle](optimizacion-prompt.md#decisión)) |
+| [#14 Análisis de errores](https://github.com/FranCalveyra/tp_final_ia_gen/issues/14) (Eze) | **Implementado, probado con dobles y aplicado a corridas reales (2026-11-10).** `scripts.analizar_errores`: fallas por control, tipo de caso y fuente (formato/costumbre/buscador/modelo), comparación entre corridas; registro de pasadas v22, v22 `prefijos`, v23, v24 y las de #13 (dev v25 y práctica v27) en [analisis-errores.md](analisis-errores.md) | Analizar los checkpoints de #15 contra la pasada 6 con el mismo comando; las reglas de fuente son heurísticas sin precisión medida |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
 El formato de conversaciones es **propuesto**, pendiente de coordinación con Eze/Yas.
@@ -567,6 +568,7 @@ usado en Kaggle. Los Secrets de Modal quedan como referencia legacy, no como set
 | Parte 5 del informe (recursos y producción), borrador con mediciones T4 | [informe-parte5.md](informe-parte5.md) |
 | Optimización de prompt, infraestructura inicial y contrato de formato con #7 | [optimizacion-prompt.md](optimizacion-prompt.md) |
 | Evaluación completa (50 casos × original/b/c) y tabla de la Parte 4 | [evaluacion.md](evaluacion.md) |
+| Análisis de errores por corrida y registro de pasadas | [analisis-errores.md](analisis-errores.md) |
 
 ## Cómo mantener esta bitácora
 
@@ -964,6 +966,31 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Limitación:** v22 no registró el prompt en `runner.json` (la tabla lo marca); v24 no tiene `runner.json`
   y se rechaza. El runner de planes no corrió en GPU.
 - **Próximo paso:** con autorización, correr `actual.json` (~50–65 min de T4 estimados) y armar la tabla.
+
+### 2026-11-10: análisis de errores por corrida (issue #14, CPU, rama `feat/14-analisis-eze`)
+
+- **Estado:** implementado y probado con dobles (`tests/test_analizar_errores.py`, 9 tests con el `Entorno` real del
+  kit y un buscador falso); aplicado a artefactos reales de Kaggle T4; **sin GPU**. Guía y registro de pasadas:
+  [analisis-errores.md](analisis-errores.md).
+- **Qué hay:** `python -m scripts.analizar_errores analizar --corrida <carpeta> --salida <nueva>` puntúa con
+  `admision.correr.puntuar`, cuenta fallas por control y por tipo de caso y asigna a cada control fallado una fuente
+  con reglas explícitas (formato > costumbre > buscador > modelo, con «no buscó» vs «buscó y decidió mal»). Las
+  rectoras reutilizan `secciones_rectoras` del #8. `comparar --antes --despues` da ganados/perdidos, controles
+  arreglados/rotos, cambios de fuente y de costo; rechaza conjuntos de casos distintos salvo
+  `--permitir-interseccion`. Nunca pisa una salida.
+- **Evidencia:** v22 baseline 10/50: 76 controles fallados = 0 formato, 16 costumbre (14 del aviso), 27 buscador
+  (NOR-ADM-01 la rectora más ausente), 21 modelo sin buscar y 12 modelo con evidencia. Las tasas por control coinciden
+  con `resumen.por_control` del kit y con los `resultados.jsonl`/`resumen.json` previos en v22 y v23. `prefijos`
+  contra baseline: +3/−7 casos, fallas del buscador 27 → 30 y modelo sin buscar 21 → 33. v23 (`AgentePrompt`) contra
+  v22: 0 diferencias. v24: 10 casos sin `runner.json`, idénticos a v22 en esos casos. Salidas en
+  `corridas/analisis/2026-11-10-*` (local, ignorado por Git).
+- **Decisión:** las conclusiones de práctica solo alimentan candidatos genéricos de #13 (buscar cada tema por separado,
+  buscar cobertura y verificar, ART con lesión laboral); la selección va en prompt-dev (#13) y con datos permitidos
+  (#15). Las corridas de #13 y #15 se analizan con este mismo comando y se registran como nuevas pasadas.
+- **Limitación:** las fuentes son heurísticas (relevancia por palabras clave y secciones devueltas), sin precisión
+  medida contra etiquetas humanas; las rectoras de cobertura del caso común amplían las del #8. v22 no registró el
+  prompt; v24 no tiene procedencia.
+- **Próximo paso:** analizar la primera corrida de candidatos de #13 en prompt-dev contra su baseline.
 
 ### 2026-11-11: prompt elegido y fila `solo_prompt` (issues #13 y #9, Kaggle T4 v25–v27)
 
