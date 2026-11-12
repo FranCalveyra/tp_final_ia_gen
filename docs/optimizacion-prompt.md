@@ -483,6 +483,9 @@ con lote 4 y `max_turnos: 120` = `max_turnos_para(40, 3)`, el mismo tope que la 
 40 llamadas del kit (un test lo exige). El tope de 40 llamadas y la guarda de contexto son los de
 `AgentePrompt`. `...-t4-l4-prefijos.json` es idéntica salvo `buscador_variante: prefijos` (fase 2).
 Las cinco evaluaciones de fase 1 usan la misma configuración: si no, el ranking las rechaza.
+El campo opcional `adapter` (`repo`, `revision` de 40 hex, `subcarpeta`) carga un adapter
+entrenado; `...-t4-l4-entrenado.json` agrega el de la entrega (#15, verificar el aviso en el dev).
+Sin el campo, la configuración y su registro quedan como antes.
 
 ### Kaggle: celda de fase 1 (ejecutada en v25 con el commit `f4d7300`)
 
