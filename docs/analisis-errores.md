@@ -258,6 +258,11 @@ Todas: Gemma 4 E4B **sin entrenar**, Kaggle T4, normas original, 50 casos de pr�
   entrenamiento o del conjunto de desarrollo (requiere GPU).
 - **Para #15:** confirmar la hipótesis en el conjunto de desarrollo antes de cambiar el entrenamiento; la práctica
   no puede elegir el remedio.
+- **Confirmado en el conjunto de desarrollo (Kaggle v35, commit `bea206b`):** `procedimiento-v1` + adapter resuelve
+  26/40 (11 + 15; sin adapter, v25: 9/40). El aviso queda en 32/40: el modelo **no responde `true` en ninguno de los
+  40 casos**, y los 8 que fallan son los 8 mayores de 75 sin acompañante. Esos 8 fallan **solo** por el aviso; los
+  otros controles: verificación y entidad 40/40, box 38, cobertura 37, registro 39, plazo 39. Es colapso a la clase
+  mayoritaria, no un problema de formato ni del dato. Salidas en `corridas/kaggle/v35` (no versionado).
 
 ## Uso para #13 y #15
 

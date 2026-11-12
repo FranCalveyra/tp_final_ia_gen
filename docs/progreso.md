@@ -1075,5 +1075,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   acompañante, aunque el entrenamiento tiene la regla completa (302 positivos). Detalle e hipótesis en
   [análisis de errores](analisis-errores.md#2026-11-12--pasada-7-fila-ambos-contra-solo_prompt-en-práctica-solo-reporte).
   Salidas de v27 descargadas de Kaggle a `corridas/kaggle/v27` (no versionado).
-- **Próximo paso:** comprobar la hipótesis del aviso en el conjunto de desarrollo (GPU corta) antes de decidir un
-  segundo entrenamiento.
+- **Hipótesis del aviso confirmada en el dev (Kaggle v35, ~40 min de T4):** adapter + `procedimiento-v1` resuelve
+  26/40 (sin adapter: 9/40); nunca responde aviso `true`, y los 8 mayores de 75 sin acompañante fallan solo por eso.
+  La evaluación de prompts ahora acepta un `adapter` opcional (`configuraciones/evaluacion-prompt-kaggle-t4-l4-entrenado.json`).
+- **Próximo paso:** decidir el remedio del aviso (#15) midiendo en el dev, no en práctica.
