@@ -1,0 +1,15 @@
+{
+  "commit": "7b92583c991be878731017d35f520646902e19ba",
+  "corridas": [
+    {
+      "corrida": "procedimiento-formato-v1-n1",
+      "returncode": 0,
+      "segundos": 633
+    },
+    {
+      "corrida": "procedimiento-formato-v1-n2",
+      "returncode": 0,
+      "segundos": 537
+    }
+  ]
+}

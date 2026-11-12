@@ -31,7 +31,7 @@ Loom quedan fuera de este alcance (los arma el equipo). Estado: ✅ cumple · �
 | Tabla de la Parte 4 (4 filas × 3 versiones + referencia de la cátedra) | ✅ | [`evaluaciones/practica/tabla`](../evaluaciones/practica/tabla/tabla.md), regenerada desde las corridas versionadas (`sucio=False`) |
 | README con los 6 puntos | ✅ | `README.md` (2026-11-12), salvo el aviso de `.env.example` |
 | Todo archivo generado sale de un script | ✅ | Tabla del punto 5 del README |
-| Formato de los mensajes optimizado sin entrenar (:135) | ⚠️ | Solo tamaño; la conducta se mide en la fase 3 (después de v36). Respaldo documentado. |
+| Formato de los mensajes optimizado sin entrenar (:135) | ✅ | Tamaño (fase 2) y conducta (fase 3, v37: 10/40 contra 9/40, dentro del ruido; no adoptado) en [optimización de prompt](optimizacion-prompt.md) |
 
 ## Para revisar más tarde
 

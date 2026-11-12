@@ -747,6 +747,24 @@ formato: **mismo mensaje de sistema y mensaje inicial que B**; cambian `formato_
 - **Respaldo si no hay GPU (opción B):** reportar el análisis de tamaño de la fase 2 (≤1,4 %) y que el formato no
   se adoptó por no justificar regenerar #8, sin medición de conducta.
 
+**Resultado (Kaggle v37, commit `7b92583`, 2026-11-12): sin diferencia real; no se adopta.**
+
+```bash
+uv run --locked --no-sync python -m scripts.rankear_prompts \
+  evaluaciones/dev/v25-fase1/procedimiento-v1-n{1,2} evaluaciones/dev/v37-formato/procedimiento-formato-v1-n{1,2}
+```
+
+| Prompt (sin adapter, dev 40 casos) | Resueltos | Contexto/caso (n1 / n2) | Búsquedas/caso | s/caso (T4, lote 4) |
+|---|---:|---:|---:|---:|
+| B `procedimiento-v1` (v25) | 9 | 51.475 / 54.583 | 3,50 / 3,65 | 25,4 / 27,9 |
+| `procedimiento-formato-v1` (v37) | 10 | 51.938 / 51.743 | 3,45 / 3,45 | 24,4 / 24,4 |
+
+- Caso por caso: 2 ganados y 1 perdido. Por control también se compensa: verificación +2, box +1, entidad +1;
+  plazo −4, cobertura −2, circuito −1. Con el recambio caso a caso ya visto en la fase 1, +1 no se distingue del ruido.
+- El contexto baja ~2 % en promedio (más por una búsqueda menos en n2 que por el formato en sí) y el tiempo ~8 %.
+- **No se adopta:** la ganancia no justifica regenerar las conversaciones ni reentrenar (el adapter aprendió el
+  formato de B). Con esto la consigna queda cubierta con medición de conducta, no solo de tamaño.
+
 ## Verificado y no verificado
 
 **Probado con dobles CPU:** equivalencia completa de mensajes entre `AgenteJSON` y

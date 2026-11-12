@@ -1126,5 +1126,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   aviso pasa de 0/8 a 6/8 en mayores sin acompañante pero da `true` en 12 de 32 que no corresponde
   ([pasada 8](analisis-errores.md)). La entrega sigue con `dc41674a`; la práctica de la v36 no se corrió. Validó en
   GPU `adapter_inicial`. Corridas y recibos versionados en `evaluaciones/` (también los del SFT v32/v33).
-- **Kaggle v37 lanzado (fase 3, formato de mensajes):** `procedimiento-formato-v1` sin adapter en el dev, commit
-  `7b92583`, ~40 min de T4.
+- **Fase 3, formato de los mensajes (Kaggle v37, ~20 min de jugar):** `procedimiento-formato-v1` sin adapter da
+  10/40 contra 9/40 de B en el dev (2 ganados, 1 perdido; controles que se compensan); contexto −2 %, tiempo −8 %.
+  Dentro del ruido: **no se adopta** (además exigiría reentrenar). Versionado en `evaluaciones/dev/v37-formato`.
+- **Estado del PR #24:** todo lo que depende de GPU para la entrega está cerrado; queda mergear.

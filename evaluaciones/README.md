@@ -28,6 +28,7 @@ uv run python -m scripts.tabla_evaluacion --evaluacion evaluaciones/practica/v25
 |---|---|---|
 | `dev/v25-fase1/` | v25 | Fase 1 de la optimización de prompt: cinco candidatos sin entrenar (`scripts.rankear_prompts`) |
 | `dev/v35-entrenado/` | v35 | Adapter `dc41674a` + `procedimiento-v1`: confirma que el aviso al voluntariado nunca da `true` |
+| `dev/v37-formato/` | v37 | Fase 3, formato de los mensajes sin adapter: `procedimiento-formato-v1` 10/40 contra 9/40 de B (v25); no adoptado |
 | `dev/v36-aviso/` | v36 | Adapter reforzado en el aviso (`22ee5596`) + `procedimiento-v1`: 23/40, no adoptado (configuración usada en `evaluacion-prompt-aviso.json`) |
 
 Cada corrida del conjunto de desarrollo tiene `manifiesto.json` (snapshots y hashes de prompt, configuración,
