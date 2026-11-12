@@ -25,9 +25,10 @@ Loom quedan fuera de este alcance (los arma el equipo). Estado: ✅ cumple · �
 | Modelo ≤ 8B, sin servicios externos en operación | ✅ | Gemma 4 E4B; el modelo se baja de HF al construir el agente |
 | Tope de 40 llamadas, 5 herramientas, 8 campos | ✅ | `AgentePrompt`; tests |
 | Prompt optimizado antes de entrenar, sin usar práctica para elegir | ✅ | [optimización de prompt](optimizacion-prompt.md), conjunto `datos/prompt-dev/v1` |
+| Práctica solo para reportar | ⚠️ acotado | La falla del aviso se **vio** en el análisis de errores de práctica (pasada 7). Lo que se eligió después (hipótesis, remedio `v4-aviso`, y si la v36 reemplaza al adapter) se decide **solo con el conjunto de desarrollo** (v35, v36); la práctica de la v36 se corre después, solo para reportar, y no cambia la decisión. Queda declarado como límite en el [análisis de errores](analisis-errores.md). |
 | Entrenamiento con el prompt optimizado | ✅ | `v3-procedimiento`; adapter `dc41674a` |
 | Cada entrenamiento: conversaciones, config, semilla, W&B, checkpoints HF con revisión | ✅ | `runner.json`, `estado.json`, `publicaciones`; W&B `3add2742ddfd4b42` |
-| Tabla de la Parte 4 (4 filas × 3 versiones + referencia de la cátedra) | ⚠️ | Números en la bitácora; la tabla con procedencia está en `corridas/tablas/` (ver hueco 1) |
+| Tabla de la Parte 4 (4 filas × 3 versiones + referencia de la cátedra) | ✅ | [`evaluaciones/practica/tabla`](../evaluaciones/practica/tabla/tabla.md), regenerada desde las corridas versionadas (`sucio=False`) |
 | README con los 6 puntos | ✅ | `README.md` (2026-11-12), salvo el aviso de `.env.example` |
 | Todo archivo generado sale de un script | ✅ | Tabla del punto 5 del README |
 | Formato de los mensajes optimizado sin entrenar (:135) | ⚠️ | Solo tamaño; la conducta se mide en la fase 3 (después de v36). Respaldo documentado. |

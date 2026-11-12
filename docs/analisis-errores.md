@@ -262,7 +262,12 @@ Todas: Gemma 4 E4B **sin entrenar**, Kaggle T4, normas original, 50 casos de pr�
   26/40 (11 + 15; sin adapter, v25: 9/40). El aviso queda en 32/40: el modelo **no responde `true` en ninguno de los
   40 casos**, y los 8 que fallan son los 8 mayores de 75 sin acompañante. Esos 8 fallan **solo** por el aviso; los
   otros controles: verificación y entidad 40/40, box 38, cobertura 37, registro 39, plazo 39. Es colapso a la clase
-  mayoritaria, no un problema de formato ni del dato. Salidas en `corridas/kaggle/v35` (no versionado).
+  mayoritaria, no un problema de formato ni del dato. Salidas en `evaluaciones/dev/v35-entrenado`.
+- **Límite declarado:** el problema se **vio** en práctica (esta pasada es un reporte sobre práctica). Para no
+  usar la práctica como selector, la hipótesis se confirmó en el conjunto de desarrollo, el remedio (`v4-aviso`)
+  se arma solo con datos de entrenamiento, y la decisión de adoptar el adapter de la v36 se toma solo con el
+  dev; la práctica de la v36 se corre después y no cambia la decisión. Aun así, saber que existía la falla vino
+  de mirar práctica: lo declaramos en vez de ocultarlo.
 
 ## Uso para #13 y #15
 

@@ -1085,8 +1085,9 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   [entrenamiento-sft](entrenamiento-sft.md#5-seguir-entrenando-un-adapter-publicado-adapter_inicial).
 - **Kaggle v36 lanzado** (commit `fb353c0`, T4 x2, tope 5 h): entrena y evalúa el adapter nuevo en el dev en la
   misma sesión. Publica checkpoints en el repo HF privado y una corrida nueva en W&B.
-- **Próximo paso:** comparar en el dev contra v35 (26/40, aviso 32/40); si mejora sin romper otros controles,
-  evaluar la práctica solo para reportar y decidir si pasa a ser el adapter de la entrega.
+- **Próximo paso:** decidir **solo con el dev** si el adapter de la v36 reemplaza al de la entrega: contra v35
+  (26/40, aviso 32/40), que mejore el aviso sin romper otros controles. Recién después, y sea cual sea la
+  decisión, correr la práctica solo para reportar; su resultado no cambia la elección (revisión del PR #24).
 - **README "cómo correr" (#16, sin GPU):** sección del grupo al principio de `README.md` con los seis puntos de
   mission.md:224 (entorno, un caso, buscador, evaluación completa, de dónde sale cada archivo, diagrama Mermaid);
   el manual del kit queda abajo con sus anclas intactas. Comandos tomados de los manifiestos; no se corrieron en
@@ -1111,3 +1112,10 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   sin `MODELO_LOTE`, para que la entrega corra como se midieron todos los números (antes: 1, ~2× más lento por caso
   en T4). `Configuracion()` sigue en 1. Riesgo: lote 4 en A100 (una GPU, bf16) sin medir; en T4 los fallos fueron
   con 8 y 16, repartido en 2 GPU.
+- **Revisión del PR #24 (estándar + especificación, 2026-11-12):** arreglado (1) la práctica no decide la v36:
+  solo el dev, y el límite de haber visto la falla en práctica queda declarado; (2) fila desincronizada de la
+  auditoría; (3) `ADAPTER_REVISION`/`ADAPTER_SUBCARPETA` sin `ADAPTER_REPO` ahora fallan en vez de cambiar en
+  silencio el adapter de la entrega; (4) `validar_adapter` en `configuracion.py` es la única validación de la
+  referencia `{repo, revision, subcarpeta}` (preparación del SFT, evaluación de prompts y planes). Quedan
+  documentados, sin arreglar: `AdapterRef` como tipo, internos de `preparacion` usados por
+  `subconjunto_aviso`, `TrainerSupervisado` anidada, `jq` en el README.
