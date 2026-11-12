@@ -70,11 +70,12 @@ def main(argv: list[str] | None = None) -> int:
     elegidos, resumen = armar_subconjunto(registros, args.otros, args.semilla)
     ids = {r["id"] for r in elegidos}
     salida = "".join(x + "\n" for x, r in zip(lineas, registros) if r["id"] in ids).encode("utf-8")
+    git = _codigo()  # Antes de crear la salida: si no, la carpeta nueva marca el repo como sucio.
     args.salida.mkdir(parents=True)
     (args.salida / "conversaciones.jsonl").write_bytes(salida)
     manifiesto = {"version": 1, "proposito": "seguir entrenando el adapter en aviso_al_voluntariado (#15)",
                   "comando": "python -m scripts.subconjunto_aviso " + " ".join(sys.argv[1:] if argv is None else argv),
-                  "git": _codigo(), "origen": {"ruta": str(args.datos), "sha256": _sha(contenido),
+                  "git": git, "origen": {"ruta": str(args.datos), "sha256": _sha(contenido),
                                                "registros": len(registros)},
                   "semilla": args.semilla, "otros": args.otros, "registros": len(elegidos), **resumen,
                   "archivos_sha256": {"conversaciones.jsonl": _sha(salida)}}
