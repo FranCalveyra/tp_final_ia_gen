@@ -1093,3 +1093,8 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   A100. **Pendiente:** `.env.example` todavía tiene `ADAPTER_REPO=` vacío (exportarlo pide el modelo base sin
   adapter) y el comentario de `PROMPT_SPEC` dice baseline; el README avisa, pero hay que comentar esas líneas.
   Si v36 cambia el adapter de la entrega, actualizar la revisión en la tabla del README.
+- **#5 recursos (borrador `docs/informe-parte5.md`, sin GPU):** agregados el SFT real (2.900 conversaciones,
+  ~10 M tokens, 363 pasos a ~80–85 s, ~8,1 h de cómputo, 19,97 GB pico en 2 T4) y el antes/después en práctica
+  (27/150 → 92/150; +59 % s/caso y 2,4× tokens de entrada por el prompt, VRAM 18,1 → 19,6 GB; ~145 casos/h por
+  proceso con la entrega). Todo en T4: A100 sigue pendiente (KI-A100-001). Si v36 cambia el adapter, rehacer la
+  fila `ambos`.
