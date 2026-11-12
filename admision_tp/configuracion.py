@@ -7,6 +7,9 @@ import re
 COMMIT_HF = re.compile(r"[0-9a-f]{40}")
 DTYPES = ("bfloat16", "float16", "float32")
 DEVICE_MAP = re.compile(r"auto|cuda(:\d+)?")
+# Adapter de la entrega (SFT sobre v3-procedimiento, Kaggle v32+v33). Sin ADAPTER_REPO en el entorno se usa este;
+# ADAPTER_REPO vacío pide la base sola.
+ADAPTER_ENTREGA = ("FranCalveyra/tp-admision", "dc41674a8a2561a724884be2170ff6808efa6e96")
 
 
 @dataclass(frozen=True)
@@ -43,11 +46,12 @@ class Configuracion:
 
     @classmethod
     def desde_entorno(cls):
+        repo, revision = ADAPTER_ENTREGA if "ADAPTER_REPO" not in os.environ else (os.environ["ADAPTER_REPO"], None)
         return cls(modelo=os.getenv("MODELO_ID", cls.modelo),
                    revision=os.getenv("MODELO_REVISION", cls.revision),
                    lote=int(os.getenv("MODELO_LOTE", "1")),
-                   adapter_repo=os.getenv("ADAPTER_REPO", cls.adapter_repo) or None,
-                   adapter_revision=os.getenv("ADAPTER_REVISION", cls.adapter_revision) or None,
+                   adapter_repo=repo or None,
+                   adapter_revision=os.getenv("ADAPTER_REVISION", revision) or None,
                    adapter_subcarpeta=os.getenv("ADAPTER_SUBCARPETA", cls.adapter_subcarpeta),
                    metricas=os.getenv("MODELO_METRICAS") or None,
                    dtype=os.getenv("MODELO_DTYPE", cls.dtype),

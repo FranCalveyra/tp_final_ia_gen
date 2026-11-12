@@ -125,8 +125,17 @@ class ModeloTest(unittest.TestCase):
             config = Configuracion.desde_entorno()
         self.assertEqual((config.adapter_repo, config.adapter_revision, config.adapter_subcarpeta),
                          ("grupo/lora", "c" * 40, "checkpoint-50"))
+
+    def test_entorno_sin_adapter_usa_el_de_la_entrega(self):
         with patch.dict("os.environ", {}, clear=True):
-            self.assertIsNone(Configuracion.desde_entorno().adapter_repo)
+            config = Configuracion.desde_entorno()
+        self.assertEqual((config.adapter_repo, config.adapter_revision, config.adapter_subcarpeta),
+                         ("FranCalveyra/tp-admision", "dc41674a8a2561a724884be2170ff6808efa6e96", "final"))
+
+    def test_entorno_con_adapter_vacio_usa_la_base_sola(self):
+        with patch.dict("os.environ", {"ADAPTER_REPO": ""}, clear=True):
+            config = Configuracion.desde_entorno()
+        self.assertEqual((config.adapter_repo, config.adapter_revision), (None, None))
 
     def test_sin_ruta_de_metricas_no_mide_ni_toca_cuda(self):
         self.adaptador([[{}]])  # El torch doble no tiene `cuda`: fallaría si se midiera.
@@ -191,7 +200,7 @@ class ModeloTest(unittest.TestCase):
     def test_defaults_a100_no_cambian(self):
         config = Configuracion()
         self.assertEqual((config.dtype, config.device_map), ("bfloat16", "cuda:0"))
-        with patch.dict("os.environ", {}, clear=True):
+        with patch.dict("os.environ", {"ADAPTER_REPO": ""}, clear=True):
             self.assertEqual(Configuracion.desde_entorno(), config)
 
     def test_dtype_y_device_map_validados(self):

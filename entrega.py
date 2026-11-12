@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 
 from admision_tp.buscador import BuscadorBM25
-from admision_tp.prompts import RAIZ, RUTA_BASELINE, PromptSpec
+from admision_tp.prompts import RAIZ, RUTA_ENTREGA, PromptSpec
 
 
 def construir_buscador(ruta_normas: Path) -> BuscadorBM25:
@@ -12,8 +12,8 @@ def construir_buscador(ruta_normas: Path) -> BuscadorBM25:
 
 
 def cargar_prompt() -> PromptSpec:
-    """PromptSpec de `PROMPT_SPEC` (relativa a la raíz del repo) o el baseline; valida su sha256."""
-    ruta = Path(os.getenv("PROMPT_SPEC") or RUTA_BASELINE)
+    """PromptSpec de `PROMPT_SPEC` (relativa a la raíz del repo) o el de la entrega; valida su sha256."""
+    ruta = Path(os.getenv("PROMPT_SPEC") or RUTA_ENTREGA)
     return PromptSpec.cargar(ruta if ruta.is_absolute() else RAIZ / ruta)
 
 

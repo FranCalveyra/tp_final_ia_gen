@@ -1046,5 +1046,27 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   2 T4). Publicó checkpoint-350 `00175ae4`, checkpoint-363 `fc35d543` y **adapter `final`
   `dc41674a8a2561a724884be2170ff6808efa6e96`**. Recibos en `corridas/kaggle/v33` (no versionado).
   Validado en GPU T4; **A100-40GB sigue sin validar**. Pérdida baja en train no prueba calidad del agente.
-- **Próximo paso:** evaluar el adapter `final` en práctica original/b/c con prompt baseline (solo_entrenamiento)
-  y con procedimiento-v1 (ambos).
+- **v34 (2026-11-12), evaluación del adapter `final`** (plan `configuraciones/evaluacion/entrenado.json`, commit
+  `3adf12e`, 6 corridas terminadas, ~2 h de T4). Puntuado con `scripts.tabla_evaluacion` en
+  `corridas/tablas/20261112-entrenado` (no versionado). Práctica solo para reportar.
+
+  | Fila | original | b | c |
+  |---|---|---|---|
+  | sin_entrenar (v25) | 10 | 10 | 7 |
+  | solo_prompt (v27) | 14 | 16 | 12 |
+  | solo_entrenamiento (v34) | 11 | 13 | 12 |
+  | **ambos (v34)** | **30** | **29** | **33** |
+  | cátedra: SFT simple | 25 | 24 | 25 |
+
+  `ambos` supera la referencia SFT de la cátedra en las tres versiones de normas, así que el aprendizaje
+  sobrevive al cambio de normas. El adapter solo rinde con el prompt con el que se entrenó: con `baseline`
+  apenas mejora. En `ambos`, todos los controles quedan ≥ 0,90 salvo `aviso_al_voluntariado` (0,72 en las
+  tres versiones), que es la falla principal que queda. Costo: ~25 s/caso y ~51 k caracteres de contexto,
+  contra ~19 s y ~29 k con `baseline`. Validado en T4, no en A100.
+  La tabla de 4 filas en un solo `tabla.md` necesita las salidas de v25/v27, que no están en este checkout.
+- **Default de la entrega (2026-11-12):** `entrega.py` carga `procedimiento-v1` y `Configuracion.desde_entorno`
+  usa el adapter `FranCalveyra/tp-admision@dc41674a/final` si no hay `ADAPTER_REPO`; `ADAPTER_REPO=` vacío pide la
+  base sola. El runner de evaluación vacía `ADAPTER_*` en las filas sin adapter. 274 tests CPU OK (1 omitido).
+  **Bloqueo:** el repo HF debe seguir privado (mission.md:194) y compartirse con la cátedra; sin la invitación
+  (#16, faltan sus usuarios) su `HF_TOKEN` no podrá leer el adapter.
+- **Próximo paso:** resolver el acceso al adapter, analizar errores de `ambos` (aviso) y abrir el PR de la rama.

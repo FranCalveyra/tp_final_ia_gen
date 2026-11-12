@@ -6,7 +6,7 @@ medio de pago. **No se descargaron pesos ni se ejecutó una GPU.** El diagnósti
 está en `corridas/smoke-original-20261101/intento.json`. La compatibilidad real y
 el acceso de HF todavía no están verificados.
 
-- `entrega.construir_agente()` valida el `PromptSpec` (`PROMPT_SPEC` o el baseline), carga el modelo una vez
+- `entrega.construir_agente()` valida el `PromptSpec` (`PROMPT_SPEC` o `procedimiento-v1` desde 2026-11-12), carga el modelo una vez
   y arma `AgentePrompt` (desde el issue #7; antes `AgenteJSON`, mismos textos con el baseline).
 - `ModeloLocal` recibe conversaciones y devuelve textos en el mismo orden.
 - Gemma 4 E4B sin entrenar, commit HF inmutable en `configuracion.py`.

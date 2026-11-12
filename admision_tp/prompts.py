@@ -10,6 +10,8 @@ from string import Formatter
 
 RAIZ = Path(__file__).resolve().parents[1]
 RUTA_BASELINE = RAIZ / "configuraciones/prompts/baseline.json"
+# Prompt de la entrega: el elegido en el conjunto de desarrollo y con el que se entrenó el adapter.
+RUTA_ENTREGA = RAIZ / "configuraciones/prompts/procedimiento-v1.json"
 _CAMPOS = {
     "version", "nombre", "system_prompt", "mensaje_inicial",
     "formato_observacion", "mensaje_json_invalido", "sha256",

@@ -21,7 +21,7 @@ los nueve controles y el largo del prompt, y conserva evidencia reproducible de 
   entrena #15 (`v2-baseline` o `v3-procedimiento`) se decide en equipo.
 
 Desde el issue #7 (2026-11-10), `entrega.py` usa `AgentePrompt` con el `PromptSpec` de
-`PROMPT_SPEC` o el baseline (ver [contrato de formato](#contrato-de-formato-7--13)). Las secciones
+`PROMPT_SPEC` o, desde 2026-11-12, `procedimiento-v1` (ver [contrato de formato](#contrato-de-formato-7--13)). Las secciones
 siguientes describen la infraestructura en el orden en que se construyó.
 
 **Validado con Gemma real (2026-11-10, Kaggle v23):** `AgentePrompt` con el prompt `baseline`
@@ -690,9 +690,9 @@ Con el criterio declarado antes de correr (más casos resueltos en el dev y, a i
 (+1 caso sobre 40); en práctica (solo reporte, abajo) la ganancia es clara: 42/150 contra 27/150. Cuesta
 ~2,6× de contexto por caso. Qué cambia y qué queda para decidir en equipo:
 
-- **`entrega.py` sigue apuntando al baseline.** Recomendación: pasar el default a B (más casos resueltos
-  en las tres versiones de práctica, a costa de contexto). Mientras tanto, para usar B:
-  `PROMPT_SPEC=configuraciones/prompts/procedimiento-v1.json`.
+- **`entrega.py` usa B desde 2026-11-12**, junto con el adapter entrenado con B (ver
+  [bitácora](progreso.md)). Para la base con baseline: `PROMPT_SPEC=configuraciones/prompts/baseline.json`
+  y `ADAPTER_REPO=` (vacío).
 - **Las conversaciones de #8 se regeneraron con B en una carpeta nueva**, `datos/conversaciones/v3-procedimiento`
   (la consigna pide entrenar con el prompt optimizado); `v2-baseline` queda igual. Solo cambia el mensaje de
   sistema ([detalle](conversaciones-entrenamiento.md)). Cuál se entrena lo decide #15 (Fran), porque define

@@ -113,7 +113,9 @@ def validar_plan(dato: dict, dtype: str = "float16", device_map: str = "auto", r
         if config.get("prompt_sha256") != spec.sha256:
             problemas.append(f"{nombre}: prompt_sha256 no coincide con {ruta} ({spec.sha256})")
         adapter = config.get("adapter")
-        variables = {"PROMPT_SPEC": ruta, "MODELO_LOTE": str(lote), "BUSCADOR_VARIANTE": buscador}
+        # Sin adapter, ADAPTER_* vacías: ausentes, Configuracion usaría el adapter de la entrega.
+        variables = {"PROMPT_SPEC": ruta, "MODELO_LOTE": str(lote), "BUSCADOR_VARIANTE": buscador,
+                     "ADAPTER_REPO": "", "ADAPTER_REVISION": "", "ADAPTER_SUBCARPETA": ""}
         if adapter is not None:
             if (not isinstance(adapter, dict) or set(adapter) - _CAMPOS_ADAPTER
                     or not {"repo", "revision"} <= set(adapter)):
