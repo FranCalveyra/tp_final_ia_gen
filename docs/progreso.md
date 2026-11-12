@@ -1036,4 +1036,15 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   (`hooks.py:192`) mueve todos los tensores del forward a la primera GPU. Arreglo: posiciones como lista de `int`,
   que `send_to_device` devuelve intacta (accelerate 1.15.0, `operations.py:174-176`); unión de posiciones del lote
   y `-100` donde una fila no tiene objetivo. Equivalencia con torch CPU revalidada.
-- **Próximo paso:** relanzar en Kaggle y medir la VRAM del resto del paso (activaciones de hasta 6.322 tokens).
+- **v32** (commit `6169241`): **entrena en GPU real**, pero Kaggle la cortó por el límite de 8 h en el paso
+  315/363 (~85 s/paso en 2 T4). Pérdida: 0,44 al inicio, ~0,03 en el paso 100 y ~0,005 en el paso 268. W&B run
+  `3add2742ddfd4b42`. Checkpoints publicados en `FranCalveyra/tp-admision`: 50 `0829fa33`, 100 `4a8f7c09`,
+  150 `a37aae49`, 200 `6ed633b9`, 250 `af2d6061`, **300 `83dd1d205763e4885b66ac14b177799785b3fd69`**.
+  Recibos en `corridas/kaggle/v32b` (no versionado). Faltan 63 pasos (~1,5 h) para la época completa.
+- **v33 (2026-11-12):** reanudó desde checkpoint-300 (mismo commit y run W&B `3add2742ddfd4b42`) y **terminó la
+  época**: `terminada`, returncode 0, 1 h 31 min. Pérdida final ~0,006. VRAM pico 19,97 GB sumados (12,1 + 7,87 en
+  2 T4). Publicó checkpoint-350 `00175ae4`, checkpoint-363 `fc35d543` y **adapter `final`
+  `dc41674a8a2561a724884be2170ff6808efa6e96`**. Recibos en `corridas/kaggle/v33` (no versionado).
+  Validado en GPU T4; **A100-40GB sigue sin validar**. Pérdida baja en train no prueba calidad del agente.
+- **Próximo paso:** evaluar el adapter `final` en práctica original/b/c con prompt baseline (solo_entrenamiento)
+  y con procedimiento-v1 (ambos).
