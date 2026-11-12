@@ -1078,4 +1078,12 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Hipótesis del aviso confirmada en el dev (Kaggle v35, ~40 min de T4):** adapter + `procedimiento-v1` resuelve
   26/40 (sin adapter: 9/40); nunca responde aviso `true`, y los 8 mayores de 75 sin acompañante fallan solo por eso.
   La evaluación de prompts ahora acepta un `adapter` opcional (`configuraciones/evaluacion-prompt-kaggle-t4-l4-entrenado.json`).
-- **Próximo paso:** decidir el remedio del aviso (#15) midiendo en el dev, no en práctica.
+- **Remedio elegido (2026-11-12, Fran): seguir entrenando el adapter** en vez de reentrenar (≈9,5 h, casi toda la
+  cuota) o escribir la regla en el prompt (la consigna dice que las costumbres las enseña el entrenamiento).
+  `adapter_inicial` en la configuración del SFT; `datos/conversaciones/v4-aviso` (633: 302 positivos, 231 negativos
+  de 75+ con acompañante, 100 del resto; semilla 15); `configuraciones/sft-aviso.json` (lr 1e-4, 1 época). Ver
+  [entrenamiento-sft](entrenamiento-sft.md#5-seguir-entrenando-un-adapter-publicado-adapter_inicial).
+- **Kaggle v36 lanzado** (commit `fb353c0`, T4 x2, tope 5 h): entrena y evalúa el adapter nuevo en el dev en la
+  misma sesión. Publica checkpoints en el repo HF privado y una corrida nueva en W&B.
+- **Próximo paso:** comparar en el dev contra v35 (26/40, aviso 32/40); si mejora sin romper otros controles,
+  evaluar la práctica solo para reportar y decidir si pasa a ser el adapter de la entrega.
