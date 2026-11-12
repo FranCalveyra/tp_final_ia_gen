@@ -132,6 +132,13 @@ class ModeloTest(unittest.TestCase):
         self.assertEqual((config.adapter_repo, config.adapter_revision, config.adapter_subcarpeta),
                          ("FranCalveyra/tp-admision", "dc41674a8a2561a724884be2170ff6808efa6e96", "final"))
 
+    def test_entorno_sin_lote_usa_el_de_los_numeros_reportados(self):
+        # Todas las evaluaciones reportadas (evaluaciones/) corrieron con lote 4.
+        with patch.dict("os.environ", {}, clear=True):
+            self.assertEqual(Configuracion.desde_entorno().lote, 4)
+        with patch.dict("os.environ", {"MODELO_LOTE": "1"}, clear=True):
+            self.assertEqual(Configuracion.desde_entorno().lote, 1)
+
     def test_entorno_con_adapter_vacio_usa_la_base_sola(self):
         with patch.dict("os.environ", {"ADAPTER_REPO": ""}, clear=True):
             config = Configuracion.desde_entorno()
@@ -200,7 +207,8 @@ class ModeloTest(unittest.TestCase):
     def test_defaults_a100_no_cambian(self):
         config = Configuracion()
         self.assertEqual((config.dtype, config.device_map), ("bfloat16", "cuda:0"))
-        with patch.dict("os.environ", {"ADAPTER_REPO": ""}, clear=True):
+        # Adapter y lote de la entrega fijados aparte (ver los tests de entorno): acá, el resto de los defaults.
+        with patch.dict("os.environ", {"ADAPTER_REPO": "", "MODELO_LOTE": "1"}, clear=True):
             self.assertEqual(Configuracion.desde_entorno(), config)
 
     def test_dtype_y_device_map_validados(self):

@@ -16,6 +16,7 @@ Qué se usa en la entrega (`entrega.py`, sin variables de entorno):
 | Adapter LoRA | `FranCalveyra/tp-admision@dc41674a8a2561a724884be2170ff6808efa6e96`, carpeta `final` (repo HF **privado**) | `ADAPTER_ENTREGA` en `admision_tp/configuracion.py` |
 | Prompt | `configuraciones/prompts/procedimiento-v1.json` (sha256 verificado al cargar) | `RUTA_ENTREGA` en `admision_tp/prompts.py` |
 | Buscador | BM25, una sección de las normas por fragmento, armado con la carpeta que recibe | `admision_tp/buscador.py` |
+| Lote | 4 casos por micro-lote (el de todos los números reportados; `MODELO_LOTE` lo cambia) | `LOTE_ENTREGA` en `admision_tp/configuracion.py` |
 
 ### 1. Entorno
 

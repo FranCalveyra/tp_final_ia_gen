@@ -1106,5 +1106,8 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   grave era que ningún número era auditable (trazas solo en `corridas/`, ignorado). **Resuelto:** las evaluaciones
   reportadas (v25, v27, v34 en práctica; v25 fase 1 y v35 en el dev) quedan versionadas en `evaluaciones/` sin
   editar (escaneadas: sin secretos), y la tabla de la Parte 4 se regeneró desde ahí con procedencia limpia
-  (`evaluaciones/practica/tabla`, 10/10/7 · 14/16/12 · 11/13/12 · 30/29/33). Pendiente de decidir: `MODELO_LOTE`
-  por defecto de la entrega (1) contra el lote 4 de todos los números.
+  (`evaluaciones/practica/tabla`, 10/10/7 · 14/16/12 · 11/13/12 · 30/29/33).
+- **Lote de la entrega = 4 (decisión de Fran, 2026-11-12):** `Configuracion.desde_entorno` usa `LOTE_ENTREGA = 4`
+  sin `MODELO_LOTE`, para que la entrega corra como se midieron todos los números (antes: 1, ~2× más lento por caso
+  en T4). `Configuracion()` sigue en 1. Riesgo: lote 4 en A100 (una GPU, bf16) sin medir; en T4 los fallos fueron
+  con 8 y 16, repartido en 2 GPU.

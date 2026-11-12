@@ -10,6 +10,8 @@ DEVICE_MAP = re.compile(r"auto|cuda(:\d+)?")
 # Adapter de la entrega (SFT sobre v3-procedimiento, Kaggle v32+v33). Sin ADAPTER_REPO en el entorno se usa este;
 # ADAPTER_REPO vacío pide la base sola.
 ADAPTER_ENTREGA = ("FranCalveyra/tp-admision", "dc41674a8a2561a724884be2170ff6808efa6e96")
+# Lote de la entrega: con el que corrieron todas las evaluaciones reportadas (evaluaciones/). MODELO_LOTE lo cambia.
+LOTE_ENTREGA = 4
 
 
 @dataclass(frozen=True)
@@ -49,7 +51,7 @@ class Configuracion:
         repo, revision = ADAPTER_ENTREGA if "ADAPTER_REPO" not in os.environ else (os.environ["ADAPTER_REPO"], None)
         return cls(modelo=os.getenv("MODELO_ID", cls.modelo),
                    revision=os.getenv("MODELO_REVISION", cls.revision),
-                   lote=int(os.getenv("MODELO_LOTE", "1")),
+                   lote=int(os.getenv("MODELO_LOTE", str(LOTE_ENTREGA))),
                    adapter_repo=repo or None,
                    adapter_revision=os.getenv("ADAPTER_REVISION", revision) or None,
                    adapter_subcarpeta=os.getenv("ADAPTER_SUBCARPETA", cls.adapter_subcarpeta),
