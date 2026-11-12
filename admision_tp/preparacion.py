@@ -18,8 +18,18 @@ CAMPOS = {"version", "modelo", "revision", "semilla", "learning_rate", "epochs",
 
 def validar_configuracion(config):
     """Contrato cerrado, sin credenciales; conserva los valores recibidos."""
-    if not isinstance(config, dict) or set(config) != CAMPOS:
+    if not isinstance(config, dict) or set(config) - {"adapter_inicial"} != CAMPOS:
         raise ValueError("configuración: campos faltantes o desconocidos")
+    if "adapter_inicial" in config:
+        # Seguir entrenando un adapter publicado (#15, aviso): repo privado y revisión inmutable.
+        inicial = config["adapter_inicial"]
+        if (not isinstance(inicial, dict) or set(inicial) != {"repo", "revision", "subcarpeta"}
+                or not isinstance(inicial["repo"], str)
+                or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*", inicial["repo"])
+                or not isinstance(inicial["revision"], str) or not re.fullmatch(r"[0-9a-f]{40}", inicial["revision"])
+                or not isinstance(inicial["subcarpeta"], str)
+                or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", inicial["subcarpeta"])):
+            raise ValueError("configuración: adapter_inicial requiere repo, revisión inmutable y subcarpeta")
     if type(config["version"]) is not int or config["version"] != 1:
         raise ValueError("configuración: versión no soportada")
     for campo in ("modelo", "hf_repo"):

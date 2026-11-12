@@ -129,6 +129,18 @@ def perdida_supervisada(torch, modelo, entradas, num_items_in_batch=None):
     return suma / num_items_in_batch
 
 
+def aplicar_lora(peft, modelo, config):
+    """LoRA nuevo, o el adapter de `adapter_inicial` entrenable (mismo r y módulos con que se publicó)."""
+    inicial = config.get("adapter_inicial")
+    if inicial is None:
+        return peft.get_peft_model(modelo, peft.LoraConfig(**LORA, revision=config["revision"]))
+    origen = {"revision": inicial["revision"], "subfolder": inicial["subcarpeta"]}
+    previo = peft.PeftConfig.from_pretrained(inicial["repo"], **origen)
+    if (previo.base_model_name_or_path, previo.revision) != (config["modelo"], config["revision"]):
+        raise ValueError("adapter_inicial entrenado sobre otra base o revisión")
+    return peft.PeftModel.from_pretrained(modelo, inicial["repo"], config=previo, is_trainable=True, **origen)
+
+
 def validar_reanudacion(salida, checkpoint, identidad):
     raiz, checkpoint = Path(salida).resolve(), Path(checkpoint).resolve()
     if checkpoint.parent != raiz or not re.fullmatch(r"checkpoint-\d+", checkpoint.name):
@@ -236,7 +248,7 @@ def _ejecutar_cuda(config, registros, ejemplos, tokens, destino, auditoria, chec
     if not torch.cuda.is_available():
         raise RuntimeError("entrenamiento requiere CUDA; no se usa CPU automáticamente")
     from transformers import AutoTokenizer, Trainer, TrainingArguments, TrainerCallback, set_seed
-    from peft import LoraConfig, get_peft_model
+    import peft
     from .tokenizacion import tokenizar_conversacion
     import wandb
 
@@ -272,7 +284,7 @@ def _ejecutar_cuda(config, registros, ejemplos, tokens, destino, auditoria, chec
                                    dtype=getattr(torch, PRECISIONES[ejecucion["precision"]]), **reparto)
         # Sin attn_implementation: forzar "sdpa" rompe la torre de audio de Gemma 4 (ver modelo.py).
         modelo.config.use_cache = False
-        modelo = get_peft_model(modelo, LoraConfig(**LORA, revision=config["revision"]))
+        modelo = aplicar_lora(peft, modelo, config)
         modelo.enable_input_require_grads()
 
         class Auditor(TrainerCallback):

@@ -110,6 +110,18 @@ posteriores al último checkpoint íntegro, ni salvar una escritura parcial. La 
 un checkpoint HF: para recuperación desde HF usar [runner Kaggle](kaggle.md#entrenamiento-sft-humo-en-kaggle),
 que fija revisión y valida integridad. [Modal](entrenamiento-modal.md) queda solo como referencia legacy, no usar.
 
+### 5. Seguir entrenando un adapter publicado (`adapter_inicial`)
+
+Con `adapter_inicial` (`repo`, `revision` de 40 hex, `subcarpeta`) en la configuración, el entrenamiento carga
+ese adapter entrenable (mismo r y módulos con los que se publicó) en vez de crear un LoRA nuevo, y falla si fue
+entrenado sobre otra base o revisión. Se usa para el aviso al voluntariado (#15): el adapter de `v3-procedimiento`
+nunca responde `true` ([análisis de errores](analisis-errores.md), pasada 7).
+`configuraciones/sft-aviso.json` parte del adapter de la entrega con learning rate 1e-4 y 1 época sobre
+`datos/conversaciones/v4-aviso`, armado con `scripts.subconjunto_aviso`: todos los positivos, todos los negativos
+del mismo rango de edad (umbral = la menor edad entre los positivos, sale de los datos) y una muestra fija del
+resto. Publica en el mismo repo HF: `checkpoint-N` y `final` quedan con revisiones nuevas, y las anteriores
+siguen accesibles por su revisión (la entrega fija la suya en `configuracion.py`).
+
 ## Estado de cierre de infraestructura y límites restantes
 
 Los cuatro criterios técnicos del pipeline genérico están respaldados: conversaciones/config/semilla,
