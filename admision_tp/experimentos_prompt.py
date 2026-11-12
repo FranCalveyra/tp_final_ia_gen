@@ -15,7 +15,7 @@ from admision.correr import jugar, puntuar, revisar_que_no_haya_esperadas
 
 from .agente_prompt import AgentePrompt
 from .buscador import VARIANTES, BuscadorBM25
-from .configuracion import Configuracion
+from .configuracion import Configuracion, validar_adapter
 from .evaluacion_prompts import (
     PROPOSITOS,
     calcular_metricas_candidato,
@@ -68,9 +68,11 @@ class ConfiguracionEvaluacionPrompt:
         # Las mismas variantes que acepta la entrega (`BUSCADOR_VARIANTE`).
         if self.buscador_variante not in VARIANTES:
             raise ValueError("configuración de evaluación: buscador_variante inválida")
-        if self.adapter is not None and (
-                not isinstance(self.adapter, dict) or set(self.adapter) != {"repo", "revision", "subcarpeta"}):
-            raise ValueError("configuración de evaluación: adapter requiere repo, revision y subcarpeta")
+        if self.adapter is not None:
+            try:
+                validar_adapter(self.adapter)
+            except ValueError as error:
+                raise ValueError(f"configuración de evaluación: {error}") from None
         # Reutiliza la validación de dtype, device_map, límites y revisión inmutable del adapter.
         self.configuracion_modelo()
 

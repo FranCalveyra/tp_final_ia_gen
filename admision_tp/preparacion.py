@@ -8,6 +8,7 @@ import re
 import subprocess
 import tempfile
 
+from .configuracion import validar_adapter
 from .conversaciones import _json, validar_archivo
 
 RAIZ = Path(__file__).resolve().parents[1]
@@ -22,14 +23,10 @@ def validar_configuracion(config):
         raise ValueError("configuración: campos faltantes o desconocidos")
     if "adapter_inicial" in config:
         # Seguir entrenando un adapter publicado (#15, aviso): repo privado y revisión inmutable.
-        inicial = config["adapter_inicial"]
-        if (not isinstance(inicial, dict) or set(inicial) != {"repo", "revision", "subcarpeta"}
-                or not isinstance(inicial["repo"], str)
-                or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*", inicial["repo"])
-                or not isinstance(inicial["revision"], str) or not re.fullmatch(r"[0-9a-f]{40}", inicial["revision"])
-                or not isinstance(inicial["subcarpeta"], str)
-                or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", inicial["subcarpeta"])):
-            raise ValueError("configuración: adapter_inicial requiere repo, revisión inmutable y subcarpeta")
+        try:
+            validar_adapter(config["adapter_inicial"])
+        except ValueError as error:
+            raise ValueError(f"configuración: adapter_inicial: {error}") from None
     if type(config["version"]) is not int or config["version"] != 1:
         raise ValueError("configuración: versión no soportada")
     for campo in ("modelo", "hf_repo"):

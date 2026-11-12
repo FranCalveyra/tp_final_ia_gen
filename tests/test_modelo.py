@@ -139,6 +139,22 @@ class ModeloTest(unittest.TestCase):
         with patch.dict("os.environ", {"MODELO_LOTE": "1"}, clear=True):
             self.assertEqual(Configuracion.desde_entorno().lote, 1)
 
+    def test_revision_de_adapter_sin_repo_no_pisa_el_de_la_entrega(self):
+        # Sin ADAPTER_REPO, una ADAPTER_REVISION suelta cambiaría en silencio la revisión del adapter de la entrega.
+        for variable in ("ADAPTER_REVISION", "ADAPTER_SUBCARPETA"):
+            with self.subTest(variable=variable), patch.dict("os.environ", {variable: "a" * 40}, clear=True), \
+                    self.assertRaisesRegex(ValueError, "ADAPTER_REPO"):
+                Configuracion.desde_entorno()
+
+    def test_referencia_de_adapter_validada_en_un_solo_lugar(self):
+        from admision_tp.configuracion import validar_adapter
+        bueno = {"repo": "FranCalveyra/tp-admision", "revision": "a" * 40, "subcarpeta": "final"}
+        self.assertEqual(validar_adapter(bueno), bueno)
+        for malo in ({**bueno, "revision": "main"}, {**bueno, "repo": "../x"}, {**bueno, "subcarpeta": ""},
+                     {**bueno, "subcarpeta": "../x"}, {**bueno, "extra": 1}, {"repo": "x/y"}, "x/y", None):
+            with self.subTest(adapter=malo), self.assertRaises(ValueError):
+                validar_adapter(malo)
+
     def test_entorno_con_adapter_vacio_usa_la_base_sola(self):
         with patch.dict("os.environ", {"ADAPTER_REPO": ""}, clear=True):
             config = Configuracion.desde_entorno()

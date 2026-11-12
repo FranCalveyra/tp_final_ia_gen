@@ -35,7 +35,6 @@ CONTROLADAS = ("PROMPT_SPEC", "MODELO_LOTE", "BUSCADOR_VARIANTE", "ADAPTER_REPO"
 _CAMPOS_PLAN = {"version", "nombre", "descripcion", "plantilla", "cantidad", "versiones", "lote",
                 "buscador", "configuraciones"}
 _CAMPOS_CONFIG = {"etiqueta", "descripcion", "prompt", "prompt_sha256", "adapter", "versiones", "cantidad"}
-_CAMPOS_ADAPTER = {"repo", "revision", "subcarpeta"}
 
 
 @dataclass(frozen=True)
@@ -58,7 +57,7 @@ class Corrida:
 def validar_plan(dato: dict, dtype: str = "float16", device_map: str = "auto", raiz: Path = RAIZ) -> list[Corrida]:
     """Devuelve las corridas del plan o levanta ValueError con todos los problemas juntos."""
     from admision_tp.buscador import VARIANTES as BUSCADORES
-    from admision_tp.configuracion import Configuracion
+    from admision_tp.configuracion import Configuracion, validar_adapter
     from admision_tp.prompts import PromptSpec
 
     if not isinstance(dato, dict):
@@ -117,11 +116,11 @@ def validar_plan(dato: dict, dtype: str = "float16", device_map: str = "auto", r
         variables = {"PROMPT_SPEC": ruta, "MODELO_LOTE": str(lote), "BUSCADOR_VARIANTE": buscador,
                      "ADAPTER_REPO": "", "ADAPTER_REVISION": "", "ADAPTER_SUBCARPETA": ""}
         if adapter is not None:
-            if (not isinstance(adapter, dict) or set(adapter) - _CAMPOS_ADAPTER
-                    or not {"repo", "revision"} <= set(adapter)):
-                problemas.append(f"{nombre}: adapter requiere repo y revision (y opcional subcarpeta)")
+            try:  # subcarpeta es opcional en el plan (default final).
+                adapter = validar_adapter({"subcarpeta": "final", **adapter} if isinstance(adapter, dict) else adapter)
+            except ValueError as e:
+                problemas.append(f"{nombre}: {e}")
                 continue
-            adapter = {"subcarpeta": "final", **adapter}
             variables |= {"ADAPTER_REPO": adapter["repo"], "ADAPTER_REVISION": adapter["revision"],
                           "ADAPTER_SUBCARPETA": adapter["subcarpeta"]}
         try:  # Las mismas reglas que aplicará el agente: revisión de 40 hex, lote positivo, dtype.
