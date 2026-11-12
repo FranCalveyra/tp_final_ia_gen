@@ -1,0 +1,80 @@
+{
+  "busquedas": {
+    "medio": 1.25,
+    "total": 25
+  },
+  "caracteres_de_contexto": {
+    "medio": 17732,
+    "total": 354635
+  },
+  "casos": 20,
+  "clave_comparacion": [
+    4,
+    140,
+    0,
+    -1,
+    0,
+    -615,
+    -650,
+    -354635
+  ],
+  "comparable": true,
+  "controles_correctos": 140,
+  "controles_totales": 180,
+  "criterio_comparacion": [
+    "resueltos_9_de_9",
+    "controles_correctos",
+    "menos_sin_decision",
+    "menos_respuestas_sin_json",
+    "menos_llamadas_invalidas",
+    "menos_tokens_system_prompt",
+    "menos_tokens_contexto_inicial",
+    "menos_caracteres_de_contexto"
+  ],
+  "llamadas": {
+    "medio": 4.65,
+    "total": 93
+  },
+  "llamadas_invalidas": 0,
+  "longitud_prompt": {
+    "add_special_tokens_textos": false,
+    "chat_template_sha256": "0a2c8073c878ab1da004bee933a998606537bbb62016310352c7285c3f01c5b5",
+    "contexto_inicial": 650,
+    "contexto_inicial_add_generation_prompt": true,
+    "enable_thinking": false,
+    "metodo": "tokenizer_real_sin_aproximacion",
+    "paciente_id_medicion": "P-METRICA",
+    "por_texto": {
+      "formato_observacion": 12,
+      "mensaje_inicial": 21,
+      "mensaje_json_invalido": 28,
+      "system_prompt": 615
+    },
+    "total_textos_configurables": 676,
+    "version": 1
+  },
+  "motivo_no_comparable": null,
+  "parcial_medio": 0.778,
+  "por_control": {
+    "aviso_al_voluntariado": 0.8,
+    "box_antes_del_registro": 0.65,
+    "circuito": 0.9,
+    "cobertura": 0.75,
+    "entidad_a_notificar": 0.8,
+    "numero_documento": 1.0,
+    "plazo_circuito_min": 0.65,
+    "registro": 0.6,
+    "verificacion": 0.85
+  },
+  "puntaje_calidad": 864,
+  "respuestas_sin_json": 1,
+  "resueltos_9_de_9": 4,
+  "segundos": {
+    "casos_medidos": 20,
+    "medio": 243.421,
+    "total": 4868.42
+  },
+  "sin_decision": 0,
+  "tasa_9_de_9": 0.2,
+  "version": 1
+}

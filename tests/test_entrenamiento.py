@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import patch
 
 from admision_tp.entrenamiento import (EJECUCION, POLITICA, cargar_entradas, entrenar, formar_lote,
-                                      publicar_checkpoint, validar_reanudacion)
+                                      posiciones_supervisadas, publicar_checkpoint, validar_reanudacion)
 from admision_tp.preparacion import _canonical, _sha, preparar_corrida
 from admision_tp.tokenizacion import tokenizar_preparacion
 from test_conversaciones import registro
@@ -289,6 +289,33 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class PosicionesSupervisadasTest(unittest.TestCase):
+    """La pérdida solo proyecta al vocabulario las posiciones que predicen un token del asistente."""
+
+    def test_cada_posicion_predice_el_token_siguiente(self):
+        # Contexto (-100), respuesta [5, 6], cierre fuera de la máscara y padding.
+        posiciones, objetivos = posiciones_supervisadas([[-100, -100, 5, 6, -100, -100]])
+        self.assertEqual(posiciones, [1, 2])
+        self.assertEqual(objetivos, [[5, 6]])
+
+    def test_lote_usa_la_union_y_marca_lo_ajeno_como_ignorado(self):
+        posiciones, objetivos = posiciones_supervisadas([[-100, 7, -100, 8], [-100, -100, 9, -100]])
+        self.assertEqual(posiciones, [0, 1, 2])
+        self.assertEqual(objetivos, [[7, -100, 8], [-100, 9, -100]])
+
+    def test_ultima_posicion_nunca_se_conserva(self):
+        # La última posición no tiene token siguiente aunque su etiqueta esté supervisada.
+        posiciones, objetivos = posiciones_supervisadas([[-100, 3, 4]])
+        self.assertEqual(posiciones, [0, 1])
+        self.assertEqual(objetivos, [[3, 4]])
+
+    def test_posiciones_son_enteros_de_python(self):
+        # accelerate mueve los tensores del forward a la primera GPU (Kaggle v31); una lista no se mueve.
+        posiciones, _ = posiciones_supervisadas([[-100, 3, 4]])
+        self.assertIs(type(posiciones), list)
+        self.assertTrue(all(type(p) is int for p in posiciones))
+
+
 class ObjetivoLoraTest(unittest.TestCase):
     def test_solo_atencion_del_modelo_de_lenguaje(self):
         import re
@@ -302,3 +329,44 @@ class ObjetivoLoraTest(unittest.TestCase):
                        "model.language_model.layers.0.self_attn.k_proj",
                        "model.language_model.layers.0.self_attn.q_proj.linear"):
             self.assertIsNone(re.fullmatch(patron, nombre), nombre)
+
+
+class AdapterInicialTest(unittest.TestCase):
+    """Sin `adapter_inicial`, LoRA nuevo; con él, sigue entrenando el adapter publicado."""
+
+    def peft(self, base=("google/gemma-4-E4B-it", "e" * 40)):
+        llamadas = []
+        config_hf = SimpleNamespace(base_model_name_or_path=base[0], revision=base[1])
+        peft = SimpleNamespace(
+            LoraConfig=lambda **kw: kw,
+            get_peft_model=lambda m, c: llamadas.append(("nuevo", c)) or "nuevo",
+            PeftConfig=SimpleNamespace(from_pretrained=lambda repo, **kw: config_hf),
+            PeftModel=SimpleNamespace(from_pretrained=lambda m, repo, **kw: llamadas.append(("inicial", repo, kw))
+                                      or "inicial"))
+        return peft, llamadas
+
+    def test_sin_adapter_inicial_crea_lora_nuevo(self):
+        from admision_tp.entrenamiento import LORA, aplicar_lora
+        peft, llamadas = self.peft()
+        self.assertEqual(aplicar_lora(peft, "modelo", {"modelo": "google/gemma-4-E4B-it", "revision": "e" * 40}),
+                         "nuevo")
+        self.assertEqual(llamadas, [("nuevo", {**LORA, "revision": "e" * 40})])
+
+    def test_con_adapter_inicial_lo_carga_entrenable_en_su_revision(self):
+        from admision_tp.entrenamiento import aplicar_lora
+        peft, llamadas = self.peft()
+        config = {"modelo": "google/gemma-4-E4B-it", "revision": "e" * 40,
+                  "adapter_inicial": {"repo": "FranCalveyra/tp-admision", "revision": "d" * 40, "subcarpeta": "final"}}
+        self.assertEqual(aplicar_lora(peft, "modelo", config), "inicial")
+        (_, repo, kw), = llamadas
+        self.assertEqual(repo, "FranCalveyra/tp-admision")
+        self.assertEqual((kw["revision"], kw["subfolder"], kw["is_trainable"]), ("d" * 40, "final", True))
+
+    def test_adapter_inicial_de_otra_base_falla(self):
+        from admision_tp.entrenamiento import aplicar_lora
+        peft, llamadas = self.peft(base=("google/gemma-4-E4B-it", "f" * 40))
+        config = {"modelo": "google/gemma-4-E4B-it", "revision": "e" * 40,
+                  "adapter_inicial": {"repo": "FranCalveyra/tp-admision", "revision": "d" * 40, "subcarpeta": "final"}}
+        with self.assertRaisesRegex(ValueError, "otra base"):
+            aplicar_lora(peft, "modelo", config)
+        self.assertEqual(llamadas, [])

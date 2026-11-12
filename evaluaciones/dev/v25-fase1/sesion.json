@@ -1,0 +1,55 @@
+{
+  "config": "configuraciones/evaluacion-prompt-kaggle-t4-l4.json",
+  "corridas": [
+    {
+      "corrida": "baseline-n1",
+      "returncode": 0,
+      "segundos": 486
+    },
+    {
+      "corrida": "corto-v1-n1",
+      "returncode": 0,
+      "segundos": 330
+    },
+    {
+      "corrida": "procedimiento-v1-n1",
+      "returncode": 0,
+      "segundos": 542
+    },
+    {
+      "corrida": "procedimiento-costumbres-v1-n1",
+      "returncode": 1,
+      "segundos": 529
+    },
+    {
+      "corrida": "procedimiento-costumbres-corto-v1-n1",
+      "returncode": 0,
+      "segundos": 411
+    },
+    {
+      "corrida": "baseline-n2",
+      "returncode": 0,
+      "segundos": 335
+    },
+    {
+      "corrida": "corto-v1-n2",
+      "returncode": 0,
+      "segundos": 341
+    },
+    {
+      "corrida": "procedimiento-v1-n2",
+      "returncode": 0,
+      "segundos": 582
+    },
+    {
+      "corrida": "procedimiento-costumbres-v1-n2",
+      "returncode": 0,
+      "segundos": 550
+    },
+    {
+      "corrida": "procedimiento-costumbres-corto-v1-n2",
+      "returncode": 0,
+      "segundos": 332
+    }
+  ]
+}

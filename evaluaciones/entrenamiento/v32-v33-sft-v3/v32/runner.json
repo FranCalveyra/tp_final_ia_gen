@@ -1,0 +1,48 @@
+{
+  "modo": "nuevo",
+  "ejecucion": {
+    "precision": "fp16",
+    "dispositivos": "auto",
+    "guardar_cada": 50
+  },
+  "publicar": true,
+  "wandb": "online",
+  "hf_repo": "FranCalveyra/tp-admision",
+  "modelo": "google/gemma-4-E4B-it",
+  "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+  "semilla": 42,
+  "configuracion": {
+    "batch_size": 1,
+    "epochs": 1,
+    "gradient_accumulation_steps": 8,
+    "hf_repo": "FranCalveyra/tp-admision",
+    "learning_rate": 0.0002,
+    "max_seq_length": 8192,
+    "modelo": "google/gemma-4-E4B-it",
+    "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+    "semilla": 42,
+    "version": 1,
+    "wandb_entity": "francalveyra-ia-gen",
+    "wandb_project": "tp-admision"
+  },
+  "reanudacion": null,
+  "commit": "6169241632943725894c28528eb87d1ec2bc1c66",
+  "sucio": false,
+  "maquina": {
+    "commit": "6169241632943725894c28528eb87d1ec2bc1c66",
+    "sucio": false,
+    "gpus": [
+      "Tesla T4, 15360 MiB, 580.178.04",
+      "Tesla T4, 15360 MiB, 580.178.04"
+    ],
+    "torch": {
+      "torch": "2.15.0+cu132",
+      "cuda": "13.2",
+      "gpus": 2,
+      "bf16_nativo": false
+    },
+    "python": "3.13.16"
+  },
+  "estado": "en_curso",
+  "inicio": "2026-11-11T23:38:36+0000"
+}

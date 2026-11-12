@@ -5,8 +5,29 @@ import os
 import re
 
 COMMIT_HF = re.compile(r"[0-9a-f]{40}")
+REPO_HF = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*")
+SUBCARPETA_HF = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*")
 DTYPES = ("bfloat16", "float16", "float32")
 DEVICE_MAP = re.compile(r"auto|cuda(:\d+)?")
+# Adapter de la entrega (SFT sobre v3-procedimiento, Kaggle v32+v33). Sin ADAPTER_REPO en el entorno se usa este;
+# ADAPTER_REPO vacío pide la base sola.
+ADAPTER_ENTREGA = ("FranCalveyra/tp-admision", "dc41674a8a2561a724884be2170ff6808efa6e96")
+# Lote de la entrega: con el que corrieron todas las evaluaciones reportadas (evaluaciones/). MODELO_LOTE lo cambia.
+LOTE_ENTREGA = 4
+
+
+def validar_adapter(dato) -> dict:
+    """Referencia a un adapter publicado, como la escriben los planes y configuraciones JSON.
+
+    `{"repo": "propietario/nombre", "revision": <commit HF de 40 hex>, "subcarpeta": <carpeta>}`; devuelve el
+    mismo dict. Única validación de esa forma (preparación del SFT, evaluación de prompts y planes).
+    """
+    if (not isinstance(dato, dict) or set(dato) != {"repo", "revision", "subcarpeta"}
+            or not all(isinstance(v, str) for v in dato.values())
+            or not REPO_HF.fullmatch(dato["repo"]) or not COMMIT_HF.fullmatch(dato["revision"])
+            or not SUBCARPETA_HF.fullmatch(dato["subcarpeta"])):
+        raise ValueError("adapter requiere repo propietario/nombre, revisión HF inmutable (40 hex) y subcarpeta")
+    return dato
 
 
 @dataclass(frozen=True)
@@ -43,11 +64,18 @@ class Configuracion:
 
     @classmethod
     def desde_entorno(cls):
+        if "ADAPTER_REPO" in os.environ:
+            repo, revision = os.environ["ADAPTER_REPO"], None  # Vacío pide la base sola.
+        elif {"ADAPTER_REVISION", "ADAPTER_SUBCARPETA"} & set(os.environ):
+            # Si no, cambiaría en silencio la revisión o la carpeta del adapter de la entrega.
+            raise ValueError("ADAPTER_REVISION y ADAPTER_SUBCARPETA requieren ADAPTER_REPO")
+        else:
+            repo, revision = ADAPTER_ENTREGA
         return cls(modelo=os.getenv("MODELO_ID", cls.modelo),
                    revision=os.getenv("MODELO_REVISION", cls.revision),
-                   lote=int(os.getenv("MODELO_LOTE", "1")),
-                   adapter_repo=os.getenv("ADAPTER_REPO", cls.adapter_repo) or None,
-                   adapter_revision=os.getenv("ADAPTER_REVISION", cls.adapter_revision) or None,
+                   lote=int(os.getenv("MODELO_LOTE", str(LOTE_ENTREGA))),
+                   adapter_repo=repo or None,
+                   adapter_revision=os.getenv("ADAPTER_REVISION", revision) or None,
                    adapter_subcarpeta=os.getenv("ADAPTER_SUBCARPETA", cls.adapter_subcarpeta),
                    metricas=os.getenv("MODELO_METRICAS") or None,
                    dtype=os.getenv("MODELO_DTYPE", cls.dtype),

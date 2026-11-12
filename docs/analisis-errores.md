@@ -227,6 +227,75 @@ Todas: Gemma 4 E4B **sin entrenar**, Kaggle T4, normas original, 50 casos de pr�
   estas corridas con `comparar`; el entrenamiento tiene que bajar «modelo» en verificación/entidad y «costumbre»
   en el aviso sin devolver las fallas del buscador.
 
+### 2026-11-12 · Pasada 7: fila `ambos` contra `solo_prompt` en práctica (solo reporte)
+
+- **Corridas:** `corridas/kaggle/v27/corridas/evaluacion-solo-prompt/solo_prompt-<v>` (base + `procedimiento-v1`,
+  commit `a5745f0`) contra `corridas/kaggle/v34/x/evaluacion-entrenado/ambos-<v>` (adapter
+  `FranCalveyra/tp-admision@dc41674a/final` + `procedimiento-v1`, commit `3adf12e`); buscador `baseline`, lote 4,
+  T4. Salidas: `corridas/analisis/2026-11-12-cmp-v34-ambos-vs-solo-prompt-<v>/`. El adapter no se eligió con esto.
+- **Resultado:** original 14 → 30 (gana 16, **pierde 0**), b 16 → 29 (13/0), c 12 → 33 (21/0); signos p < 0,001
+  en las tres (versiones no independientes).
+
+| Control (original) | Arreglados | Rotos | Fuentes antes (F/C/B/M) | Fuentes después (F/C/B/M) |
+|---|---|---|---|---|
+| registro | 9 | 0 | 0/0/0/9 | 0/0/0/0 |
+| box_antes_del_registro | 5 | 1 | 0/0/0/5 | 0/0/0/1 |
+| cobertura | 8 | 1 | 0/3/0/8 | 0/0/1/3 |
+| entidad_a_notificar | 12 | 1 | 0/2/0/12 | 0/0/0/3 |
+| aviso_al_voluntariado | 0 | 0 | 0/14/0/0 | 0/14/0/0 |
+| verificacion | 20 | 0 | 0/3/0/17 | 0/0/0/0 |
+
+- **Hallazgo:** el entrenamiento hace lo que la pasada 6 pedía: verificación pasa de 17–20 fallas «modelo» a 0 y
+  entidad a notificar de 11–14 a 0–4, sin devolver las fallas del buscador (1 en cobertura). Las 3 versiones de
+  normas mejoran igual: aprendió a aplicar normas, no a memorizarlas.
+- **El aviso no se mueve, y la causa es concreta:** las 14 fallas por versión son **todos** los pacientes de 75 años
+  o más sin acompañante (esperada `true`), y el modelo responde `false`. Con o sin adapter, nunca responde `true`
+  en esos casos. Los datos de entrenamiento no tienen el problema: en `v3-procedimiento` la regla se cumple sin
+  excepciones (302 `true` = todos los 75+/sin acompañante; 2.598 `false`). La nota de triage tiene el mismo formato
+  en ambos lados («N años», «Acompañante: ninguno»). Hipótesis: con 10 % de positivos y un solo token en juego, 1
+  época con LoRA r=8 solo en q/v no aprende la regla condicional y queda en la clase mayoritaria; la pérdida media
+  (~0,005) no lo muestra. **Sin verificar:** falta ver si el adapter también responde `false` en conversaciones de
+  entrenamiento o del conjunto de desarrollo (requiere GPU).
+- **Para #15:** confirmar la hipótesis en el conjunto de desarrollo antes de cambiar el entrenamiento; la práctica
+  no puede elegir el remedio.
+- **Confirmado en el conjunto de desarrollo (Kaggle v35, commit `bea206b`):** `procedimiento-v1` + adapter resuelve
+  26/40 (11 + 15; sin adapter, v25: 9/40). El aviso queda en 32/40: el modelo **no responde `true` en ninguno de los
+  40 casos**, y los 8 que fallan son los 8 mayores de 75 sin acompañante. Esos 8 fallan **solo** por el aviso; los
+  otros controles: verificación y entidad 40/40, box 38, cobertura 37, registro 39, plazo 39. Es colapso a la clase
+  mayoritaria, no un problema de formato ni del dato. Salidas en `evaluaciones/dev/v35-entrenado`.
+- **Límite declarado:** el problema se **vio** en práctica (esta pasada es un reporte sobre práctica). Para no
+  usar la práctica como selector, la hipótesis se confirmó en el conjunto de desarrollo, el remedio (`v4-aviso`)
+  se arma solo con datos de entrenamiento, y la decisión de adoptar el adapter de la v36 se toma solo con el
+  dev; la práctica de la v36 se corre después y no cambia la decisión. Aun así, saber que existía la falla vino
+  de mirar práctica: lo declaramos en vez de ocultarlo.
+
+### 2026-11-12 · Pasada 8: refuerzo del aviso (v36) contra el adapter de la entrega (v35), conjunto de desarrollo
+
+**No funcionó; el adapter de la entrega sigue siendo `dc41674a`.** La v36 siguió entrenando ese adapter
+(`adapter_inicial`) 1 época sobre `datos/conversaciones/v4-aviso` (633 conversaciones: 302 con aviso `true`, 231
+mayores con acompañante, 100 del resto; lr 1e-4) y se midió en el dev con la misma configuración que v35.
+Decisión tomada solo con el dev; la práctica de la v36 no se corrió.
+
+| Dev, 40 casos | v35 (`dc41674a`) | v36 (`22ee5596`) |
+|---|---:|---:|
+| Resueltos | **26** | 23 (ganados 7, perdidos 10) |
+| Aviso correcto | **32** | 26 |
+| 75+ sin acompañante (aviso `true`) | 0/8 | **6/8** |
+| Resto (aviso `false`) | **32/32** | 20/32 (10 menores de 75 y 2 mayores con acompañante con `true`) |
+| Otros controles que cambiaron | — | registro 1 arreglado y 1 roto; plazo 1 roto |
+
+- **Causa:** con 46 % de positivos el modelo pasó de «siempre `false`» a decir `true` seguido, sin aprender la
+  condición (edad **y** sin acompañante). La caída de 26 a 23 es casi toda del aviso (6 arreglados, 12 rotos).
+- **Por qué cuesta:** el aviso es **un token** entre los ~360 supervisados de cada conversación. La pérdida media lo
+  diluye (v36 arrancó en 0,0069 y terminó en 0,0033: el adapter ya «sabía» todo lo demás), así que el gradiente
+  sobre esa decisión es chico y cambiar la proporción de positivos mueve el sesgo, no la regla.
+- **Confirma en GPU** que `adapter_inicial` funciona: la pérdida del paso 1 fue 0,0069 (un LoRA nuevo arranca ~0,44).
+- **Qué probaría con más GPU** (no se hizo): una proporción de positivos cercana a la real con más épocas,
+  peso extra en la pérdida del token del aviso, o DPO con pares que difieran solo en el aviso. Cada intento son
+  ~3 h de T4; la cuota alcanza, pero sin garantía de que el siguiente gane al actual.
+- Corridas en `evaluaciones/dev/v36-aviso`; recibos del entrenamiento en `evaluaciones/entrenamiento/v36-aviso`
+  (W&B `6d8edb168beb4e9b`, checkpoints 20/40/60/80 y `final` en HF).
+
 ## Uso para #13 y #15
 
 - **Qué conclusiones se usaron para diseñar candidatos de #13** (solo patrones genéricos, sin contenido de casos

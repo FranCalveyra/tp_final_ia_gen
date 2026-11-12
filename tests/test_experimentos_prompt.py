@@ -186,6 +186,20 @@ class ExperimentosPromptTest(unittest.TestCase):
             with self.subTest(cambio=cambio), self.assertRaises(ValueError):
                 ConfiguracionEvaluacionPrompt.desde_dict({**dato, **cambio})
 
+    def test_adapter_opcional_llega_al_modelo_y_queda_en_la_configuracion(self):
+        dato = json.loads(self.config.read_text())
+        self.assertNotIn("adapter", ConfiguracionEvaluacionPrompt.desde_dict(dato).como_dict())
+        adapter = {"repo": "FranCalveyra/tp-admision", "revision": "a" * 40, "subcarpeta": "final"}
+        config = ConfiguracionEvaluacionPrompt.desde_dict({**dato, "adapter": adapter})
+        modelo = config.configuracion_modelo()
+        self.assertEqual((modelo.adapter_repo, modelo.adapter_revision, modelo.adapter_subcarpeta),
+                         ("FranCalveyra/tp-admision", "a" * 40, "final"))
+        self.assertEqual(config.como_dict()["adapter"], adapter)
+        self.assertEqual(ConfiguracionEvaluacionPrompt.desde_dict(config.como_dict()), config)
+        for malo in ({**adapter, "revision": "main"}, {"repo": "x/y"}, {**adapter, "extra": 1}, "x/y"):
+            with self.subTest(adapter=malo), self.assertRaises(ValueError):
+                ConfiguracionEvaluacionPrompt.desde_dict({**dato, "adapter": malo})
+
     def test_cli_help_no_carga_modelo(self):
         with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as salida:
             main(["--help"])

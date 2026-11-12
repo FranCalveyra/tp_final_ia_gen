@@ -55,6 +55,14 @@ class PreparacionTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validar_configuracion({**self.config, "WANDB_API_KEY": "no-admitida"})
 
+    def test_adapter_inicial_opcional_con_revision_inmutable(self):
+        inicial = {"repo": "FranCalveyra/tp-admision", "revision": "d" * 40, "subcarpeta": "final"}
+        validar_configuracion({**self.config, "adapter_inicial": inicial})
+        for malo in ({**inicial, "revision": "main"}, {"repo": "x/y", "revision": "d" * 40},
+                     {**inicial, "repo": "../privado"}, {**inicial, "subcarpeta": ""}, None):
+            with self.subTest(adapter_inicial=malo), self.assertRaises(ValueError):
+                validar_configuracion({**self.config, "adapter_inicial": malo})
+
     def test_invalido_no_deja_salida_ni_temporales(self):
         for dato in ("", "{malformado", json.dumps({**registro(), "origen": "practica"})):
             self.datos.write_text(dato, encoding="utf-8")

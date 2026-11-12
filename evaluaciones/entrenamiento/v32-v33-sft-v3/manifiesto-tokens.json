@@ -1,0 +1,25 @@
+{
+  "archivos": {
+    "tokens.jsonl": "1edf58f4d145ab015ef4c455bd0e897f2d411ff102ab0710f29225716c21d760"
+  },
+  "codigo": {
+    "commit": "8843004abba8bf96f9c214027af558702609095e",
+    "dirty": false
+  },
+  "enable_thinking": false,
+  "estado": "tokenizada_no_entrenada",
+  "mascara": "prefijos_verificados_assistant_con_cierre",
+  "max_seq_length": 8192,
+  "modelo": "google/gemma-4-E4B-it",
+  "plantilla_sha256": "0a2c8073c878ab1da004bee933a998606537bbb62016310352c7285c3f01c5b5",
+  "preparacion_sha256": "97f42797ed3a520a9b79a240b6b3f35dfbba2e688ebf53324f68aa48348c447f",
+  "registros": 2900,
+  "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+  "snapshots": {
+    "configuracion.json": "e030b3120122032d2e35cb3380f1cec9a052e219594cf2753b38f3df983fc928",
+    "conversaciones.jsonl": "3213595f6a3cd3b7b21c003c6357a6617d89cd0236f8068d296b26bbf5e09834"
+  },
+  "supervisados": 1015072,
+  "tokens": 9990837,
+  "version": 1
+}

@@ -1,0 +1,118 @@
+{
+  "plan": {
+    "version": 1,
+    "nombre": "parte4-actual",
+    "descripcion": "Estado al 2026-11-10: solo existe la fila sin entrenar (Gemma 4 E4B base + prompt baseline). Las filas solo_prompt, solo_entrenamiento y ambos se agregan cuando haya prompt optimizado y adapter publicado (ver plantilla-cuatro-filas.json).",
+    "cantidad": 50,
+    "versiones": [
+      "original",
+      "b",
+      "c"
+    ],
+    "lote": 4,
+    "buscador": "baseline",
+    "configuraciones": [
+      {
+        "etiqueta": "sin_entrenar",
+        "descripcion": "Modelo base sin adapter y prompt baseline.",
+        "prompt": "configuraciones/prompts/baseline.json",
+        "prompt_sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474",
+        "adapter": null
+      }
+    ]
+  },
+  "plan_archivo": "configuraciones/evaluacion/actual.json",
+  "plan_sha256": "1bb43a4122f143d84c449e2b8a22c03d996e0b61ba7b36af0c39e7851873cd6d",
+  "comando": [
+    "python",
+    "infra/kaggle_evaluacion.py",
+    "--plan",
+    "configuraciones/evaluacion/actual.json",
+    "--salida",
+    "/kaggle/working/corridas/evaluacion-actual"
+  ],
+  "maquina": {
+    "commit": "f4d73001f7e74407d42ecee6c22c201dd14cf24e",
+    "sucio": false,
+    "gpus": [
+      "Tesla T4, 15360 MiB, 580.178.04",
+      "Tesla T4, 15360 MiB, 580.178.04"
+    ],
+    "torch": {
+      "torch": "2.15.0+cu132",
+      "cuda": "13.2",
+      "gpus": 2,
+      "bf16_nativo": false
+    },
+    "python": "3.13.16"
+  },
+  "inicio": "2026-11-10T22:06:57+0000",
+  "dtype": "float16",
+  "device_map": "auto",
+  "corridas": [
+    {
+      "etiqueta": "sin_entrenar",
+      "version": "original",
+      "cantidad": 50,
+      "carpeta": "sin_entrenar-original",
+      "prompt": {
+        "archivo": "configuraciones/prompts/baseline.json",
+        "nombre": "baseline",
+        "version": 1,
+        "sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474"
+      },
+      "adapter": null,
+      "variables": {
+        "PROMPT_SPEC": "configuraciones/prompts/baseline.json",
+        "MODELO_LOTE": "4",
+        "BUSCADOR_VARIANTE": "baseline"
+      },
+      "estado": "terminada",
+      "returncode": 0,
+      "error": null
+    },
+    {
+      "etiqueta": "sin_entrenar",
+      "version": "b",
+      "cantidad": 50,
+      "carpeta": "sin_entrenar-b",
+      "prompt": {
+        "archivo": "configuraciones/prompts/baseline.json",
+        "nombre": "baseline",
+        "version": 1,
+        "sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474"
+      },
+      "adapter": null,
+      "variables": {
+        "PROMPT_SPEC": "configuraciones/prompts/baseline.json",
+        "MODELO_LOTE": "4",
+        "BUSCADOR_VARIANTE": "baseline"
+      },
+      "estado": "terminada",
+      "returncode": 0,
+      "error": null
+    },
+    {
+      "etiqueta": "sin_entrenar",
+      "version": "c",
+      "cantidad": 50,
+      "carpeta": "sin_entrenar-c",
+      "prompt": {
+        "archivo": "configuraciones/prompts/baseline.json",
+        "nombre": "baseline",
+        "version": 1,
+        "sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474"
+      },
+      "adapter": null,
+      "variables": {
+        "PROMPT_SPEC": "configuraciones/prompts/baseline.json",
+        "MODELO_LOTE": "4",
+        "BUSCADOR_VARIANTE": "baseline"
+      },
+      "estado": "terminada",
+      "returncode": 0,
+      "error": null
+    }
+  ],
+  "fin": "2026-11-10T22:47:27+0000"
+}

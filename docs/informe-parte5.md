@@ -1,23 +1,23 @@
 # INFORME, Parte 5: recursos y proyección a producción (BORRADOR)
 
-> **Estado: borrador del issue #5. No es el informe final.** Todo lo medido hasta hoy (2026-11-05)
-> salió de **Kaggle 2x T4 con fp16**, con Gemma 4 E4B **sin entrenar** (o con datos de humo
-> sintéticos). **Nada se midió en A100-40GB ni con el modelo final.** Esos números figuran como
-> **PENDIENTE**. Los números de T4 no se pueden transferir a A100 y acá no inventamos factores.
+> **Estado: borrador del issue #5. No es el informe final.** Actualizado el 2026-11-12 con el entrenamiento real
+> (Kaggle v32+v33) y la evaluación del modelo final (v34). Todo salió de **Kaggle 2x T4 con fp16**.
+> **Nada se midió en A100-40GB.** Esos números figuran como **PENDIENTE**. Los números de T4 no se pueden
+> transferir a A100 y acá no inventamos factores.
 > Para pegar en `INFORME.md` cuando el equipo lo cree; la bitácora vive en [progreso.md](progreso.md).
 
 ## Resumen (lo que ya se puede afirmar)
 
 | Pregunta de la consigna | Respuesta hoy | Estado |
 |---|---|---|
-| Tiempo por caso (inferencia) | 33,3 s (lote 1) y 15,6 s (lote 4) en T4 | validado en GPU (T4) |
+| Tiempo por caso (inferencia) | Sin entrenar: 33,3 s (lote 1) y 15,6 s (lote 4). **Entrega (adapter + prompt): 24,7–24,9 s (lote 4)** | validado en GPU (T4) |
 | VRAM de inferencia | 16,7 GB (lote 1), 19,1 GB (lote 4 con torres), 18,1 GB (lote 4 solo texto), suma de 2 T4 | validado en GPU (T4) |
 | Casos a la vez al evaluar | 1/4 válidos; 8/16 fallan sin bloqueo; 8 válido con `CUDA_LAUNCH_BLOCKING=1`, más lento que 4 | T4; causa definitiva pendiente |
-| Casos a la vez al entrenar | 1 conversación por paso (`batch_size=1`, acumulación 1) en el humo | validado en GPU (T4), solo humo |
-| Tiempo y VRAM de entrenamiento | v6: 17,4 s; humo solo texto: 15,675 GB pico, 15,818 GB reservada | humo en T4; datos reales: PENDIENTE |
-| Costo | Kaggle: 0 USD. A100: fórmula, sin medición | PENDIENTE (A100) |
-| Simultáneos en producción | proyección cualitativa, ver sección 5 | hipótesis, A100: PENDIENTE |
-| Antes/después con el modelo final | no existe aún | PENDIENTE |
+| Casos a la vez al entrenar | 1 conversación por pasada (`batch_size=1`), 8 por paso de optimización (acumulación 8) | validado en GPU (T4) |
+| Tiempo y VRAM de entrenamiento | **SFT real: 363 pasos, ~80–85 s/paso, ~8,1 h de cómputo (≈9,5 h de sesión en 2 tandas); 19,97 GB pico** | validado en GPU (T4) |
+| Costo | Kaggle: 0 USD (~13,5 h de cuota en la semana del SFT). A100: fórmula, sin medición | PENDIENTE (A100) |
+| Simultáneos en producción | ~145 casos/h por proceso con la entrega en T4 (lote 4); proyección en sección 5 | hipótesis, A100: PENDIENTE |
+| Antes/después con el modelo final | 27/150 → **92/150** resueltos; +59 % s/caso, +2,4× tokens de entrada, VRAM ~igual (sección 3.2) | validado en GPU (T4) |
 
 **Leyenda de validación.** *implementado*: existe el código. *probado con dobles*: tests sin GPU.
 *validado en GPU (T4)*: corrió en Kaggle. *validado en A100*: **ninguno todavía**.
@@ -127,10 +127,57 @@ A100-40GB y fijar el lote de la entrega con evidencia (el default del código no
 
 ## 3. Entrenamiento: tiempo, VRAM y casos a la vez
 
-Lo único medido es el **humo** (conversaciones sintéticas de `scripts.datos_humo`: prueban el
-pipeline, **no** la calidad ni los tiempos del entrenamiento real). Kaggle T4 x2, fp16,
-`device_map=auto`, commit `acc95b2` limpio, LoRA solo en la atención del modelo de lenguaje
-(r=8, alpha 16), `corrida.json`.
+### 3.1 Entrenamiento real (Kaggle v32 + v33, 2026-11-11/12)
+
+Datos `datos/conversaciones/v3-procedimiento` (prompt `procedimiento-v1`): **2.900 conversaciones, 9.990.837
+tokens (~3.445 por conversación), 1.015.072 supervisados (10,2 %)**, ninguna recortada (`max_seq_length` 8192;
+`manifiesto-tokens.json`). Configuración `configuraciones/sft-ejemplo.json`: 1 época, lr 2e-4, semilla 42,
+`batch_size=1`, acumulación 8, LoRA r=8 en q/v de la atención del modelo de lenguaje. fp16, `device_map=auto`
+en 2 T4, commit `6169241`, W&B `3add2742ddfd4b42`.
+
+| Medida | Valor | Fuente |
+|---|---|---|
+| Pasos de optimización | 363 (2.900 / 8, último paso incompleto) | `trainer_state`, recibos HF |
+| Tiempo por paso | ~85 s en v32; 80,5 s en v33 (5.072 s / 63 pasos) | bitácora; `runner.log` de v33 (`train_runtime`) |
+| Tiempo de cómputo de la época | **~8,1 h** (363 × ~80 s) | cálculo propio |
+| Reloj de pared | v32: cortada por el límite de 8 h de Kaggle en el paso 315; v33: 1 h 31 min (5.445 s de runner) reanudando de checkpoint-300 | `runner.json` |
+| VRAM pico (suma de 2 T4) | **19,97 GB** (12,1 + 7,87); reservada 20,58 GB | `entrenamiento/estado.json` de v33 |
+| Pérdida (supervisada) | 0,44 (paso 1) → ~0,03 (paso 100) → ~0,005 (paso 268) → 0,0044 media final | `runner.log` |
+| Checkpoints | cada 50 pasos, subidos a HF con revisión; `final` = `dc41674a` | `publicaciones` en `estado.json` |
+
+- **Casos a la vez al entrenar:** 1 conversación por pasada hacia adelante; 8 por paso de optimización. Con
+  ~3.445 tokens por conversación, la VRAM entra en 2 T4 gracias a calcular logits solo en posiciones supervisadas
+  (con logits completos en fp32, el paso 0 se quedó sin memoria en v28; ver [entrenamiento](entrenamiento-sft.md)).
+- **Interrupción y reanudación:** el corte por tiempo costó los pasos 301–315 (se rehicieron desde checkpoint-300).
+  Para A100 conviene guardar más seguido o medir antes cuánto tarda un paso.
+- **Pérdida baja ≠ agente bueno:** la pérdida media 0,005 no mostró que el modelo nunca aprendió el aviso al
+  voluntariado ([análisis de errores](analisis-errores.md), pasada 7). Hay un segundo entrenamiento corto en
+  curso para eso (v36, 633 conversaciones).
+
+### 3.2 Antes y después (práctica, 50 casos × 3 versiones, T4, lote 4)
+
+| Configuración | Resueltos original / b / c | s/caso | Tokens de entrada por caso | Tokens generados por caso | VRAM pico | Ancho máx. |
+|---|---|---:|---:|---:|---:|---:|
+| `sin_entrenar` (baseline) | 10 / 10 / 7 | 15,6–16,1 | ~5.750 | ~271 | 19,08 GB con torres; 18,12 GB solo texto | 3.072 |
+| `solo_prompt` (procedimiento-v1) | 14 / 16 / 12 | 24,4–26,6 | ~13.650–14.640 | ~322–332 | 19,25–19,64 GB | 4.436 |
+| `solo_entrenamiento` (adapter + baseline) | 11 / 13 / 12 | 18,7–19,7 | ~7.860–8.430 | ~286–293 | 18,69–18,91 GB | 4.476 |
+| **`ambos` (la entrega)** | **30 / 29 / 33** | **24,7–24,9** | ~13.840 | ~336 | 19,56 GB | 4.160 |
+
+Fuentes: `corridas/kaggle/{base-*-l4,v27/…/solo_prompt-*,v34/…/{solo_entrenamiento,ambos}-*}/{salida/tiempos.json,metricas.jsonl}`
+(sumas y máximos propios sobre `metricas.jsonl`; VRAM = máximo por GPU sumado, cota superior). La fila
+`sin_entrenar` es la de v22, que v25 reprodujo exacto. Carga del modelo (`construir_agente`): 23–148 s según caché.
+
+- **El costo lo pone el prompt, no el adapter:** el adapter se fusiona al cargar, así que no agrega capas. Las
+  filas con adapter y las demás cargan solo texto; la VRAM pasa de 18,12 GB (base solo texto, `solo-texto-l4`) a
+  18,7–19,6 GB, y lo más alto es con `procedimiento-v1`, que trae más contexto. `procedimiento-v1` hace ~3,5 búsquedas por caso contra ~1,3: 2,4× tokens de
+  entrada y ~+59 % de tiempo por caso. A cambio, la entrega resuelve 92/150 contra 27/150.
+- **Contexto:** la entrada más ancha fue 4.476 tokens, lejos de los 8.192 del tope. No hubo recortes.
+
+### 3.3 Humo de entrenamiento (2026-11-05, histórico)
+
+Conversaciones sintéticas de `scripts.datos_humo`: prueban el pipeline, **no** la calidad ni los tiempos del
+entrenamiento real. Kaggle T4 x2, fp16, `device_map=auto`, commit `acc95b2` limpio, LoRA solo en la atención
+del modelo de lenguaje (r=8, alpha 16), `corrida.json`.
 
 | Corrida | Qué hizo | Tiempo del runner | `train_runtime` | Pérdida paso 1 a 8 |
 |---|---|---|---|---|
@@ -150,12 +197,8 @@ El tiempo del runner excluye la instalación de dependencias; la carga de pesos 
   entrenador ya registra en W&B, `estado.json` y `runner.json`.
 - **Checkpoints y publicación:** cada checkpoint se sube a HF con revisión, y la reanudación
   reprodujo la curva (2,5196/2,4173/2,3468 contra 2,5196/2,4179/2,3464). Pasa en T4, no en A100.
-- **Tiempo total del entrenamiento real: PENDIENTE.** Depende de cuántas conversaciones tenga el
-  dataset final (Eze/Yas), de su largo en tokens y del prompt optimizado (Martu). Fórmula:
-  `pasos_aprox = conversaciones x épocas / (batch_size x acumulación)` (redondeos/último lote y
-  acumulación por época los resuelve Trainer); `tiempo_runner ≈ tiempo_train + carga + verificaciones + subidas`.
-  `train_runtime` y tiempo de runner no son intercambiables, y ninguno incluye necesariamente la sesión completa. El 2,18 s/paso del humo **no** sirve para extrapolar: eran
-  secuencias cortas y sintéticas.
+- El 2,18 s/paso del humo **no** servía para extrapolar (secuencias cortas y sintéticas): el real fue ~80 s/paso
+  con 8 conversaciones de ~3.445 tokens (sección 3.1).
 - Los dos runners sumaron 340 s de reloj de pared (163+177), no “GPU-segundos” ni cuota medida.
   Incluyen carga/verificaciones/subidas; instalación/arranque externo no está incluido. Los intentos fallidos v4 y v5 (157 y 156 s,
   `humo-entrena-1/runner.json` y `humo-entrena-1-v5/runner.json`) también consumen cuota.
@@ -175,6 +218,13 @@ instalación del entorno):
 | Línea de base original, b y c (lote 4) | 930 + 840 + 841 = 2.611 s (0,73 h) | `base-*-l4/runner.json` |
 | Barrido de lotes 1, 8 y 16 | 1.822 + 434 + 193 = 2.449 s (0,68 h) | `lote-original-l{1,8,16}/runner.json` |
 | Humo de entrenamiento (v6 + v7) | 163 + 177 = 340 s (0,09 h) | `humo-entrena-{1-v6,2-v7}/runner.json` |
+| SFT real (v32 cortada a las 8 h de sesión + v33) | ~8 h de sesión + 5.445 s (1,5 h) | `v32`, `v33/…/runner.json` |
+| Evaluación práctica: `solo_prompt` (v27) y `solo_entrenamiento` + `ambos` (v34) | ~1 h + ~2 h de sesión | bitácora |
+| Verificación en el conjunto de desarrollo (v35, 40 casos) | ~0,7 h de sesión | bitácora |
+| Refuerzo del aviso (v36: 80 pasos + dev), no adoptado | 2 h de runner + ~0,4 h de dev | `evaluaciones/entrenamiento/v36-aviso/runner.json` |
+
+Según la API de Kaggle (`get_accelerator_quota`, 2026-11-12), la semana del SFT llevaba **48.546 s (13,5 h)
+de 30 h**, incluidos los intentos fallidos v28–v31; la cuota se renueva los sábados 00:00 UTC.
 
 La bitácora hizo una estimación histórica de ~2.690 s incluyendo arranque para el barrido; **no es cuota
 facturada verificada**. No multiplicamos tiempos por número de GPU ni inferimos cuota desde estas duraciones.
@@ -203,6 +253,8 @@ la fórmula aplicada a tiempos **de T4**, solo como referencia de orden y no com
 | 33,3 s (lote 1 en T4) | 0,0194 USD | 0,97 USD |
 
 Cargar el modelo (34 a 156 s en T4) equivale a 0,02 a 0,09 USD por arranque a 2,10 USD/h.
+Aplicada al entrenamiento real como orden de magnitud (no predicción): si una A100 tardara lo mismo que las 2 T4,
+~9,5 h × 2,10 = ~20 USD por época; con la entrega a 24,9 s/caso, 0,0145 USD por caso y 0,73 USD por 50 casos.
 **PENDIENTE (A100):** s/caso, carga, costo por caso, costo del entrenamiento real y costo total de
 desarrollo. **Mantenimiento:** hoy no hay datos; se reportará como costo por caso x volumen
 esperado cuando exista el s/caso en A100.
@@ -218,7 +270,7 @@ explícita.
 1.2). En el kit, "casos a la vez" = tamaño del lote. Con un solo proceso y un lote fijo no hay cola
 ni atención continua: los casos entran y salen por tandas.
 
-| Dato medido (T4 x2) | Lote 1 | Lote 4 |
+| Dato medido (T4 x2, sin entrenar) | Lote 1 | Lote 4 |
 |---|---|---|
 | Rendimiento de un proceso | 108 casos/h (3600 / 33,3) | 230 casos/h (3600 / 15,6) |
 | Finalización desde inicio común, mín / mediana / máx (50 casos) | 743,030 /1.446,819 /1.663,648 s | 302,221 /670,895 /782,102 s |
@@ -229,6 +281,9 @@ campo `segundos`. `admision/correr.py` actualiza ese reloj tras cada herramienta
 Los 50 casos entran juntos; `MODELO_LOTE=4` controla micro-lotes de inferencia, **no significa solo 4 casos
 en vuelo**. La espera entre micro-lotes sí afecta ese tiempo de finalización. La antigua aproximación
 “5 llamadas × duración micro-lote” la omitía y se retiró. No son latencias de servicio interactivo/SLO medidos.
+
+**Con la entrega (adapter + `procedimiento-v1`, lote 4):** 24,9 s/caso → **~145 casos/h por proceso** en 2 T4,
+19,56 GB de VRAM pico. Es ~37 % menos rendimiento que sin entrenar, por el contexto más largo (sección 3.2).
 
 **Lectura.** Cada llamada por micro-lote tarda más con 4, pero el lote de 50 termina antes; no extrapolar
 que eso empeora la latencia de cada caso ni recomendar un lote para tráfico interactivo sin medirlo.
@@ -272,16 +327,14 @@ utilización, latencia y costos adicionales futuros no están medidos: **no se p
 
 | Pendiente | Depende de | Issue |
 |---|---|---|
-| Tiempo de entrenamiento real y su costo | dataset final, prompt final, vía A100-40GB a determinar | #3, #5 |
-| VRAM de entrenamiento con secuencias reales | corrida real (ya se registra en `estado.json` y `runner.json`) | #3, #5 |
+| Tiempo y costo del entrenamiento en A100-40GB | vía A100-40GB a determinar (en T4 ya medido, sección 3.1) | #3, #5 |
 | s/caso, carga y VRAM de inferencia en A100-40GB | vía A100-40GB disponible y autorizada | #4, #5 |
 | Lote máximo estable en A100-40GB | idem | #4 |
-| Antes/después con el modelo final (resueltos, s/caso, VRAM, costo) | modelo entrenado y comparación con los mismos 50 casos | #5 |
+| Antes/después en A100 | T4 ya medido (sección 3.2); si v36 cambia el adapter, repetir la fila `ambos` | #5 |
 | Causa del fallo CUDA en lotes 8 y 16 | lote 8 completa con bloqueo, más lento que 4; lote 16 con bloqueo no probado; causa definitiva pendiente | #4 |
 | Costo total de desarrollo y de mantenimiento | todo lo anterior | #5 |
 
-**Antes del resultado final (ya medido, T4):** secciones 1 y 2. **Después:** repetir las mismas
-tablas con el adapter entrenado, mismo comando, mismos 50 casos y normas original, b y c.
+**Antes y después (T4):** sección 3.2, con el mismo comando, los mismos 50 casos y normas original, b y c.
 
 ---
 
@@ -294,6 +347,7 @@ tablas con el adapter entrenado, mismo comando, mismos 50 casos y normas origina
 | Medir en A100-40GB | todos los números finales | vía alternativa a determinar; Modal descartado |
 | Reducir el mensaje de sistema y el contexto de búsquedas | menos cómputo y VRAM por llamada y por entrenamiento | sistema = 2.232 caracteres (~35 % de la conversación mediana); búsqueda: la consigna dice que es más de la mitad en la referencia |
 | Repetir cada medición varias veces | intervalos en vez de una sola corrida | hoy una sola por configuración |
+| Enseñar el aviso al voluntariado (peso en su token, o DPO) | +8 casos en el dev si se acierta (26 → hasta 34/40) | el refuerzo por proporción (v36) sobrecorrigió: 23/40 ([pasada 8](analisis-errores.md)) |
 
 ---
 
@@ -310,6 +364,9 @@ Kaggle; la bitácora [progreso.md](progreso.md) los resume con commit y fecha).
 | Commit, GPU, dtype, lote, inicio y fin | `<corrida>/runner.json` |
 | Pasos, pérdida, `train_runtime` | `humo-entrena-*/runner.log` y `entrenamiento/checkpoint-*/trainer_state.json` |
 | Configuración de entrenamiento y LoRA | `humo-entrena-1-v6/entrenamiento/corrida.json` |
+| Entrenamiento real: tokens, pasos, `train_runtime`, VRAM, pérdida | `v28/corridas/sft-v3-tokens/manifiesto-tokens.json`, `v33/corridas/sft-v3-2/{runner.json,runner.log,entrenamiento/estado.json}`, `v32/corridas/sft-v3-1/runner.log` |
+| Antes/después (tokens, VRAM, s/caso, carga) | `v27/corridas/evaluacion-solo-prompt/*` y `v34/x/evaluacion-entrenado/*`: `salida/tiempos.json` y `metricas.jsonl`; resueltos de `corridas/tablas/20261112-entrenado` |
+| Cuota semanal de Kaggle usada | API de Kaggle (`get_accelerator_quota`), 2026-11-12 |
 | Tarifa Modal y crédito mensual | `mission.md` (línea de cómputo) |
 | Cuota Kaggle | [kaggle.md](kaggle.md) |
 
@@ -320,9 +377,9 @@ viene de otra sesión, y las corridas de lote 8 y 16 están incompletas.
 
 | Criterio del issue | Qué está cubierto | Qué impide marcarlo completo |
 |---|---|---|
-| Tiempo/VRAM/costo de entrenamiento | Humo T4 y fronteras trainer/runner/sesión; fuentes auditadas | Corrida real y A100-40GB, antes/después final; costo total no auditado |
-| Casos a la vez entrenando/evaluando | Humo batch 1/acumulación 1 y barrido inferencia T4 | Configuración final y validación A100; no extrapolar paralelismo desde acumulación |
-| Producción/consumo/escalado | Fórmulas con variables y alternativas explícitas | SLO/demanda/tarifa/capacidad y recursos finales sin medir |
+| Tiempo/VRAM/costo de entrenamiento | SFT real en T4 (sección 3.1), cuota Kaggle medida por API, antes/después (3.2) | A100-40GB |
+| Casos a la vez entrenando/evaluando | Entrenamiento 1 por pasada / 8 por paso; evaluación lote 4 con la entrega y barrido T4 | Validación A100 |
+| Producción/consumo/escalado | Rendimiento de la entrega en T4 y fórmulas con variables | SLO/demanda/tarifa/capacidad en A100 sin medir |
 | Trabajos futuros | **Redacción cubierta** en sección 7, con motivos/evidencia | Integrar al `INFORME.md` compartido; no implica mejoras ya ejecutadas |
 
 #5 continúa abierto. La deuda de hardware es [KI-A100-001](../README.md#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb).

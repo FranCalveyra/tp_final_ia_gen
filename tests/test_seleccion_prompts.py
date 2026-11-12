@@ -198,3 +198,17 @@ class ReglasDeRanking(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CandidatoFormato(unittest.TestCase):
+    """#15: el formato de los mensajes, aislado del mensaje de sistema (que queda igual a procedimiento-v1)."""
+
+    def test_solo_cambia_el_formato_y_sigue_sin_numeros_de_normas(self):
+        base, spec = candidato("procedimiento-v1"), candidato("procedimiento-formato-v1")
+        self.assertEqual(spec.nombre, "procedimiento-formato-v1")
+        self.assertEqual((spec.system_prompt, spec.mensaje_inicial), (base.system_prompt, base.mensaje_inicial))
+        self.assertNotEqual(spec.formato_observacion, base.formato_observacion)
+        self.assertNotEqual(spec.mensaje_json_invalido, base.mensaje_json_invalido)
+        self.assertEqual(digitos_libres(spec.mensaje_json_invalido), [])
+        self.assertEqual(spec.observacion_para("leer_triage", "Nota."), "[leer_triage]\nNota.")
+        self.assertLess(len(spec.observacion_para("x", "")), len(base.observacion_para("x", "")))

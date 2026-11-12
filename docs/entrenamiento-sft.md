@@ -86,6 +86,14 @@ Para T4 x2 **de desarrollo**, agregar `--precision fp16 --dispositivos auto`; el
 LoRA apunta solo a atención del modelo de lenguaje (`LORA_OBJETIVO`), r=8/alpha16/dropout0; carga sin torres
 visión/audio. Eso evita módulos no soportados y reduce VRAM, pero no garantiza el ajuste final en A100.
 
+**Pérdida solo en posiciones supervisadas.** `perdida_supervisada` pide al modelo logits únicamente donde la
+posición predice un token del asistente (`logits_to_keep` de Transformers, como lista de `int`: accelerate
+mueve los tensores del forward a la primera GPU y Gemma corta en la última, Kaggle v29/v31). Con el vocabulario de Gemma
+(262k) y ~3.300 tokens por conversación, los logits completos en fp32 no entran en una T4: el primer SFT real
+(Kaggle v28) cayó por OOM en el paso 0 dentro de `ForCausalLMLoss`. Solo ~10 % de los tokens está supervisado.
+La pérdida y los gradientes son idénticos a la pérdida completa: verificado con torch real en CPU sobre un modelo
+de juguete con softcapping, con y sin `num_items_in_batch`. Los tests del repo cubren el desplazamiento con dobles.
+
 ### 4. Reanudar: mismo código, entradas, modo y política
 
 ```bash
@@ -101,6 +109,23 @@ Repetir precisión/dispositivos/cadencia originales si no fueron defaults. Conse
 posteriores al último checkpoint íntegro, ni salvar una escritura parcial. La CLI directa no descarga por sí sola
 un checkpoint HF: para recuperación desde HF usar [runner Kaggle](kaggle.md#entrenamiento-sft-humo-en-kaggle),
 que fija revisión y valida integridad. [Modal](entrenamiento-modal.md) queda solo como referencia legacy, no usar.
+
+### 5. Seguir entrenando un adapter publicado (`adapter_inicial`)
+
+Con `adapter_inicial` (`repo`, `revision` de 40 hex, `subcarpeta`) en la configuración, el entrenamiento carga
+ese adapter entrenable (mismo r y módulos con los que se publicó) en vez de crear un LoRA nuevo, y falla si fue
+entrenado sobre otra base o revisión. Se usa para el aviso al voluntariado (#15): el adapter de `v3-procedimiento`
+nunca responde `true` ([análisis de errores](analisis-errores.md), pasada 7).
+`configuraciones/sft-aviso.json` parte del adapter de la entrega con learning rate 1e-4 y 1 época sobre
+`datos/conversaciones/v4-aviso`, armado con `scripts.subconjunto_aviso`: todos los positivos, todos los negativos
+del mismo rango de edad (umbral = la menor edad entre los positivos, sale de los datos) y una muestra fija del
+resto. Publica en el mismo repo HF: `checkpoint-N` y `final` quedan con revisiones nuevas, y las anteriores
+siguen accesibles por su revisión (la entrega fija la suya en `configuracion.py`).
+
+**Resultado (Kaggle v36, 2026-11-12): no se adoptó.** 80 pasos, ~88 s/paso (7.029 s), 20,29 GB de VRAM pico,
+W&B `6d8edb168beb4e9b`, `final` `22ee5596c8d3014bd86caaca6a87034d06e1d4e8`. En el conjunto de desarrollo bajó de 26 a
+23 resueltos: aprendió a decir `true` sin la condición ([pasada 8](analisis-errores.md)). Validó en GPU que
+`adapter_inicial` carga el adapter publicado (pérdida inicial 0,0069, no ~0,44).
 
 ## Estado de cierre de infraestructura y límites restantes
 

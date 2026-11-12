@@ -1,0 +1,15 @@
+{
+  "commit": "bea206b7e5bb89ed3d3b6ce8c500ff827c192937",
+  "corridas": [
+    {
+      "corrida": "procedimiento-v1-entrenado-n1",
+      "returncode": 0,
+      "segundos": 624
+    },
+    {
+      "corrida": "procedimiento-v1-entrenado-n2",
+      "returncode": 0,
+      "segundos": 575
+    }
+  ]
+}

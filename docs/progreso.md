@@ -1014,3 +1014,119 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Evidencia:** 259 tests CPU OK (1 omitido). Se quitó un prefijo de herramienta local que había quedado en
   `docs/evaluacion.md`.
 - **Próximo paso:** decidir default y datos de #8 con Fran; si sobra GPU, diagnosticar el fallo de C con lote 1.
+
+### 2026-11-11: primer SFT real, OOM en la pérdida (issues #3 y #15, Kaggle T4 v28)
+
+- **Decisión:** un solo entrenamiento con `v3-procedimiento` (la consigna pide entrenar con el prompt optimizado,
+  `mission.md:138`). El adapter se evalúa con `baseline` (fila `solo_entrenamiento`) y con B (fila `ambos`).
+  Límite: `solo_entrenamiento` se mide con un prompt distinto al del entrenamiento y puede subestimarse.
+- **Corrida v28** (commit `8843004` limpio, `sft-ejemplo.json`, 2.900 conversaciones, 363 pasos previstos):
+  tokenización OK (9,99 M tokens, 1,02 M supervisados; mediana 3.331, máx. 6.322 por conversación).
+  **Falló en el paso 0** por `torch.OutOfMemoryError` en `ForCausalLMLoss` (`logits.float()`, 3,29 GiB en GPU 0).
+  Sin publicaciones HF. Unos 10 min de T4. Artefactos: `corridas/kaggle/v28` (no versionados).
+- **Causa:** el modelo proyecta todas las posiciones al vocabulario de 262k, pero solo ~10 % está supervisado.
+  Los humos usaron conversaciones cortas y no lo mostraron.
+- **Arreglo:** `perdida_supervisada` con `logits_to_keep` booleano, en un `Trainer` propio
+  ([detalle](entrenamiento-sft.md)). Probado con dobles y equivalencia numérica con torch CPU; **no validado en GPU**.
+- **Corrida v29** (commit `10e117c`): falló en el paso 0 con `RuntimeError: indices should be either on cpu or on
+  the same device as the indexed tensor (cuda:1)`. Con `device_map="auto"` la última capa queda en la segunda GPU y la
+  máscara se había creado en la de `input_ids`. Arreglo: máscara en CPU (`e30ad97`). Unos 15 min de T4.
+- **v30:** falló antes de cargar el modelo por timeout de W&B en `wandb.init` (~6 min). **v31** (con
+  `WANDB_INIT_TIMEOUT=300`): repitió el error de dispositivo. La máscara en CPU no alcanza: el hook de accelerate
+  (`hooks.py:192`) mueve todos los tensores del forward a la primera GPU. Arreglo: posiciones como lista de `int`,
+  que `send_to_device` devuelve intacta (accelerate 1.15.0, `operations.py:174-176`); unión de posiciones del lote
+  y `-100` donde una fila no tiene objetivo. Equivalencia con torch CPU revalidada.
+- **v32** (commit `6169241`): **entrena en GPU real**, pero Kaggle la cortó por el límite de 8 h en el paso
+  315/363 (~85 s/paso en 2 T4). Pérdida: 0,44 al inicio, ~0,03 en el paso 100 y ~0,005 en el paso 268. W&B run
+  `3add2742ddfd4b42`. Checkpoints publicados en `FranCalveyra/tp-admision`: 50 `0829fa33`, 100 `4a8f7c09`,
+  150 `a37aae49`, 200 `6ed633b9`, 250 `af2d6061`, **300 `83dd1d205763e4885b66ac14b177799785b3fd69`**.
+  Recibos en `corridas/kaggle/v32b` (no versionado). Faltan 63 pasos (~1,5 h) para la época completa.
+- **v33 (2026-11-12):** reanudó desde checkpoint-300 (mismo commit y run W&B `3add2742ddfd4b42`) y **terminó la
+  época**: `terminada`, returncode 0, 1 h 31 min. Pérdida final ~0,006. VRAM pico 19,97 GB sumados (12,1 + 7,87 en
+  2 T4). Publicó checkpoint-350 `00175ae4`, checkpoint-363 `fc35d543` y **adapter `final`
+  `dc41674a8a2561a724884be2170ff6808efa6e96`**. Recibos en `corridas/kaggle/v33` (no versionado).
+  Validado en GPU T4; **A100-40GB sigue sin validar**. Pérdida baja en train no prueba calidad del agente.
+- **v34 (2026-11-12), evaluación del adapter `final`** (plan `configuraciones/evaluacion/entrenado.json`, commit
+  `3adf12e`, 6 corridas terminadas, ~2 h de T4). Puntuado con `scripts.tabla_evaluacion` en
+  `corridas/tablas/20261112-entrenado` (no versionado). Práctica solo para reportar.
+
+  | Fila | original | b | c |
+  |---|---|---|---|
+  | sin_entrenar (v25) | 10 | 10 | 7 |
+  | solo_prompt (v27) | 14 | 16 | 12 |
+  | solo_entrenamiento (v34) | 11 | 13 | 12 |
+  | **ambos (v34)** | **30** | **29** | **33** |
+  | cátedra: SFT simple | 25 | 24 | 25 |
+
+  `ambos` supera la referencia SFT de la cátedra en las tres versiones de normas, así que el aprendizaje
+  sobrevive al cambio de normas. El adapter solo rinde con el prompt con el que se entrenó: con `baseline`
+  apenas mejora. En `ambos`, todos los controles quedan ≥ 0,90 salvo `aviso_al_voluntariado` (0,72 en las
+  tres versiones), que es la falla principal que queda. Costo: ~25 s/caso y ~51 k caracteres de contexto,
+  contra ~19 s y ~29 k con `baseline`. Validado en T4, no en A100.
+  La tabla de 4 filas en un solo `tabla.md` necesita las salidas de v25/v27, que no están en este checkout.
+- **Default de la entrega (2026-11-12):** `entrega.py` carga `procedimiento-v1` y `Configuracion.desde_entorno`
+  usa el adapter `FranCalveyra/tp-admision@dc41674a/final` si no hay `ADAPTER_REPO`; `ADAPTER_REPO=` vacío pide la
+  base sola. El runner de evaluación vacía `ADAPTER_*` en las filas sin adapter. 274 tests CPU OK (1 omitido).
+  **Bloqueo:** el repo HF debe seguir privado (mission.md:194) y compartirse con la cátedra; sin la invitación
+  (#16, faltan sus usuarios) su `HF_TOKEN` no podrá leer el adapter.
+- **PR #24** abierto con la rama (`fix/3-perdida-supervisada` → `main`).
+- **Pasada 7 (#14, CPU):** `ambos` contra `solo_prompt` gana 16/13/21 casos y no pierde ninguno. Las fallas de
+  verificación y entidad desaparecen. El aviso queda igual: el modelo responde `false` en todos los 75+ sin
+  acompañante, aunque el entrenamiento tiene la regla completa (302 positivos). Detalle e hipótesis en
+  [análisis de errores](analisis-errores.md#2026-11-12--pasada-7-fila-ambos-contra-solo_prompt-en-práctica-solo-reporte).
+  Salidas de v27 descargadas de Kaggle a `corridas/kaggle/v27` (no versionado).
+- **Hipótesis del aviso confirmada en el dev (Kaggle v35, ~40 min de T4):** adapter + `procedimiento-v1` resuelve
+  26/40 (sin adapter: 9/40); nunca responde aviso `true`, y los 8 mayores de 75 sin acompañante fallan solo por eso.
+  La evaluación de prompts ahora acepta un `adapter` opcional (`configuraciones/evaluacion-prompt-kaggle-t4-l4-entrenado.json`).
+- **Remedio elegido (2026-11-12, Fran): seguir entrenando el adapter** en vez de reentrenar (≈9,5 h, casi toda la
+  cuota) o escribir la regla en el prompt (la consigna dice que las costumbres las enseña el entrenamiento).
+  `adapter_inicial` en la configuración del SFT; `datos/conversaciones/v4-aviso` (633: 302 positivos, 231 negativos
+  de 75+ con acompañante, 100 del resto; semilla 15); `configuraciones/sft-aviso.json` (lr 1e-4, 1 época). Ver
+  [entrenamiento-sft](entrenamiento-sft.md#5-seguir-entrenando-un-adapter-publicado-adapter_inicial).
+- **Kaggle v36 lanzado** (commit `fb353c0`, T4 x2, tope 5 h): entrena y evalúa el adapter nuevo en el dev en la
+  misma sesión. Publica checkpoints en el repo HF privado y una corrida nueva en W&B.
+- **Próximo paso:** decidir **solo con el dev** si el adapter de la v36 reemplaza al de la entrega: contra v35
+  (26/40, aviso 32/40), que mejore el aviso sin romper otros controles. Recién después, y sea cual sea la
+  decisión, correr la práctica solo para reportar; su resultado no cambia la elección (revisión del PR #24).
+- **README "cómo correr" (#16, sin GPU):** sección del grupo al principio de `README.md` con los seis puntos de
+  mission.md:224 (entorno, un caso, buscador, evaluación completa, de dónde sale cada archivo, diagrama Mermaid);
+  el manual del kit queda abajo con sus anclas intactas. Comandos tomados de los manifiestos; no se corrieron en
+  A100. **Pendiente:** `.env.example` todavía tiene `ADAPTER_REPO=` vacío (exportarlo pide el modelo base sin
+  adapter) y el comentario de `PROMPT_SPEC` dice baseline; el README avisa, pero hay que comentar esas líneas.
+  Si v36 cambia el adapter de la entrega, actualizar la revisión en la tabla del README.
+- **#5 recursos (borrador `docs/informe-parte5.md`, sin GPU):** agregados el SFT real (2.900 conversaciones,
+  ~10 M tokens, 363 pasos a ~80–85 s, ~8,1 h de cómputo, 19,97 GB pico en 2 T4) y el antes/después en práctica
+  (27/150 → 92/150; +59 % s/caso y 2,4× tokens de entrada por el prompt, VRAM 18,1 → 19,6 GB; ~145 casos/h por
+  proceso con la entrega). Todo en T4: A100 sigue pendiente (KI-A100-001). Si v36 cambia el adapter, rehacer la
+  fila `ambos`.
+- **Formato de los mensajes (#15, fase 3, CPU):** candidato `procedimiento-formato-v1` (mismo sistema que B, cambia
+  observación y JSON inválido) con test; plan en [optimización de prompt](optimizacion-prompt.md#fase-3-2026-11-12-formato-de-los-mensajes-sin-entrenar).
+  Se mide en el dev sin adapter después de v36. No puede ir a la entrega sin reentrenar. Respaldo sin GPU:
+  reportar el análisis de tamaño (≤1,4 %).
+- **Auditoría de la entrega contra mission.md** ([auditoria-entrega.md](auditoria-entrega.md), CPU): el hueco más
+  grave era que ningún número era auditable (trazas solo en `corridas/`, ignorado). **Resuelto:** las evaluaciones
+  reportadas (v25, v27, v34 en práctica; v25 fase 1 y v35 en el dev) quedan versionadas en `evaluaciones/` sin
+  editar (escaneadas: sin secretos), y la tabla de la Parte 4 se regeneró desde ahí con procedencia limpia
+  (`evaluaciones/practica/tabla`, 10/10/7 · 14/16/12 · 11/13/12 · 30/29/33).
+- **Lote de la entrega = 4 (decisión de Fran, 2026-11-12):** `Configuracion.desde_entorno` usa `LOTE_ENTREGA = 4`
+  sin `MODELO_LOTE`, para que la entrega corra como se midieron todos los números (antes: 1, ~2× más lento por caso
+  en T4). `Configuracion()` sigue en 1. Riesgo: lote 4 en A100 (una GPU, bf16) sin medir; en T4 los fallos fueron
+  con 8 y 16, repartido en 2 GPU.
+- **Revisión del PR #24 (estándar + especificación, 2026-11-12):** arreglado (1) la práctica no decide la v36:
+  solo el dev, y el límite de haber visto la falla en práctica queda declarado; (2) fila desincronizada de la
+  auditoría; (3) `ADAPTER_REVISION`/`ADAPTER_SUBCARPETA` sin `ADAPTER_REPO` ahora fallan en vez de cambiar en
+  silencio el adapter de la entrega; (4) `validar_adapter` en `configuracion.py` es la única validación de la
+  referencia `{repo, revision, subcarpeta}` (preparación del SFT, evaluación de prompts y planes). Quedan
+  documentados, sin arreglar: `AdapterRef` como tipo, internos de `preparacion` usados por
+  `subconjunto_aviso`, `TrainerSupervisado` anidada.
+- **`scripts.ver_caso`** reemplaza los `jq` del README («un caso»): muestra conversación, búsquedas con las
+  secciones que trajo el buscador, ficha y 9 controles; sirve también para la demo del Loom. Borrador del mail de
+  entrega con su checklist en [mail-entrega.md](mail-entrega.md).
+- **v36 (refuerzo del aviso) NO adoptada (decisión de Fran, solo con el dev):** 23/40 contra 26/40 de v35; el
+  aviso pasa de 0/8 a 6/8 en mayores sin acompañante pero da `true` en 12 de 32 que no corresponde
+  ([pasada 8](analisis-errores.md)). La entrega sigue con `dc41674a`; la práctica de la v36 no se corrió. Validó en
+  GPU `adapter_inicial`. Corridas y recibos versionados en `evaluaciones/` (también los del SFT v32/v33).
+- **Fase 3, formato de los mensajes (Kaggle v37, ~20 min de jugar):** `procedimiento-formato-v1` sin adapter da
+  10/40 contra 9/40 de B en el dev (2 ganados, 1 perdido; controles que se compensan); contexto −2 %, tiempo −8 %.
+  Dentro del ruido: **no se adopta** (además exigiría reentrenar). Versionado en `evaluaciones/dev/v37-formato`.
+- **Estado del PR #24:** todo lo que depende de GPU para la entrega está cerrado; queda mergear.

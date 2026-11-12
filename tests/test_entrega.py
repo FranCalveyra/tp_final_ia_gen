@@ -15,7 +15,7 @@ from admision.ejemplo import AgenteJSON
 from admision.entorno import MAX_LLAMADAS, Entorno
 from admision_tp.agente_prompt import AgentePrompt
 from admision_tp.modelo import ModeloLocal
-from admision_tp.prompts import RAIZ, cargar_prompt_baseline
+from admision_tp.prompts import RAIZ, RUTA_ENTREGA, PromptSpec, cargar_prompt_baseline
 
 FICHA = {"registro": "definitivo", "numero_documento": "30111222", "box_antes_del_registro": False,
          "circuito": "ninguno", "plazo_circuito_min": None, "cobertura": "obra_social",
@@ -86,14 +86,15 @@ def jugar(agente, casos):
 
 
 class FabricaTest(unittest.TestCase):
-    def test_construye_agente_prompt_con_baseline_y_carga_el_modelo_una_vez(self):
+    def test_construye_agente_prompt_con_el_prompt_elegido_y_carga_el_modelo_una_vez(self):
         modelo = ModeloAleatorio(0)
         with patch.dict("os.environ", {}, clear=True), patch.object(ModeloLocal, "cargar", return_value=modelo) as cargar:
             agente = entrega.construir_agente()
         cargar.assert_called_once()
         self.assertIsInstance(agente, AgentePrompt)
         self.assertIs(agente.modelo_lote, modelo)
-        self.assertEqual(agente.prompt, cargar_prompt_baseline())
+        self.assertEqual(agente.prompt, PromptSpec.cargar(RUTA_ENTREGA))
+        self.assertEqual(agente.prompt.nombre, "procedimiento-v1")
         self.assertEqual(agente.max_turnos, MAX_LLAMADAS * 3)
 
     def test_prompt_configurable_por_entorno_relativo_o_absoluto(self):
@@ -119,11 +120,13 @@ class FabricaTest(unittest.TestCase):
 
 
 class DiferencialTest(unittest.TestCase):
-    """Entrega nueva vs. la anterior (`AgenteJSON(ModeloLocal)`), con el entorno y buscador reales."""
+    """Entrega nueva vs. la anterior (`AgenteJSON(ModeloLocal)`), con el entorno y buscador reales.
+
+    Con el prompt baseline (el de `AgenteJSON`): compara la plomería, no el prompt de la entrega."""
 
     def _ambas(self, crear_modelo, casos):
         anterior = jugar(AgenteJSON(crear_modelo()), casos)
-        with patch.dict("os.environ", {}, clear=True), \
+        with patch.dict("os.environ", {"PROMPT_SPEC": "configuraciones/prompts/baseline.json"}, clear=True), \
                 patch.object(ModeloLocal, "cargar", return_value=crear_modelo()):
             nueva = jugar(entrega.construir_agente(), casos)
         return anterior, nueva

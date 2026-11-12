@@ -15,7 +15,7 @@ from admision.correr import jugar, puntuar, revisar_que_no_haya_esperadas
 
 from .agente_prompt import AgentePrompt
 from .buscador import VARIANTES, BuscadorBM25
-from .configuracion import Configuracion
+from .configuracion import Configuracion, validar_adapter
 from .evaluacion_prompts import (
     PROPOSITOS,
     calcular_metricas_candidato,
@@ -49,6 +49,8 @@ class ConfiguracionEvaluacionPrompt:
     buscador_variante: str
     max_turnos: int
     max_sin_json: int
+    # Opcional: {"repo", "revision", "subcarpeta"}; sin él, el modelo base solo.
+    adapter: dict | None = None
 
     def __post_init__(self):
         if self.version != 1 or type(self.version) is not int:
@@ -66,7 +68,12 @@ class ConfiguracionEvaluacionPrompt:
         # Las mismas variantes que acepta la entrega (`BUSCADOR_VARIANTE`).
         if self.buscador_variante not in VARIANTES:
             raise ValueError("configuración de evaluación: buscador_variante inválida")
-        # Reutiliza la validación de dtype, device_map y límites del modelo operativo.
+        if self.adapter is not None:
+            try:
+                validar_adapter(self.adapter)
+            except ValueError as error:
+                raise ValueError(f"configuración de evaluación: {error}") from None
+        # Reutiliza la validación de dtype, device_map, límites y revisión inmutable del adapter.
         self.configuracion_modelo()
 
     def configuracion_modelo(self) -> Configuracion:
@@ -74,14 +81,20 @@ class ConfiguracionEvaluacionPrompt:
             modelo=self.modelo, revision=self.revision,
             max_tokens_nuevos=self.max_tokens_nuevos, max_contexto=self.max_contexto,
             lote=self.lote, dtype=self.dtype, device_map=self.device_map,
+            **({"adapter_repo": self.adapter["repo"], "adapter_revision": self.adapter["revision"],
+                "adapter_subcarpeta": self.adapter["subcarpeta"]} if self.adapter else {}),
         )
 
     def como_dict(self) -> dict:
-        return asdict(self)
+        # Sin adapter queda igual que antes: el ranking compara configuraciones completas.
+        dato = asdict(self)
+        if dato["adapter"] is None:
+            del dato["adapter"]
+        return dato
 
     @classmethod
     def desde_dict(cls, dato: dict) -> "ConfiguracionEvaluacionPrompt":
-        if not isinstance(dato, dict) or set(dato) != _CAMPOS_CONFIG:
+        if not isinstance(dato, dict) or set(dato) - {"adapter"} != _CAMPOS_CONFIG:
             raise ValueError("configuración de evaluación incompleta o con campos desconocidos")
         return cls(**dato)
 

@@ -111,13 +111,13 @@ class KaggleTest(unittest.TestCase):
             kb.correr("original", 1, destino, "float16", "auto", "hf_secreto")
             return json.loads((destino / "runner.json").read_text())["prompt"]
 
-    def test_runner_registra_el_prompt_baseline_por_defecto(self):
-        from admision_tp.prompts import PromptSpec, RUTA_BASELINE
-        esperado = PromptSpec.cargar(RUTA_BASELINE)
+    def test_runner_registra_el_prompt_de_la_entrega_por_defecto(self):
+        from admision_tp.prompts import PromptSpec, RUTA_ENTREGA
+        esperado = PromptSpec.cargar(RUTA_ENTREGA)
         for valor in (None, ""):
             self.assertEqual(self._prompt_registrado(valor),
                              {"nombre": esperado.nombre, "version": esperado.version,
-                              "sha256": esperado.sha256, "archivo": "configuraciones/prompts/baseline.json"})
+                              "sha256": esperado.sha256, "archivo": "configuraciones/prompts/procedimiento-v1.json"})
 
     def test_runner_registra_el_prompt_de_prompt_spec(self):
         from admision_tp.prompts import PromptSpec, RUTA_BASELINE

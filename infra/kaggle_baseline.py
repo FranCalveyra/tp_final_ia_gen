@@ -127,9 +127,9 @@ def describir_prompt() -> dict:
 
     Valida el sha256 al cargarlo, así un prompt inválido falla antes de gastar GPU."""
     from entrega import cargar_prompt
-    from admision_tp.prompts import RAIZ as RAIZ_PROMPTS, RUTA_BASELINE
+    from admision_tp.prompts import RAIZ as RAIZ_PROMPTS, RUTA_ENTREGA
     prompt = cargar_prompt()
-    ruta = Path(os.environ.get("PROMPT_SPEC") or RUTA_BASELINE)
+    ruta = Path(os.environ.get("PROMPT_SPEC") or RUTA_ENTREGA)
     ruta = ruta if ruta.is_absolute() else RAIZ_PROMPTS / ruta
     try:
         archivo = ruta.resolve().relative_to(RAIZ_PROMPTS.resolve()).as_posix()

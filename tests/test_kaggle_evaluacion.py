@@ -95,7 +95,7 @@ class EjecucionPlanTest(unittest.TestCase):
         base = {"PROMPT_SPEC": "configuraciones/prompts/baseline.json", "MODELO_LOTE": "4",
                 "BUSCADOR_VARIANTE": "baseline", "MODELO_ID": None, "MODELO_REVISION": None}
         self.assertEqual(entornos["sin_entrenar-original"],
-                         {**base, "ADAPTER_REPO": None, "ADAPTER_REVISION": None, "ADAPTER_SUBCARPETA": None})
+                         {**base, "ADAPTER_REPO": "", "ADAPTER_REVISION": "", "ADAPTER_SUBCARPETA": ""})
         self.assertEqual(entornos["solo_entrenamiento-b"],
                          {**base, "ADAPTER_REPO": "org/repo", "ADAPTER_REVISION": REVISION,
                           "ADAPTER_SUBCARPETA": "final"})

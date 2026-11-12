@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "nombre": "parte4-entrenado",
+  "descripcion": "Filas solo_entrenamiento y ambos (#15, 2026-11-12): adapter LoRA del SFT sobre datos/conversaciones/v3-procedimiento (1 época, Kaggle v32+v33, W&B 3add2742ddfd4b42). Práctica solo para reportar: no se usa para elegir. Las filas sin_entrenar y solo_prompt son actual.json (v25) y solo-prompt.json (v27).",
+  "cantidad": 50,
+  "versiones": ["original", "b", "c"],
+  "lote": 4,
+  "buscador": "baseline",
+  "configuraciones": [
+    {
+      "etiqueta": "solo_entrenamiento",
+      "descripcion": "Adapter entrenado y prompt baseline.",
+      "prompt": "configuraciones/prompts/baseline.json",
+      "prompt_sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474",
+      "adapter": {"repo": "FranCalveyra/tp-admision", "revision": "dc41674a8a2561a724884be2170ff6808efa6e96", "subcarpeta": "final"}
+    },
+    {
+      "etiqueta": "ambos",
+      "descripcion": "Adapter entrenado y prompt procedimiento-v1 (el elegido en datos/prompt-dev/v1).",
+      "prompt": "configuraciones/prompts/procedimiento-v1.json",
+      "prompt_sha256": "8c692c2c67850f1448b5f4ecbda6037713110983c41b0e9da933612d2291ecdd",
+      "adapter": {"repo": "FranCalveyra/tp-admision", "revision": "dc41674a8a2561a724884be2170ff6808efa6e96", "subcarpeta": "final"}
+    }
+  ]
+}

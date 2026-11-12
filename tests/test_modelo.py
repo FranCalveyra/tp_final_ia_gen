@@ -125,8 +125,40 @@ class ModeloTest(unittest.TestCase):
             config = Configuracion.desde_entorno()
         self.assertEqual((config.adapter_repo, config.adapter_revision, config.adapter_subcarpeta),
                          ("grupo/lora", "c" * 40, "checkpoint-50"))
+
+    def test_entorno_sin_adapter_usa_el_de_la_entrega(self):
         with patch.dict("os.environ", {}, clear=True):
-            self.assertIsNone(Configuracion.desde_entorno().adapter_repo)
+            config = Configuracion.desde_entorno()
+        self.assertEqual((config.adapter_repo, config.adapter_revision, config.adapter_subcarpeta),
+                         ("FranCalveyra/tp-admision", "dc41674a8a2561a724884be2170ff6808efa6e96", "final"))
+
+    def test_entorno_sin_lote_usa_el_de_los_numeros_reportados(self):
+        # Todas las evaluaciones reportadas (evaluaciones/) corrieron con lote 4.
+        with patch.dict("os.environ", {}, clear=True):
+            self.assertEqual(Configuracion.desde_entorno().lote, 4)
+        with patch.dict("os.environ", {"MODELO_LOTE": "1"}, clear=True):
+            self.assertEqual(Configuracion.desde_entorno().lote, 1)
+
+    def test_revision_de_adapter_sin_repo_no_pisa_el_de_la_entrega(self):
+        # Sin ADAPTER_REPO, una ADAPTER_REVISION suelta cambiaría en silencio la revisión del adapter de la entrega.
+        for variable in ("ADAPTER_REVISION", "ADAPTER_SUBCARPETA"):
+            with self.subTest(variable=variable), patch.dict("os.environ", {variable: "a" * 40}, clear=True), \
+                    self.assertRaisesRegex(ValueError, "ADAPTER_REPO"):
+                Configuracion.desde_entorno()
+
+    def test_referencia_de_adapter_validada_en_un_solo_lugar(self):
+        from admision_tp.configuracion import validar_adapter
+        bueno = {"repo": "FranCalveyra/tp-admision", "revision": "a" * 40, "subcarpeta": "final"}
+        self.assertEqual(validar_adapter(bueno), bueno)
+        for malo in ({**bueno, "revision": "main"}, {**bueno, "repo": "../x"}, {**bueno, "subcarpeta": ""},
+                     {**bueno, "subcarpeta": "../x"}, {**bueno, "extra": 1}, {"repo": "x/y"}, "x/y", None):
+            with self.subTest(adapter=malo), self.assertRaises(ValueError):
+                validar_adapter(malo)
+
+    def test_entorno_con_adapter_vacio_usa_la_base_sola(self):
+        with patch.dict("os.environ", {"ADAPTER_REPO": ""}, clear=True):
+            config = Configuracion.desde_entorno()
+        self.assertEqual((config.adapter_repo, config.adapter_revision), (None, None))
 
     def test_sin_ruta_de_metricas_no_mide_ni_toca_cuda(self):
         self.adaptador([[{}]])  # El torch doble no tiene `cuda`: fallaría si se midiera.
@@ -191,7 +223,8 @@ class ModeloTest(unittest.TestCase):
     def test_defaults_a100_no_cambian(self):
         config = Configuracion()
         self.assertEqual((config.dtype, config.device_map), ("bfloat16", "cuda:0"))
-        with patch.dict("os.environ", {}, clear=True):
+        # Adapter y lote de la entrega fijados aparte (ver los tests de entorno): acá, el resto de los defaults.
+        with patch.dict("os.environ", {"ADAPTER_REPO": "", "MODELO_LOTE": "1"}, clear=True):
             self.assertEqual(Configuracion.desde_entorno(), config)
 
     def test_dtype_y_device_map_validados(self):

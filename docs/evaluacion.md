@@ -31,7 +31,7 @@ carga y su sha256 interno coincide (y además coincide con `prompt_sha256`), cad
 `Configuracion` (revisión inmutable), etiquetas únicas, versiones y cantidades válidas, buscador conocido.
 Con `--validar` solo valida (sirve en CPU local). Cada configuración × versión corre con
 `infra/kaggle_baseline.correr` (el mismo runner de siempre) en `<salida>/<etiqueta>-<version>/`, con un entorno
-armado desde el plan: borra del entorno heredado `PROMPT_SPEC`, `MODELO_LOTE`, `BUSCADOR_VARIANTE`,
+armado desde el plan (sin adapter, `ADAPTER_*` vacías para no tomar el de la entrega): borra del entorno heredado `PROMPT_SPEC`, `MODELO_LOTE`, `BUSCADOR_VARIANTE`,
 `ADAPTER_*`, `MODELO_ID` y `MODELO_REVISION` y pone los del plan. Si una corrida falla (excepción, código
 distinto de 0 o error atrapado por el kit), se anota y siguen las demás. `<salida>/evaluacion.json` registra
 el plan, su sha256, el comando, la máquina y el estado de cada corrida, y se reescribe después de cada una.

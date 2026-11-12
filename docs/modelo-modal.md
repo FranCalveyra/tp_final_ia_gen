@@ -6,15 +6,15 @@ medio de pago. **No se descargaron pesos ni se ejecutó una GPU.** El diagnósti
 está en `corridas/smoke-original-20261101/intento.json`. La compatibilidad real y
 el acceso de HF todavía no están verificados.
 
-- `entrega.construir_agente()` valida el `PromptSpec` (`PROMPT_SPEC` o el baseline), carga el modelo una vez
+- `entrega.construir_agente()` valida el `PromptSpec` (`PROMPT_SPEC` o `procedimiento-v1` desde 2026-11-12), carga el modelo una vez
   y arma `AgentePrompt` (desde el issue #7; antes `AgenteJSON`, mismos textos con el baseline).
 - `ModeloLocal` recibe conversaciones y devuelve textos en el mismo orden.
 - Gemma 4 E4B sin entrenar, commit HF inmutable en `configuracion.py`.
 - Transformers genera sin muestreo, bf16 y padding izquierdo. La atención no se fuerza:
   SDPA en el texto y eager en las torres que no lo soportan (forzar SDPA rompe el audio de Gemma 4). No se
   recorta contexto; al superar el presupuesto falla explícitamente.
-- Micro-lotes de 1 por defecto para limitar VRAM. El adaptador admite un tamaño
-  configurable con `MODELO_LOTE`. En Kaggle T4 (fp16, no comparable con A100) lote 4 fue 2,1x más rápido que 1
+- Micro-lotes: `Configuracion()` usa 1; **la entrega (`desde_entorno`) usa 4** (`LOTE_ENTREGA`, desde
+  2026-11-12), el lote de todas las evaluaciones reportadas. `MODELO_LOTE` lo cambia. En Kaggle T4 (fp16, no comparable con A100) lote 4 fue 2,1x más rápido que 1
   sin cambiar resultados; 8 y 16 fallaron con error CUDA (ver [progreso](progreso.md), 2026-11-04). En A100 sin medir.
 - El coordinador corta tras 3 respuestas sin JSON seguidas o al llegar al tope de 40 llamadas del kit
   (ya no a los 16 turnos). Antes de cada llamada mide cada conversación con `ModeloLocal.medir_contexto`

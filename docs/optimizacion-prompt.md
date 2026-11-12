@@ -21,7 +21,7 @@ los nueve controles y el largo del prompt, y conserva evidencia reproducible de 
   entrena #15 (`v2-baseline` o `v3-procedimiento`) se decide en equipo.
 
 Desde el issue #7 (2026-11-10), `entrega.py` usa `AgentePrompt` con el `PromptSpec` de
-`PROMPT_SPEC` o el baseline (ver [contrato de formato](#contrato-de-formato-7--13)). Las secciones
+`PROMPT_SPEC` o, desde 2026-11-12, `procedimiento-v1` (ver [contrato de formato](#contrato-de-formato-7--13)). Las secciones
 siguientes describen la infraestructura en el orden en que se construyó.
 
 **Validado con Gemma real (2026-11-10, Kaggle v23):** `AgentePrompt` con el prompt `baseline`
@@ -483,6 +483,9 @@ con lote 4 y `max_turnos: 120` = `max_turnos_para(40, 3)`, el mismo tope que la 
 40 llamadas del kit (un test lo exige). El tope de 40 llamadas y la guarda de contexto son los de
 `AgentePrompt`. `...-t4-l4-prefijos.json` es idéntica salvo `buscador_variante: prefijos` (fase 2).
 Las cinco evaluaciones de fase 1 usan la misma configuración: si no, el ranking las rechaza.
+El campo opcional `adapter` (`repo`, `revision` de 40 hex, `subcarpeta`) carga un adapter
+entrenado; `...-t4-l4-entrenado.json` agrega el de la entrega (#15, verificar el aviso en el dev).
+Sin el campo, la configuración y su registro quedan como antes.
 
 ### Kaggle: celda de fase 1 (ejecutada en v25 con el commit `f4d7300`)
 
@@ -690,9 +693,9 @@ Con el criterio declarado antes de correr (más casos resueltos en el dev y, a i
 (+1 caso sobre 40); en práctica (solo reporte, abajo) la ganancia es clara: 42/150 contra 27/150. Cuesta
 ~2,6× de contexto por caso. Qué cambia y qué queda para decidir en equipo:
 
-- **`entrega.py` sigue apuntando al baseline.** Recomendación: pasar el default a B (más casos resueltos
-  en las tres versiones de práctica, a costa de contexto). Mientras tanto, para usar B:
-  `PROMPT_SPEC=configuraciones/prompts/procedimiento-v1.json`.
+- **`entrega.py` usa B desde 2026-11-12**, junto con el adapter entrenado con B (ver
+  [bitácora](progreso.md)). Para la base con baseline: `PROMPT_SPEC=configuraciones/prompts/baseline.json`
+  y `ADAPTER_REPO=` (vacío).
 - **Las conversaciones de #8 se regeneraron con B en una carpeta nueva**, `datos/conversaciones/v3-procedimiento`
   (la consigna pide entrenar con el prompt optimizado); `v2-baseline` queda igual. Solo cambia el mensaje de
   sistema ([detalle](conversaciones-entrenamiento.md)). Cuál se entrena lo decide #15 (Fran), porque define
@@ -727,6 +730,40 @@ uv run --locked --no-sync python -m scripts.tabla_evaluacion \
 
 La práctica **confirma la dirección** que el dev mostraba débil y supera a la referencia sin entrenar de
 la cátedra en las tres versiones. No se usó para elegir: B ya era el elegido por el criterio declarado.
+
+## Fase 3 (2026-11-12): formato de los mensajes, sin entrenar
+
+La consigna pide optimizar también el formato de los mensajes con el modelo sin entrenar. Las fases 1 y 2 solo
+midieron su tamaño ([contrato de formato](#contrato-de-formato-7--13): ahorro máximo 1,4 % del contexto) y no
+su efecto en la conducta. `configuraciones/prompts/procedimiento-formato-v1.json` (sha `47b6a23b…`) aísla el
+formato: **mismo mensaje de sistema y mensaje inicial que B**; cambian `formato_observacion`
+(`[{herramienta}]\n{observacion}`) y `mensaje_json_invalido` (más directo: «sin texto antes ni después»).
+
+- **Medición:** conjunto de desarrollo (n1 + n2), configuración `evaluacion-prompt-kaggle-t4-l4.json` **sin
+  adapter**, la misma de v25; se rankea junto a B de v25 con `scripts.rankear_prompts` (exige igual
+  configuración y plantilla). ~40 min de T4.
+- **No cambia la entrega aunque gane:** el adapter se entrenó con el formato de B (`v3-procedimiento`); usar otro
+  formato con él lo pone frente a mensajes que nunca vio. Adoptarlo exige regenerar las conversaciones y reentrenar.
+- **Respaldo si no hay GPU (opción B):** reportar el análisis de tamaño de la fase 2 (≤1,4 %) y que el formato no
+  se adoptó por no justificar regenerar #8, sin medición de conducta.
+
+**Resultado (Kaggle v37, commit `7b92583`, 2026-11-12): sin diferencia real; no se adopta.**
+
+```bash
+uv run --locked --no-sync python -m scripts.rankear_prompts \
+  evaluaciones/dev/v25-fase1/procedimiento-v1-n{1,2} evaluaciones/dev/v37-formato/procedimiento-formato-v1-n{1,2}
+```
+
+| Prompt (sin adapter, dev 40 casos) | Resueltos | Contexto/caso (n1 / n2) | Búsquedas/caso | s/caso (T4, lote 4) |
+|---|---:|---:|---:|---:|
+| B `procedimiento-v1` (v25) | 9 | 51.475 / 54.583 | 3,50 / 3,65 | 25,4 / 27,9 |
+| `procedimiento-formato-v1` (v37) | 10 | 51.938 / 51.743 | 3,45 / 3,45 | 24,4 / 24,4 |
+
+- Caso por caso: 2 ganados y 1 perdido. Por control también se compensa: verificación +2, box +1, entidad +1;
+  plazo −4, cobertura −2, circuito −1. Con el recambio caso a caso ya visto en la fase 1, +1 no se distingue del ruido.
+- El contexto baja ~2 % en promedio (más por una búsqueda menos en n2 que por el formato en sí) y el tiempo ~8 %.
+- **No se adopta:** la ganancia no justifica regenerar las conversaciones ni reentrenar (el adapter aprendió el
+  formato de B). Con esto la consigna queda cubierta con medición de conducta, no solo de tamaño.
 
 ## Verificado y no verificado
 
