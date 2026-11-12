@@ -1118,4 +1118,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   silencio el adapter de la entrega; (4) `validar_adapter` en `configuracion.py` es la única validación de la
   referencia `{repo, revision, subcarpeta}` (preparación del SFT, evaluación de prompts y planes). Quedan
   documentados, sin arreglar: `AdapterRef` como tipo, internos de `preparacion` usados por
-  `subconjunto_aviso`, `TrainerSupervisado` anidada, `jq` en el README.
+  `subconjunto_aviso`, `TrainerSupervisado` anidada.
+- **`scripts.ver_caso`** reemplaza los `jq` del README («un caso»): muestra conversación, búsquedas con las
+  secciones que trajo el buscador, ficha y 9 controles; sirve también para la demo del Loom. Borrador del mail de
+  entrega con su checklist en [mail-entrega.md](mail-entrega.md).
