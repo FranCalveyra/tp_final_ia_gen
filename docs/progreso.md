@@ -1098,3 +1098,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   (27/150 → 92/150; +59 % s/caso y 2,4× tokens de entrada por el prompt, VRAM 18,1 → 19,6 GB; ~145 casos/h por
   proceso con la entrega). Todo en T4: A100 sigue pendiente (KI-A100-001). Si v36 cambia el adapter, rehacer la
   fila `ambos`.
+- **Formato de los mensajes (#15, fase 3, CPU):** candidato `procedimiento-formato-v1` (mismo sistema que B, cambia
+  observación y JSON inválido) con test; plan en [optimización de prompt](optimizacion-prompt.md#fase-3-2026-11-12-formato-de-los-mensajes-sin-entrenar).
+  Se mide en el dev sin adapter después de v36. No puede ir a la entrega sin reentrenar. Respaldo sin GPU:
+  reportar el análisis de tamaño (≤1,4 %).

@@ -731,6 +731,22 @@ uv run --locked --no-sync python -m scripts.tabla_evaluacion \
 La práctica **confirma la dirección** que el dev mostraba débil y supera a la referencia sin entrenar de
 la cátedra en las tres versiones. No se usó para elegir: B ya era el elegido por el criterio declarado.
 
+## Fase 3 (2026-11-12): formato de los mensajes, sin entrenar
+
+La consigna pide optimizar también el formato de los mensajes con el modelo sin entrenar. Las fases 1 y 2 solo
+midieron su tamaño ([contrato de formato](#contrato-de-formato-7--13): ahorro máximo 1,4 % del contexto) y no
+su efecto en la conducta. `configuraciones/prompts/procedimiento-formato-v1.json` (sha `47b6a23b…`) aísla el
+formato: **mismo mensaje de sistema y mensaje inicial que B**; cambian `formato_observacion`
+(`[{herramienta}]\n{observacion}`) y `mensaje_json_invalido` (más directo: «sin texto antes ni después»).
+
+- **Medición:** conjunto de desarrollo (n1 + n2), configuración `evaluacion-prompt-kaggle-t4-l4.json` **sin
+  adapter**, la misma de v25; se rankea junto a B de v25 con `scripts.rankear_prompts` (exige igual
+  configuración y plantilla). ~40 min de T4.
+- **No cambia la entrega aunque gane:** el adapter se entrenó con el formato de B (`v3-procedimiento`); usar otro
+  formato con él lo pone frente a mensajes que nunca vio. Adoptarlo exige regenerar las conversaciones y reentrenar.
+- **Respaldo si no hay GPU (opción B):** reportar el análisis de tamaño de la fase 2 (≤1,4 %) y que el formato no
+  se adoptó por no justificar regenerar #8, sin medición de conducta.
+
 ## Verificado y no verificado
 
 **Probado con dobles CPU:** equivalencia completa de mensajes entre `AgenteJSON` y
