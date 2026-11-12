@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "modelo": "google/gemma-4-E4B-it",
+  "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+  "semilla": 20261109,
+  "max_tokens_nuevos": 512,
+  "max_contexto": 8192,
+  "lote": 4,
+  "dtype": "float16",
+  "device_map": "auto",
+  "buscador_variante": "baseline",
+  "max_turnos": 120,
+  "max_sin_json": 3,
+  "adapter": {
+    "repo": "FranCalveyra/tp-admision",
+    "revision": "dc41674a8a2561a724884be2170ff6808efa6e96",
+    "subcarpeta": "final"
+  }
+}

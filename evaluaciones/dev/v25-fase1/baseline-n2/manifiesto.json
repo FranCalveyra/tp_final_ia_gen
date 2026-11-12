@@ -1,0 +1,149 @@
+{
+  "artefactos": {
+    "metricas.json": "94fb425f8b86e5b5c211f05165be5e5ce1d57a2b8ff5a84b6092d33d7aca5dc9",
+    "resultados.jsonl": "e8a1a2dcc796a97924b8bca627c8407a844098d7ff21b95700087046e6025fbd",
+    "resumen.json": "b9a7c54b16bf1b44a9dd61f079dfeeb92c2ab3d640a5d942288a35cd50a25930",
+    "tiempos.json": "50b07994293747ea6b6717089d4159abe79783af89149be508ce09a5a670f113",
+    "trazas.jsonl": "de2530675bcf069d7c3c26dc57b8fc34fe6bfa4c26dca4a34ef7b227d353eaec"
+  },
+  "codigo": {
+    "commit": "f4d73001f7e74407d42ecee6c22c201dd14cf24e",
+    "dirty": false
+  },
+  "comparable": true,
+  "configuracion": {
+    "buscador_variante": "baseline",
+    "device_map": "auto",
+    "dtype": "float16",
+    "lote": 4,
+    "max_contexto": 8192,
+    "max_sin_json": 3,
+    "max_tokens_nuevos": 512,
+    "max_turnos": 120,
+    "modelo": "google/gemma-4-E4B-it",
+    "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+    "semilla": 20261109,
+    "version": 1
+  },
+  "entradas": {
+    "casos.jsonl": "ca538b01284447b2ebead68ccb5670fa8dfd8b9ff68284c6a618016410004667",
+    "configuracion.json": "fa386546e2b18a6b64d8d9f6ec3a6f482cbf04a5acd5e1678d5be1bc9c5e1082",
+    "esperadas.jsonl": "14c5f91bd1ef2790e9e52af8d9f2c53f582648ad3b1302ef96ac5b3e69a1821d",
+    "normas": {
+      "NOR-ADM-01.md": "03bbeab6030af42aad7ca933651c7df1791c21db6d1852156c859becdaadf19f",
+      "NOR-ADM-02.md": "7b1e3943b6aa4458acf2e3510b0dc8349e0278c9d76e501070d9a8901e104a9e",
+      "NOR-ADM-03.md": "5950ed28b4f5b6e9cd64137864f65c3ff339d81e3d0ebf6b348a0bd0dbf89392",
+      "NOR-COB-01.md": "f20632f4d54d6c6110ef4760543e05a133bcbbf90db81781199597f60f800a76",
+      "NOR-COB-02.md": "532427b8391fc8da9d1d4af03d3648e5bc6b81642701fd4908c2c9e85fe9b83a",
+      "NOR-COB-03.md": "abb0702c28d752014886d5745950fe8ad7b12b71bbdb7dc1f679ecf4b8efa9af",
+      "NOR-COB-04.md": "4fdf755a60f421aa15ca855d56e5e39dfccb13b3005759450e0c1f3ec1e78407",
+      "NOR-DER-01.md": "cda0005b01c74d01600f7095cf0a94e363a7303aebcb152f6373189d0db90e21",
+      "NOR-GUA-01.md": "7ac1584da7eca5687eb2503e54890c2fc3e47ea7da1034e49c8116a8771c3825",
+      "NOR-GUA-02.md": "d3fe66b6e3d7de64418e03ea10531377a73bec5fb821720590185d99a92f6254",
+      "NOR-GUA-03.md": "a61659a2065a58cd1bbfb2269f7e2af4d0af70c1326303af3e8fead23df5d6cf",
+      "NOR-INT-01.md": "363d7ad1526616805c603c928b2a371b800fd8472eba6b19fe15d5678e365a56",
+      "NOR-INT-02.md": "1cc7d83839166416181fdd6dfe6209a78571b8726701e4a9daeb834f1354be2c",
+      "NOR-INT-03.md": "d3bee5c8db58a18fd36ab7f7215fd85da3cc3b63718c64d5a5f301816fb7ea09",
+      "NOR-INT-04.md": "a4b9028f021cc0589fce90deadda541c8bf687fb1f912f90ec17180d7877cbc5",
+      "NOR-INT-05.md": "fc45f7cdbfdbfab270814584a4396bb4c96b32bdd10a02911cb81a8ffcb70287",
+      "NOR-TDE-01.md": "3b797e5d473c507eec41cd23f6695df6fff1454c946d49b4f1a69dbc59f5508e",
+      "NOR-TDE-02.md": "d28774bbd789d45c0b613c408839db97a9a2fe199bc9ab15b7d06044dfc517e5",
+      "NOR-TDE-03.md": "b7a2bc69aac41d272097f9bfb267c7a019e7861acbe4419fadbd50df85272929",
+      "NOR-TDE-04.md": "8bb96dc7a512ce45db04276446d076b2cc1b016587f2aac300637263f140ada7",
+      "parametros.yaml": "46b02d351228ec7df146f71c52716b909a77ce49fb3615c3d66beada9a3a2503"
+    },
+    "prompt.json": "966c35f95ec6068e0aeb4d3806a370aef0c953e2a954f94a61022a9cb80f9678"
+  },
+  "estado": "completada",
+  "guardas": {
+    "datos_practica": [],
+    "esperadas_al_alcance": "verificada_en_origen"
+  },
+  "metricas": {
+    "busquedas": {
+      "medio": 1.25,
+      "total": 25
+    },
+    "caracteres_de_contexto": {
+      "medio": 17732,
+      "total": 354635
+    },
+    "casos": 20,
+    "clave_comparacion": [
+      4,
+      140,
+      0,
+      -1,
+      0,
+      -615,
+      -650,
+      -354635
+    ],
+    "comparable": true,
+    "controles_correctos": 140,
+    "controles_totales": 180,
+    "criterio_comparacion": [
+      "resueltos_9_de_9",
+      "controles_correctos",
+      "menos_sin_decision",
+      "menos_respuestas_sin_json",
+      "menos_llamadas_invalidas",
+      "menos_tokens_system_prompt",
+      "menos_tokens_contexto_inicial",
+      "menos_caracteres_de_contexto"
+    ],
+    "llamadas": {
+      "medio": 4.65,
+      "total": 93
+    },
+    "llamadas_invalidas": 0,
+    "longitud_prompt": {
+      "add_special_tokens_textos": false,
+      "chat_template_sha256": "0a2c8073c878ab1da004bee933a998606537bbb62016310352c7285c3f01c5b5",
+      "contexto_inicial": 650,
+      "contexto_inicial_add_generation_prompt": true,
+      "enable_thinking": false,
+      "metodo": "tokenizer_real_sin_aproximacion",
+      "paciente_id_medicion": "P-METRICA",
+      "por_texto": {
+        "formato_observacion": 12,
+        "mensaje_inicial": 21,
+        "mensaje_json_invalido": 28,
+        "system_prompt": 615
+      },
+      "total_textos_configurables": 676,
+      "version": 1
+    },
+    "motivo_no_comparable": null,
+    "parcial_medio": 0.778,
+    "por_control": {
+      "aviso_al_voluntariado": 0.8,
+      "box_antes_del_registro": 0.65,
+      "circuito": 0.9,
+      "cobertura": 0.75,
+      "entidad_a_notificar": 0.8,
+      "numero_documento": 1.0,
+      "plazo_circuito_min": 0.65,
+      "registro": 0.6,
+      "verificacion": 0.85
+    },
+    "puntaje_calidad": 864,
+    "respuestas_sin_json": 1,
+    "resueltos_9_de_9": 4,
+    "segundos": {
+      "casos_medidos": 20,
+      "medio": 243.421,
+      "total": 4868.42
+    },
+    "sin_decision": 0,
+    "tasa_9_de_9": 0.2,
+    "version": 1
+  },
+  "prompt": {
+    "nombre": "baseline",
+    "sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474",
+    "version": 1
+  },
+  "proposito": "evaluacion",
+  "version": 1
+}

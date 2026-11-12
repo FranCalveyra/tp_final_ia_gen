@@ -1,0 +1,118 @@
+{
+  "plan": {
+    "version": 1,
+    "nombre": "parte4-solo-prompt",
+    "descripcion": "Fila solo_prompt (#13, 2026-11-11): Gemma 4 E4B base + procedimiento-v1, el prompt elegido en el conjunto de desarrollo (9/40 contra 8/40 del baseline; ver docs/optimizacion-prompt.md). Práctica solo para reportar el antes y después: no se usa para elegir. La fila sin_entrenar es actual.json (Kaggle v25).",
+    "cantidad": 50,
+    "versiones": [
+      "original",
+      "b",
+      "c"
+    ],
+    "lote": 4,
+    "buscador": "baseline",
+    "configuraciones": [
+      {
+        "etiqueta": "solo_prompt",
+        "descripcion": "Modelo base sin adapter y prompt procedimiento-v1 (elegido en datos/prompt-dev/v1).",
+        "prompt": "configuraciones/prompts/procedimiento-v1.json",
+        "prompt_sha256": "8c692c2c67850f1448b5f4ecbda6037713110983c41b0e9da933612d2291ecdd",
+        "adapter": null
+      }
+    ]
+  },
+  "plan_archivo": "configuraciones/evaluacion/solo-prompt.json",
+  "plan_sha256": "84d6f2be1d9d0f20ab35a60db5b469fdaac443659c7d0840536e9db31d58e938",
+  "comando": [
+    "python",
+    "infra/kaggle_evaluacion.py",
+    "--plan",
+    "configuraciones/evaluacion/solo-prompt.json",
+    "--salida",
+    "/kaggle/working/corridas/evaluacion-solo-prompt"
+  ],
+  "maquina": {
+    "commit": "a5745f034bf2d025fee8c36477ea5b0dd3564367",
+    "sucio": false,
+    "gpus": [
+      "Tesla T4, 15360 MiB, 580.178.04",
+      "Tesla T4, 15360 MiB, 580.178.04"
+    ],
+    "torch": {
+      "torch": "2.15.0+cu132",
+      "cuda": "13.2",
+      "gpus": 2,
+      "bf16_nativo": false
+    },
+    "python": "3.13.16"
+  },
+  "inicio": "2026-11-11T02:35:51+0000",
+  "dtype": "float16",
+  "device_map": "auto",
+  "corridas": [
+    {
+      "etiqueta": "solo_prompt",
+      "version": "original",
+      "cantidad": 50,
+      "carpeta": "solo_prompt-original",
+      "prompt": {
+        "archivo": "configuraciones/prompts/procedimiento-v1.json",
+        "nombre": "procedimiento-v1",
+        "version": 1,
+        "sha256": "8c692c2c67850f1448b5f4ecbda6037713110983c41b0e9da933612d2291ecdd"
+      },
+      "adapter": null,
+      "variables": {
+        "PROMPT_SPEC": "configuraciones/prompts/procedimiento-v1.json",
+        "MODELO_LOTE": "4",
+        "BUSCADOR_VARIANTE": "baseline"
+      },
+      "estado": "terminada",
+      "returncode": 0,
+      "error": null
+    },
+    {
+      "etiqueta": "solo_prompt",
+      "version": "b",
+      "cantidad": 50,
+      "carpeta": "solo_prompt-b",
+      "prompt": {
+        "archivo": "configuraciones/prompts/procedimiento-v1.json",
+        "nombre": "procedimiento-v1",
+        "version": 1,
+        "sha256": "8c692c2c67850f1448b5f4ecbda6037713110983c41b0e9da933612d2291ecdd"
+      },
+      "adapter": null,
+      "variables": {
+        "PROMPT_SPEC": "configuraciones/prompts/procedimiento-v1.json",
+        "MODELO_LOTE": "4",
+        "BUSCADOR_VARIANTE": "baseline"
+      },
+      "estado": "terminada",
+      "returncode": 0,
+      "error": null
+    },
+    {
+      "etiqueta": "solo_prompt",
+      "version": "c",
+      "cantidad": 50,
+      "carpeta": "solo_prompt-c",
+      "prompt": {
+        "archivo": "configuraciones/prompts/procedimiento-v1.json",
+        "nombre": "procedimiento-v1",
+        "version": 1,
+        "sha256": "8c692c2c67850f1448b5f4ecbda6037713110983c41b0e9da933612d2291ecdd"
+      },
+      "adapter": null,
+      "variables": {
+        "PROMPT_SPEC": "configuraciones/prompts/procedimiento-v1.json",
+        "MODELO_LOTE": "4",
+        "BUSCADOR_VARIANTE": "baseline"
+      },
+      "estado": "terminada",
+      "returncode": 0,
+      "error": null
+    }
+  ],
+  "fin": "2026-11-11T03:43:16+0000"
+}
