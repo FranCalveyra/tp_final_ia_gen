@@ -1087,3 +1087,9 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   misma sesión. Publica checkpoints en el repo HF privado y una corrida nueva en W&B.
 - **Próximo paso:** comparar en el dev contra v35 (26/40, aviso 32/40); si mejora sin romper otros controles,
   evaluar la práctica solo para reportar y decidir si pasa a ser el adapter de la entrega.
+- **README "cómo correr" (#16, sin GPU):** sección del grupo al principio de `README.md` con los seis puntos de
+  mission.md:224 (entorno, un caso, buscador, evaluación completa, de dónde sale cada archivo, diagrama Mermaid);
+  el manual del kit queda abajo con sus anclas intactas. Comandos tomados de los manifiestos; no se corrieron en
+  A100. **Pendiente:** `.env.example` todavía tiene `ADAPTER_REPO=` vacío (exportarlo pide el modelo base sin
+  adapter) y el comentario de `PROMPT_SPEC` dice baseline; el README avisa, pero hay que comentar esas líneas.
+  Si v36 cambia el adapter de la entrega, actualizar la revisión en la tabla del README.

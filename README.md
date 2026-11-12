@@ -1,8 +1,158 @@
-# Kit del TP final: la ficha de admisión de guardia
+# TP final: la ficha de admisión de guardia
 
-**Equipo:** para el entorno reproducible del proyecto (CPU, variables y Kaggle; Modal legacy), seguir [Preparar el entorno del equipo](docs/entorno-equipo.md). El resto de este documento conserva el manual original del kit.
+Entrega del grupo. Esta primera parte dice cómo correr todo **con el punto de control publicado y sin entrenar**.
+Más abajo sigue, sin cambios, el [manual del kit de la cátedra](#manual-del-kit).
 
-**Seguimiento:** [progreso y decisiones](docs/progreso.md) · [estándares compartidos](AGENTS.md).
+**Seguimiento:** [informe](INFORME.md) · [progreso y decisiones](docs/progreso.md) ·
+[estándares compartidos](AGENTS.md) · enunciado en [mission.md](mission.md).
+
+## Cómo correr la entrega
+
+Qué se usa en la entrega (`entrega.py`, sin variables de entorno):
+
+| Pieza | Valor | Dónde se fija |
+|---|---|---|
+| Modelo base | `google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2` | `admision_tp/configuracion.py` |
+| Adapter LoRA | `FranCalveyra/tp-admision@dc41674a8a2561a724884be2170ff6808efa6e96`, carpeta `final` (repo HF **privado**) | `ADAPTER_ENTREGA` en `admision_tp/configuracion.py` |
+| Prompt | `configuraciones/prompts/procedimiento-v1.json` (sha256 verificado al cargar) | `RUTA_ENTREGA` en `admision_tp/prompts.py` |
+| Buscador | BM25, una sección de las normas por fragmento, armado con la carpeta que recibe | `admision_tp/buscador.py` |
+
+### 1. Entorno
+
+Linux con GPU CUDA. La cátedra corre en una A100 de 40 GB.
+
+```bash
+uv sync --locked                 # grupo `inferencia` por defecto: torch, transformers, accelerate, peft
+export HF_TOKEN=<token de Hugging Face>   # la aplicación no lee .env sola
+```
+
+`HF_TOKEN` tiene que poder leer el modelo base y el repo privado `FranCalveyra/tp-admision`, compartido con la
+cátedra. `WANDB_API_KEY` solo hace falta para entrenar. **No hace falta ninguna otra variable:** sin ellas,
+`construir_agente()` usa lo de la tabla de arriba. `.env.example` lista las opcionales (lote, prompt, otro
+adapter); no exporten `ADAPTER_REPO` vacío, porque pide el modelo base sin adapter.
+
+### 2. Un caso
+
+El caso `pev-001` (dolor torácico: activa el circuito ECG), con las normas `b`:
+
+```bash
+mkdir -p corridas/un-caso && head -n 1 practica/casos.jsonl > corridas/un-caso/casos.jsonl
+uv run python -m admision.correr practica --entrega entrega.py --casos corridas/un-caso/casos.jsonl \
+    --esperadas practica/esperadas-b.jsonl --normas normas/b --salida corridas/un-caso/b
+```
+
+Qué se ve en `corridas/un-caso/b/`:
+
+```bash
+jq -r '.mensajes[] | "[\(.role)] \(.content)"' trazas.jsonl          # la conversación completa con el modelo
+jq -c '.log[] | select(.herramienta == "buscar_normativa") | .argumentos' trazas.jsonl   # las búsquedas
+jq '.decision' trazas.jsonl                                           # la ficha registrada
+jq -c '{resuelto, controles}' resultados.jsonl                        # los 9 controles
+```
+
+En `trazas.jsonl`, `log` trae cada llamada a herramienta con su observación, incluido lo que devolvió el buscador.
+
+### 3. El buscador
+
+```bash
+uv run python -m admision.evaluar_rag --entrega entrega.py --normas normas/original --consultas rag/consultas_dev.jsonl
+```
+
+### 4. La evaluación completa
+
+Los 50 casos de práctica con las normas original, b y c, en las cuatro filas del informe. Cada plan fija prompt
+(con su sha256), adapter (revisión inmutable), buscador y lote; corre una vez por versión de las normas y deja
+`runner.json` con la procedencia de cada corrida.
+
+```bash
+for plan in actual solo-prompt entrenado; do   # sin_entrenar | solo_prompt | solo_entrenamiento y ambos
+  uv run python infra/kaggle_evaluacion.py --plan configuraciones/evaluacion/$plan.json \
+      --salida corridas/evaluacion-$plan --dtype bfloat16 --device-map cuda:0
+done
+uv run python -m scripts.tabla_evaluacion --evaluacion corridas/evaluacion-actual \
+    --evaluacion corridas/evaluacion-solo-prompt --evaluacion corridas/evaluacion-entrenado \
+    --salida corridas/tabla-practica
+```
+
+`infra/kaggle_evaluacion.py` no depende de Kaggle: toma `HF_TOKEN` del entorno. Sus defaults (`float16`,
+`device_map=auto`) son los de las T4 x2 donde corrimos; en A100 van los flags de arriba. La tabla (`tabla.md` y
+`tabla.json`) puntúa cada corrida con `admision.correr.puntuar` y trae la procedencia de cada celda. Detalle y
+resultados en [evaluación](docs/evaluacion.md). La práctica solo se usa para reportar: prompt, datos y checkpoint se
+eligieron en un conjunto de desarrollo aparte ([`datos/prompt-dev/v1`](docs/optimizacion-prompt.md)).
+
+### 5. De dónde sale cada archivo
+
+| Archivo | Script | Configuración y semilla |
+|---|---|---|
+| `historial_clasificado.csv`, `costumbres.md`, `historial_costumbres.json` | `python -m scripts.clasificar_historial` | Defaults del script: `historial/`, `normas/original/`; determinista |
+| `datos/conversaciones/v3-procedimiento/` (2.900 conversaciones: trazas de referencia del kit, filas `correcta` del historial y 500 sintéticas; con ellas se entrenó el adapter) | `python -m scripts.generar_conversaciones --prompt configuraciones/prompts/procedimiento-v1.json --semilla 12012 --candidatos 5000` | `manifiesto.json`: commit, hashes de entradas, buscador |
+| `datos/conversaciones/v2-baseline/` (mismas conversaciones con el prompt baseline) | `python -m scripts.generar_conversaciones --prompt configuraciones/prompts/baseline.json --semilla 12012 --candidatos 5000` | `manifiesto.json` |
+| `datos/conversaciones/v4-aviso/` (633 de v3: refuerzo del aviso al voluntariado, en prueba) | `python -m scripts.subconjunto_aviso --datos datos/conversaciones/v3-procedimiento/conversaciones.jsonl --salida datos/conversaciones/v4-aviso --otros 100 --semilla 15` | `configuraciones/sft-aviso.json` |
+| `datos/entrenamiento/` (primera versión, #12; no la usa el adapter) | `scripts.seleccionar_entrenamiento`, `scripts.generar_sinteticos_entrenamiento` | `datos/entrenamiento/manifiesto.json` (semilla 12012) |
+| `datos/prompt-dev/v1/` (conjunto de desarrollo, 40 casos) | `python -m scripts.generar_prompt_dev --semilla 20261110 --carpetas 2 --casos-por-carpeta 20 --candidatos 4000` | Excluye los casos de práctica |
+| `configuraciones/prompts/procedimiento-v1.json` (prompt elegido) | Escrito a mano; elegido con `scripts.evaluar_prompts` + `scripts.rankear_prompts` en el conjunto de desarrollo | [Optimización de prompt](docs/optimizacion-prompt.md) |
+| Adapter `final` en `FranCalveyra/tp-admision` | `scripts.preparar_entrenamiento` → `scripts.tokenizar_entrenamiento` → `scripts.entrenar --online --publicar` | `configuraciones/sft-ejemplo.json` (semilla 42, lr 2e-4, 1 época, LoRA r=8); corrida W&B `3add2742ddfd4b42`; cada checkpoint con su revisión HF |
+
+Volver a entrenar ([entrenamiento SFT](docs/entrenamiento-sft.md)), con las mismas entradas y en una A100:
+
+```bash
+uv sync --locked --group entrenamiento
+uv run python -m scripts.preparar_entrenamiento --datos datos/conversaciones/v3-procedimiento/conversaciones.jsonl \
+    --configuracion configuraciones/sft-ejemplo.json --salida corridas/sft-preparada
+uv run python -m scripts.tokenizar_entrenamiento --preparacion corridas/sft-preparada --salida corridas/sft-tokens
+uv run python -m scripts.entrenar --preparacion corridas/sft-preparada --tokens corridas/sft-tokens \
+    --salida corridas/sft --online --publicar
+```
+
+No hace falta para verificar nada: la entrega carga el adapter publicado. Nuestro entrenamiento corrió en Kaggle
+(T4 x2, `infra/kaggle_entrenamiento.py` con `--precision fp16 --dispositivos auto`, ver [Kaggle](docs/kaggle.md)).
+
+### 6. Diagrama
+
+```mermaid
+flowchart LR
+    correr["admision.correr<br/>(kit de la cátedra)"] -->|construir_buscador| buscador
+    correr -->|construir_agente| agente
+    correr -->|un entorno por caso| entorno
+
+    subgraph entrega["entrega.py"]
+        agente["AgentePrompt<br/>prompt procedimiento-v1<br/>tope de 40 llamadas"]
+        modelo["ModeloLocal<br/>Gemma 4 E4B + LoRA fusionado<br/>(Hugging Face, revisión fija)"]
+        buscador["BuscadorBM25<br/>una sección por fragmento"]
+        agente <-->|"conversación → próxima acción JSON<br/>(en lote)"| modelo
+    end
+
+    subgraph entorno["Entorno del caso (admision/)"]
+        triage["leer_triage"]
+        preguntar["preguntar"]
+        verificar["verificar_afiliacion"]
+        buscar["buscar_normativa"]
+        registrar["registrar_decision<br/>(ficha de 8 campos)"]
+    end
+
+    agente -->|"paso(herramienta, argumentos)"| entorno
+    entorno -->|observación| agente
+    buscar -->|"recuperar(consulta, k)"| buscador
+    buscador -->|secciones| normas[("normas/&lt;versión&gt;<br/>+ parametros.yaml")]
+```
+
+El agente le pasa al modelo la conversación entera y el modelo responde una acción JSON: qué herramienta llamar
+y con qué argumentos. El entorno ejecuta la herramienta y devuelve la observación, hasta que el agente llama a
+`registrar_decision`. Solo `buscar_normativa` usa el buscador; las normas se leen de la carpeta que recibe
+`construir_buscador`, así que los números cambian con la versión y no están en los pesos.
+
+## Limitaciones conocidas
+
+- **A100 sin validar** ([KI-A100-001](#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb)):
+  entrenamos y evaluamos en Kaggle T4 x2; los tiempos y la VRAM de T4 no valen para A100.
+- **Acceso de la cátedra:** el repo HF y el proyecto W&B son privados. Hasta que la cátedra esté invitada (#16),
+  su `HF_TOKEN` no puede bajar el adapter y `construir_agente()` falla con 401.
+
+---
+
+# Manual del kit
+
+**Equipo:** para el entorno reproducible del proyecto (CPU, variables y Kaggle; Modal legacy), seguir [Preparar el entorno del equipo](docs/entorno-equipo.md).
 
 El enunciado (qué hay que hacer, qué se entrega y cómo se corrige) está en [mission.md](mission.md), y el video que lo presenta en dos partes: [Parte 1](https://www.loom.com/share/2c56572757124aaf8e2a1e1398efe27d) y [Parte 2](https://www.loom.com/share/12f6cb81c76440cd8a86563dcc02b2f2). Esto explica qué trae el kit y cómo se usa.
 
