@@ -1102,3 +1102,9 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   observación y JSON inválido) con test; plan en [optimización de prompt](optimizacion-prompt.md#fase-3-2026-11-12-formato-de-los-mensajes-sin-entrenar).
   Se mide en el dev sin adapter después de v36. No puede ir a la entrega sin reentrenar. Respaldo sin GPU:
   reportar el análisis de tamaño (≤1,4 %).
+- **Auditoría de la entrega contra mission.md** ([auditoria-entrega.md](auditoria-entrega.md), CPU): el hueco más
+  grave era que ningún número era auditable (trazas solo en `corridas/`, ignorado). **Resuelto:** las evaluaciones
+  reportadas (v25, v27, v34 en práctica; v25 fase 1 y v35 en el dev) quedan versionadas en `evaluaciones/` sin
+  editar (escaneadas: sin secretos), y la tabla de la Parte 4 se regeneró desde ahí con procedencia limpia
+  (`evaluaciones/practica/tabla`, 10/10/7 · 14/16/12 · 11/13/12 · 30/29/33). Pendiente de decidir: `MODELO_LOTE`
+  por defecto de la entrega (1) contra el lote 4 de todos los números.

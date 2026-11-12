@@ -76,7 +76,9 @@ uv run python -m scripts.tabla_evaluacion --evaluacion corridas/evaluacion-actua
 
 `infra/kaggle_evaluacion.py` no depende de Kaggle: toma `HF_TOKEN` del entorno. Sus defaults (`float16`,
 `device_map=auto`) son los de las T4 x2 donde corrimos; en A100 van los flags de arriba. La tabla (`tabla.md` y
-`tabla.json`) puntúa cada corrida con `admision.correr.puntuar` y trae la procedencia de cada celda. Detalle y
+`tabla.json`) puntúa cada corrida con `admision.correr.puntuar` y trae la procedencia de cada celda.
+**Las corridas que reportamos están versionadas en [`evaluaciones/`](evaluaciones/README.md)** (conversaciones
+completas, resultados caso por caso, `runner.json` y la tabla): se auditan y la tabla se regenera sin GPU. Detalle y
 resultados en [evaluación](docs/evaluacion.md). La práctica solo se usa para reportar: prompt, datos y checkpoint se
 eligieron en un conjunto de desarrollo aparte ([`datos/prompt-dev/v1`](docs/optimizacion-prompt.md)).
 
