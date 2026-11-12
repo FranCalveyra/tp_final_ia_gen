@@ -1132,3 +1132,5 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **PR #24 mergeado a `main` (`49e8c85`, 2026-11-12) y #3 cerrado.** La entrega en `main`: `procedimiento-v1` +
   adapter `dc41674a` + lote 4. Pendientes: acceso de la cátedra a HF/W&B (#16), A100 (KI-A100-001, #5),
   `.env.example` (Fran), INFORME y Loom (equipo).
+- **Motivo de no usar Modal, explícito donde lo lee la cátedra** (Known Issue del README y Parte 5): habilitar su
+  crédito exige cargar una tarjeta de crédito y decidimos no hacerlo.

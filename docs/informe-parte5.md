@@ -235,7 +235,7 @@ Hay otras corridas (`t4-original-09`, intentos fallidos anteriores) sin `runner.
 
 `mission.md`: A100-40GB ~2,10 USD/h y 30 USD de crédito por integrante y por mes, o sea unas
 14,3 h por persona (30 / 2,10). Son cifras de la consigna, no cotización actual.
-**Modal fue descartado definitivamente el 2026-11-05**; no corrió entrenamiento GPU allí.
+**Modal fue descartado definitivamente el 2026-11-05** porque habilitar su crédito exige cargar una tarjeta de crédito y decidimos no hacerlo; no corrió entrenamiento GPU allí.
 Estas fórmulas se conservan como escenario histórico/ilustrativo, no un plan ni presupuesto vigente.
 La vía A100-40GB futura, su tarifa y sus permisos están por determinar.
 
