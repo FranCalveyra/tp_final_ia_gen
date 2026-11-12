@@ -30,6 +30,10 @@ uv run python -m scripts.tabla_evaluacion --evaluacion evaluaciones/practica/v25
 | `dev/v35-entrenado/` | v35 | Adapter `dc41674a` + `procedimiento-v1`: confirma que el aviso al voluntariado nunca da `true` |
 | `dev/v36-aviso/` | v36 | Adapter reforzado en el aviso (`22ee5596`) + `procedimiento-v1`: 23/40, no adoptado (configuración usada en `evaluacion-prompt-aviso.json`) |
 
+Cada corrida del conjunto de desarrollo tiene `manifiesto.json` (snapshots y hashes de prompt, configuración,
+casos y esperadas; métricas) y `entradas/`. Detalle e interpretación en [optimización de prompt](../docs/optimizacion-prompt.md),
+[evaluación](../docs/evaluacion.md) y [análisis de errores](../docs/analisis-errores.md).
+
 ## Entrenamientos (recibos)
 
 Los pesos y cada checkpoint están en HF (`FranCalveyra/tp-admision`, con su revisión) y cada corrida en W&B; acá
@@ -40,7 +44,3 @@ revisión), `runner.log` (pérdida por paso), `estado.json` (VRAM, run de W&B).
 |---|---|---|
 | `entrenamiento/v32-v33-sft-v3/` | v32 + v33 | SFT de la entrega sobre `v3-procedimiento` (v32 cortada a las 8 h en el paso 315; v33 reanuda desde checkpoint-300). `manifiesto-tokens.json`: 2.900 conversaciones, ~10 M tokens |
 | `entrenamiento/v36-aviso/` | v36 | Continuación sobre `v4-aviso` (no adoptada) |
-
-Cada corrida del conjunto de desarrollo tiene `manifiesto.json` (snapshots y hashes de prompt, configuración,
-casos y esperadas; métricas) y `entradas/`. Detalle e interpretación en [optimización de prompt](../docs/optimizacion-prompt.md),
-[evaluación](../docs/evaluacion.md) y [análisis de errores](../docs/analisis-errores.md).
