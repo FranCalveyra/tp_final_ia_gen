@@ -127,6 +127,20 @@ W&B `6d8edb168beb4e9b`, `final` `22ee5596c8d3014bd86caaca6a87034d06e1d4e8`. En e
 23 resueltos: aprendió a decir `true` sin la condición ([pasada 8](analisis-errores.md)). Validó en GPU que
 `adapter_inicial` carga el adapter publicado (pérdida inicial 0,0069, no ~0,44).
 
+### 6. Peso en el token del aviso (`peso_aviso`)
+
+Con `peso_aviso` (> 1) en la configuración, la pérdida multiplica por ese valor la del token del valor
+(`true`/`false`) de `aviso_al_voluntariado` que registra el asistente; el resto pesa 1 y se normaliza igual que
+sin pesos. `pesos_del_aviso` ubica ese token decodificando el contexto anterior (`"aviso_al_voluntariado":`), sin
+suponer cómo tokeniza la clave, y **falla antes de cargar los pesos** si no lo encuentra exactamente una vez en una
+conversación. Motivo ([pasada 8](analisis-errores.md)): el aviso es un token entre ~360 supervisados y se diluye en
+la pérdida media; subir la proporción de positivos (v36) movió el sesgo sin enseñar la regla.
+
+`configuraciones/sft-aviso-peso.json`: parte del adapter de la entrega, `peso_aviso` 20, lr 1e-4, 1 época sobre
+`datos/conversaciones/v5-aviso-peso` (1.133: 302 con aviso, 231 mayores con acompañante, 600 del resto; 27 % de
+positivos contra 46 % de v4-aviso). **Probado con dobles** (ubicación del token, alineación con los objetivos,
+padding); la suma ponderada en torch se valida en GPU.
+
 ## Estado de cierre de infraestructura y límites restantes
 
 Los cuatro criterios técnicos del pipeline genérico están respaldados: conversaciones/config/semilla,

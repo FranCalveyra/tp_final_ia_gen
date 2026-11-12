@@ -1136,3 +1136,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   crédito exige cargar una tarjeta de crédito y decidimos no hacerlo.
 - **`.env.example` corregido (Fran):** `ADAPTER_*` comentadas (exportarlo ya no apaga el adapter), comentario de
   `PROMPT_SPEC` al día y `MODELO_LOTE=4`. Cierra el hueco 5 de la auditoría.
+- **#14 cerrado.** **#15, peso en el token del aviso (rama `feat/15-peso-aviso`, CPU):** `peso_aviso` en la
+  configuración del SFT; `pesos_del_aviso` ubica el valor del aviso y falla si no está una vez; datos
+  `v5-aviso-peso` (27 % positivos) y `sft-aviso-peso.json` (peso 20, lr 1e-4). Probado con dobles (293 tests).
+  Siguiente: entrenar y medir en el dev; se adopta solo si supera 26/40 sin romper el resto.

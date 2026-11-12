@@ -1,0 +1,26 @@
+{
+  "archivos_sha256": {
+    "conversaciones.jsonl": "0260053e373f5778e6b60168bed473bf34eb3d04bf8c4d6c6fc6876f370efa76"
+  },
+  "comando": "python -m scripts.subconjunto_aviso --datos datos/conversaciones/v3-procedimiento/conversaciones.jsonl --salida datos/conversaciones/v5-aviso-peso --otros 600 --semilla 15",
+  "edad_minima_positivos": 75,
+  "git": {
+    "commit": "1ba9f86685d6f7784f7edbe022b00e87e781f002",
+    "dirty": false
+  },
+  "grupos": {
+    "negativos_mismo_rango_de_edad": 231,
+    "otros_negativos": 600,
+    "positivos": 302
+  },
+  "origen": {
+    "registros": 2900,
+    "ruta": "datos/conversaciones/v3-procedimiento/conversaciones.jsonl",
+    "sha256": "3213595f6a3cd3b7b21c003c6357a6617d89cd0236f8068d296b26bbf5e09834"
+  },
+  "otros": 600,
+  "proposito": "seguir entrenando el adapter en aviso_al_voluntariado (#15)",
+  "registros": 1133,
+  "semilla": 15,
+  "version": 1
+}
