@@ -42,16 +42,16 @@ uv run python -m admision.correr practica --entrega entrega.py --casos corridas/
     --esperadas practica/esperadas-b.jsonl --normas normas/b --salida corridas/un-caso/b
 ```
 
-Qué se ve en `corridas/un-caso/b/`:
+Qué se ve:
 
 ```bash
-jq -r '.mensajes[] | "[\(.role)] \(.content)"' trazas.jsonl          # la conversación completa con el modelo
-jq -c '.log[] | select(.herramienta == "buscar_normativa") | .argumentos' trazas.jsonl   # las búsquedas
-jq '.decision' trazas.jsonl                                           # la ficha registrada
-jq -c '{resuelto, controles}' resultados.jsonl                        # los 9 controles
+uv run python -m scripts.ver_caso corridas/un-caso/b
 ```
 
-En `trazas.jsonl`, `log` trae cada llamada a herramienta con su observación, incluido lo que devolvió el buscador.
+Muestra la conversación completa con el modelo (el mensaje de sistema resumido; `--sistema-completo` lo
+muestra entero), cada búsqueda con las secciones de las normas que trajo el buscador, la ficha registrada y los
+9 controles. Los datos crudos están en `corridas/un-caso/b/`: `trazas.jsonl` (`mensajes`, y en `log` cada
+llamada a herramienta con su observación) y `resultados.jsonl`.
 
 ### 3. El buscador
 
