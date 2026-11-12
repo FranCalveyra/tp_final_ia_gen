@@ -19,8 +19,13 @@ CAMPOS = {"version", "modelo", "revision", "semilla", "learning_rate", "epochs",
 
 def validar_configuracion(config):
     """Contrato cerrado, sin credenciales; conserva los valores recibidos."""
-    if not isinstance(config, dict) or set(config) - {"adapter_inicial"} != CAMPOS:
+    if not isinstance(config, dict) or set(config) - {"adapter_inicial", "peso_aviso"} != CAMPOS:
         raise ValueError("configuración: campos faltantes o desconocidos")
+    if "peso_aviso" in config:
+        # Peso del token del valor de aviso_al_voluntariado en la pérdida (#15, pasada 8).
+        peso = config["peso_aviso"]
+        if type(peso) not in (int, float) or not math.isfinite(peso) or peso <= 1:
+            raise ValueError("configuración: peso_aviso requiere número finito mayor que 1")
     if "adapter_inicial" in config:
         # Seguir entrenando un adapter publicado (#15, aviso): repo privado y revisión inmutable.
         try:

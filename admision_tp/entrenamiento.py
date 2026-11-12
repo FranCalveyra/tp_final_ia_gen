@@ -89,10 +89,40 @@ def cargar_entradas(preparacion, tokenizacion, ejecucion=EJECUCION):
 
 
 def formar_lote(ejemplos, pad_token_id):
-    """Padding a derecha; nunca transforma contexto o padding en objetivos."""
+    """Padding a derecha; nunca transforma contexto o padding en objetivos. `pesos` (si hay) rellena con 1."""
     largo = max(len(x["input_ids"]) for x in ejemplos)
-    return {campo: [x[campo] + [relleno] * (largo - len(x[campo])) for x in ejemplos]
-            for campo, relleno in (("input_ids", pad_token_id), ("attention_mask", 0), ("labels", -100))}
+    campos = [("input_ids", pad_token_id), ("attention_mask", 0), ("labels", -100)]
+    if "pesos" in ejemplos[0]:
+        campos.append(("pesos", 1.0))
+    return {campo: [x[campo] + [relleno] * (largo - len(x[campo])) for x in ejemplos] for campo, relleno in campos}
+
+
+# El valor del aviso en la ficha: lo que precede (decodificado) termina en la clave y dos puntos.
+_CLAVE_AVISO = re.compile(r'"aviso_al_voluntariado"\s*:\s*$')
+# El token del valor puede venir pegado al espacio o a la puntuación que sigue (`true`, ` false,`).
+_VALOR_AVISO = re.compile(r"\s*(true|false)[,}\]]*\s*")
+
+
+def pesos_del_aviso(input_ids, labels, decodificar, peso):
+    """Peso por posición: `peso` en el token del valor (`true`/`false`) de `aviso_al_voluntariado` que registra el
+    asistente, 1 en el resto (#15, pasada 8: un token entre ~360 supervisados se diluye en la pérdida media).
+
+    Busca decodificando el contexto anterior, sin suponer cómo tokeniza la clave. Falla si el valor supervisado no
+    aparece exactamente una vez: un aviso sin peso pasaría en silencio.
+    """
+    candidatos = [j for j, (token, etiqueta) in enumerate(zip(input_ids, labels))
+                  if etiqueta != -100 and _VALOR_AVISO.fullmatch(decodificar([token]))
+                  and _CLAVE_AVISO.search(decodificar(input_ids[max(0, j - 16):j]))]
+    if len(candidatos) != 1:
+        raise ValueError(f"aviso_al_voluntariado supervisado {len(candidatos)} veces (se esperaba 1)")
+    pesos = [1.0] * len(labels)
+    pesos[candidatos[0]] = float(peso)
+    return pesos
+
+
+def pesos_de_objetivos(posiciones, pesos):
+    """Pesos alineados con los objetivos de `posiciones_supervisadas` (la posición i predice el token i+1)."""
+    return [[fila[i + 1] for i in posiciones] for fila in pesos]
 
 
 def posiciones_supervisadas(labels):
@@ -121,6 +151,15 @@ def perdida_supervisada(torch, modelo, entradas, num_items_in_batch=None):
                     logits_to_keep=posiciones).logits.float()
     logits = logits.reshape(-1, logits.shape[-1])
     objetivos = torch.tensor(objetivos, dtype=torch.long, device=logits.device).reshape(-1)
+    if "pesos" in entradas:  # Con peso_aviso: suma ponderada sobre la misma normalización.
+        pesos = pesos_de_objetivos(posiciones, entradas["pesos"].tolist())
+        pesos = torch.tensor(pesos, dtype=logits.dtype, device=logits.device).reshape(-1)
+        suma = (torch.nn.functional.cross_entropy(logits, objetivos, ignore_index=-100, reduction="none")
+                * pesos).sum()
+        divisor = (objetivos != -100).sum() if num_items_in_batch is None else num_items_in_batch
+        if torch.is_tensor(divisor):
+            divisor = divisor.to(suma.device)
+        return suma / divisor
     if num_items_in_batch is None:
         return torch.nn.functional.cross_entropy(logits, objetivos, ignore_index=-100)
     suma = torch.nn.functional.cross_entropy(logits, objetivos, ignore_index=-100, reduction="sum")
@@ -262,6 +301,9 @@ def _ejecutar_cuda(config, registros, ejemplos, tokens, destino, auditoria, chec
             raise ValueError("tokens o máscaras no reproducibles")
     if tokenizer.pad_token_id is None:
         raise ValueError("tokenizador sin token de padding")
+    if config.get("peso_aviso"):  # Antes de cargar pesos: un aviso no encontrado falla barato.
+        ejemplos = [{**x, "pesos": pesos_del_aviso(x["input_ids"], x["labels"], tokenizer.decode,
+                                                    config["peso_aviso"])} for x in ejemplos]
     run = wandb.init(entity=config["wandb_entity"], project=config["wandb_project"],
         id=auditoria["run_id"], resume="must" if checkpoint and auditoria["online"] else None,
         mode="online" if auditoria["online"] else "offline", dir=str(destino),
@@ -315,7 +357,8 @@ def _ejecutar_cuda(config, registros, ejemplos, tokens, destino, auditoria, chec
             **_politica(ejecucion), save_strategy="steps", logging_steps=1,
             report_to="none", push_to_hub=False, remove_unused_columns=False)
         def collator(filas):
-            return {k: torch.tensor(v, dtype=torch.long) for k, v in formar_lote(filas, tokenizer.pad_token_id).items()}
+            return {k: torch.tensor(v, dtype=torch.float32 if k == "pesos" else torch.long)
+                    for k, v in formar_lote(filas, tokenizer.pad_token_id).items()}
         class TrainerSupervisado(Trainer):
             # Misma normalización que la pérdida del modelo (suma / num_items_in_batch con acumulación).
             def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
