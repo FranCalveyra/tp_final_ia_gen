@@ -1122,3 +1122,9 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **`scripts.ver_caso`** reemplaza los `jq` del README («un caso»): muestra conversación, búsquedas con las
   secciones que trajo el buscador, ficha y 9 controles; sirve también para la demo del Loom. Borrador del mail de
   entrega con su checklist en [mail-entrega.md](mail-entrega.md).
+- **v36 (refuerzo del aviso) NO adoptada (decisión de Fran, solo con el dev):** 23/40 contra 26/40 de v35; el
+  aviso pasa de 0/8 a 6/8 en mayores sin acompañante pero da `true` en 12 de 32 que no corresponde
+  ([pasada 8](analisis-errores.md)). La entrega sigue con `dc41674a`; la práctica de la v36 no se corrió. Validó en
+  GPU `adapter_inicial`. Corridas y recibos versionados en `evaluaciones/` (también los del SFT v32/v33).
+- **Kaggle v37 lanzado (fase 3, formato de mensajes):** `procedimiento-formato-v1` sin adapter en el dev, commit
+  `7b92583`, ~40 min de T4.

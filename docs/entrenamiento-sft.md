@@ -122,6 +122,11 @@ del mismo rango de edad (umbral = la menor edad entre los positivos, sale de los
 resto. Publica en el mismo repo HF: `checkpoint-N` y `final` quedan con revisiones nuevas, y las anteriores
 siguen accesibles por su revisión (la entrega fija la suya en `configuracion.py`).
 
+**Resultado (Kaggle v36, 2026-11-12): no se adoptó.** 80 pasos, ~88 s/paso (7.029 s), 20,29 GB de VRAM pico,
+W&B `6d8edb168beb4e9b`, `final` `22ee5596c8d3014bd86caaca6a87034d06e1d4e8`. En el conjunto de desarrollo bajó de 26 a
+23 resueltos: aprendió a decir `true` sin la condición ([pasada 8](analisis-errores.md)). Validó en GPU que
+`adapter_inicial` carga el adapter publicado (pérdida inicial 0,0069, no ~0,44).
+
 ## Estado de cierre de infraestructura y límites restantes
 
 Los cuatro criterios técnicos del pipeline genérico están respaldados: conversaciones/config/semilla,

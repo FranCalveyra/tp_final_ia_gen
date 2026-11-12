@@ -1,0 +1,613 @@
+wandb: [wandb.login()] Loaded credentials for https://api.forge.coreweave.com from WANDB_API_KEY.
+wandb: Currently logged in as: francalveyra (francalveyra-ia-gen) to https://api.forge.coreweave.com. Use `wandb login --relogin` to force relogin
+wandb: setting up run 6d8edb168beb4e9b
+wandb: Tracking run with wandb version 0.31.0
+wandb: Run data is saved locally in /kaggle/working/corridas/sft-aviso/entrenamiento/wandb/run-20261112_180354-6d8edb168beb4e9b
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run 6d8edb168beb4e9b
+wandb: ⭐️ View project at https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision
+wandb: 🚀 View run at https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/6d8edb168beb4e9b
+
+Loading weights:   0%|          | 0/665 [00:00<?, ?it/s]
+Loading weights:   0%|          | 1/665 [00:12<2:14:45, 12.18s/it]
+Loading weights:   0%|          | 2/665 [00:37<3:41:16, 20.02s/it]
+Loading weights: 100%|██████████| 665/665 [00:37<00:00, 17.62it/s]
+[transformers] [1mGemma4ForConditionalGeneration LOAD REPORT[0m from: google/gemma-4-E4B-it
+Key                                                                          | Status     |  | 
+-----------------------------------------------------------------------------+------------+--+-
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_1.linear.weight    | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.o_proj.output_max       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_2.output_min       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.k_proj.linear.weight    | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.v_proj.input_max        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.per_dim_scale                    | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.depthwise_conv1d.weight            | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.down_proj.linear.weight       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.v_proj.linear.weight             | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.up_proj.input_min             | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.q_proj.output_max                | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.down_proj.input_max           | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.k_norm.weight           | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.pre_layer_norm.weight        | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.q_proj.input_min        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_2.input_min        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_2.output_max       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.o_proj.linear.weight    | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.linear.weight       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.o_proj.input_max        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.v_proj.input_max                 | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_1.input_max        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_1.output_max       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_2.input_min        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.relative_k_proj.weight           | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.norm_out.weight                            | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.k_proj.input_max        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.q_proj.input_max                 | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.up_proj.input_max             | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.norm_post_attn.weight                      | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_2.output_min       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.v_proj.output_max       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.k_proj.output_min                | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_start.output_max            | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.down_proj.input_min           | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_end.output_min              | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.input_layernorm.weight            | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_end.input_min               | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_start.output_min            | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.v_proj.output_max                | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_end.linear.weight           | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_2.linear.weight    | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.conv_norm.weight                   | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.k_proj.output_max       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.post.linear.weight               | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_2.input_max        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.k_proj.linear.weight             | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.k_proj.input_min        | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.up_proj.linear.weight         | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.k_proj.output_max                | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.q_proj.input_min                 | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.down_proj.output_min          | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_1.input_min        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.post.input_max                   | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.v_proj.linear.weight    | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.q_proj.linear.weight             | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.pre_feedforward_layernorm.weight  | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.post_feedforward_layernorm.weight | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.o_proj.input_min        | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.input_max           | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.up_proj.output_max            | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.pre_layer_norm.weight              | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_start.linear.weight         | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_1.linear.weight    | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.q_proj.output_min                | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.output_max          | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.norm_pre_attn.weight                       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_2.linear.weight    | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_start.input_min             | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.output_min          | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.v_proj.input_min                 | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.o_proj.output_min       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.k_proj.output_min       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.post.output_max                  | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.v_proj.input_min        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.pre_layer_norm.weight        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_start.input_max             | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_1.output_min       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_1.input_min        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.post.input_min                   | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.q_proj.output_max       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.q_proj.output_min       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.input_min           | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.v_proj.output_min                | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_end.input_max               | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.q_proj.linear.weight    | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.up_proj.output_min            | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_1.output_min       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.post_layer_norm.weight       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_2.output_max       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.v_proj.output_min       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.down_proj.output_max          | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.post_attention_layernorm.weight   | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.k_proj.input_min                 | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_end.output_max              | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.q_proj.input_max        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.post.output_min                  | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.post_layer_norm.weight       | UNEXPECTED |  | 
+model.vision_tower.patch_embedder.position_embedding_table                   | UNEXPECTED |  | 
+model.audio_tower.subsample_conv_projection.layer1.norm.weight               | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_1.input_max        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.k_proj.input_max                 | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_2.input_max        | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.q_norm.weight           | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_1.output_max       | UNEXPECTED |  | 
+model.audio_tower.subsample_conv_projection.layer1.conv.weight               | UNEXPECTED |  | 
+model.audio_tower.subsample_conv_projection.layer0.conv.weight               | UNEXPECTED |  | 
+model.embed_audio.embedding_projection.weight                                | UNEXPECTED |  | 
+model.vision_tower.patch_embedder.input_proj.weight                          | UNEXPECTED |  | 
+model.audio_tower.subsample_conv_projection.input_proj_linear.weight         | UNEXPECTED |  | 
+model.audio_tower.subsample_conv_projection.layer0.norm.weight               | UNEXPECTED |  | 
+model.audio_tower.output_proj.weight                                         | UNEXPECTED |  | 
+model.embed_vision.embedding_projection.weight                               | UNEXPECTED |  | 
+model.audio_tower.output_proj.bias                                           | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+
+  0%|          | 0/80 [00:00<?, ?it/s]
+  1%|▏         | 1/80 [01:18<1:42:53, 78.15s/it]
+                                                
+
+  1%|▏         | 1/80 [01:18<1:42:53, 78.15s/it]
+  2%|▎         | 2/80 [02:46<1:49:05, 83.91s/it]
+                                                
+
+  2%|▎         | 2/80 [02:46<1:49:05, 83.91s/it]
+  4%|▍         | 3/80 [04:16<1:51:29, 86.88s/it]
+                                                
+
+  4%|▍         | 3/80 [04:16<1:51:29, 86.88s/it]
+  5%|▌         | 4/80 [05:51<1:53:52, 89.90s/it]
+                                                
+
+  5%|▌         | 4/80 [05:51<1:53:52, 89.90s/it]
+  6%|▋         | 5/80 [07:34<1:58:31, 94.82s/it]
+                                                
+
+  6%|▋         | 5/80 [07:34<1:58:31, 94.82s/it]
+  8%|▊         | 6/80 [09:06<1:55:36, 93.74s/it]
+                                                
+
+  8%|▊         | 6/80 [09:06<1:55:36, 93.74s/it]
+  9%|▉         | 7/80 [10:25<1:48:24, 89.10s/it]
+                                                
+
+  9%|▉         | 7/80 [10:25<1:48:24, 89.10s/it]
+ 10%|█         | 8/80 [11:57<1:47:49, 89.86s/it]
+                                                
+
+ 10%|█         | 8/80 [11:57<1:47:49, 89.86s/it]
+ 11%|█▏        | 9/80 [13:32<1:48:15, 91.48s/it]
+                                                
+
+ 11%|█▏        | 9/80 [13:32<1:48:15, 91.48s/it]
+ 12%|█▎        | 10/80 [15:06<1:47:43, 92.34s/it]
+                                                 
+
+ 12%|█▎        | 10/80 [15:06<1:47:43, 92.34s/it]
+ 14%|█▍        | 11/80 [16:41<1:46:59, 93.04s/it]
+                                                 
+
+ 14%|█▍        | 11/80 [16:41<1:46:59, 93.04s/it]
+ 15%|█▌        | 12/80 [18:07<1:43:16, 91.13s/it]
+                                                 
+
+ 15%|█▌        | 12/80 [18:07<1:43:16, 91.13s/it]
+ 16%|█▋        | 13/80 [19:57<1:48:05, 96.80s/it]
+                                                 
+
+ 16%|█▋        | 13/80 [19:57<1:48:05, 96.80s/it]
+ 18%|█▊        | 14/80 [21:33<1:46:09, 96.50s/it]
+                                                 
+
+ 18%|█▊        | 14/80 [21:33<1:46:09, 96.50s/it]
+ 19%|█▉        | 15/80 [22:58<1:40:38, 92.90s/it]
+                                                 
+
+ 19%|█▉        | 15/80 [22:58<1:40:38, 92.90s/it]
+ 20%|██        | 16/80 [24:16<1:34:15, 88.37s/it]
+                                                 
+
+ 20%|██        | 16/80 [24:16<1:34:15, 88.37s/it]
+ 21%|██▏       | 17/80 [25:34<1:29:46, 85.50s/it]
+                                                 
+
+ 21%|██▏       | 17/80 [25:34<1:29:46, 85.50s/it]
+ 22%|██▎       | 18/80 [27:10<1:31:31, 88.57s/it]
+                                                 
+
+ 22%|██▎       | 18/80 [27:10<1:31:31, 88.57s/it]
+ 24%|██▍       | 19/80 [28:50<1:33:30, 91.97s/it]
+                                                 
+
+ 24%|██▍       | 19/80 [28:50<1:33:30, 91.97s/it]
+ 25%|██▌       | 20/80 [30:21<1:31:32, 91.55s/it]
+                                                 
+
+ 25%|██▌       | 20/80 [30:21<1:31:32, 91.55s/it]
+ 26%|██▋       | 21/80 [32:00<1:32:23, 93.96s/it]
+                                                 
+
+ 26%|██▋       | 21/80 [32:00<1:32:23, 93.96s/it]
+ 28%|██▊       | 22/80 [33:33<1:30:31, 93.64s/it]
+                                                 
+
+ 28%|██▊       | 22/80 [33:33<1:30:31, 93.64s/it]
+ 29%|██▉       | 23/80 [34:53<1:25:06, 89.59s/it]
+                                                 
+
+ 29%|██▉       | 23/80 [34:53<1:25:06, 89.59s/it]
+ 30%|███       | 24/80 [36:11<1:20:18, 86.04s/it]
+                                                 
+
+ 30%|███       | 24/80 [36:11<1:20:18, 86.04s/it]
+ 31%|███▏      | 25/80 [37:40<1:19:46, 87.03s/it]
+                                                 
+
+ 31%|███▏      | 25/80 [37:40<1:19:46, 87.03s/it]
+ 32%|███▎      | 26/80 [39:28<1:23:55, 93.25s/it]
+                                                 
+
+ 32%|███▎      | 26/80 [39:28<1:23:55, 93.25s/it]
+ 34%|███▍      | 27/80 [41:03<1:22:48, 93.74s/it]
+                                                 
+
+ 34%|███▍      | 27/80 [41:03<1:22:48, 93.74s/it]
+ 35%|███▌      | 28/80 [42:27<1:18:39, 90.76s/it]
+                                                 
+
+ 35%|███▌      | 28/80 [42:27<1:18:39, 90.76s/it]
+ 36%|███▋      | 29/80 [43:43<1:13:31, 86.50s/it]
+                                                 
+
+ 36%|███▋      | 29/80 [43:43<1:13:31, 86.50s/it]
+ 38%|███▊      | 30/80 [45:02<1:10:02, 84.05s/it]
+                                                 
+
+ 38%|███▊      | 30/80 [45:02<1:10:02, 84.05s/it]
+ 39%|███▉      | 31/80 [46:31<1:09:58, 85.69s/it]
+                                                 
+
+ 39%|███▉      | 31/80 [46:31<1:09:58, 85.69s/it]
+ 40%|████      | 32/80 [47:51<1:07:07, 83.90s/it]
+                                                 
+
+ 40%|████      | 32/80 [47:51<1:07:07, 83.90s/it]
+ 41%|████▏     | 33/80 [49:15<1:05:43, 83.91s/it]
+                                                 
+
+ 41%|████▏     | 33/80 [49:15<1:05:43, 83.91s/it]
+ 42%|████▎     | 34/80 [50:34<1:03:21, 82.64s/it]
+                                                 
+
+ 42%|████▎     | 34/80 [50:34<1:03:21, 82.64s/it]
+ 44%|████▍     | 35/80 [52:04<1:03:31, 84.70s/it]
+                                                 
+
+ 44%|████▍     | 35/80 [52:04<1:03:31, 84.70s/it]
+ 45%|████▌     | 36/80 [53:40<1:04:40, 88.19s/it]
+                                                 
+
+ 45%|████▌     | 36/80 [53:40<1:04:40, 88.19s/it]
+ 46%|████▋     | 37/80 [55:13<1:04:12, 89.59s/it]
+                                                 
+
+ 46%|████▋     | 37/80 [55:13<1:04:12, 89.59s/it]
+ 48%|████▊     | 38/80 [56:44<1:03:04, 90.11s/it]
+                                                 
+
+ 48%|████▊     | 38/80 [56:44<1:03:04, 90.11s/it]
+ 49%|████▉     | 39/80 [58:05<59:33, 87.17s/it]  
+                                               
+
+ 49%|████▉     | 39/80 [58:05<59:33, 87.17s/it]
+ 50%|█████     | 40/80 [59:51<1:01:55, 92.88s/it]
+                                                 
+
+ 50%|█████     | 40/80 [59:51<1:01:55, 92.88s/it]
+ 51%|█████▏    | 41/80 [1:01:34<1:02:18, 95.86s/it]
+                                                   
+
+ 51%|█████▏    | 41/80 [1:01:34<1:02:18, 95.86s/it]
+ 52%|█████▎    | 42/80 [1:03:07<1:00:09, 94.99s/it]
+                                                   
+
+ 52%|█████▎    | 42/80 [1:03:07<1:00:09, 94.99s/it]
+ 54%|█████▍    | 43/80 [1:04:28<56:00, 90.81s/it]  
+                                                 
+
+ 54%|█████▍    | 43/80 [1:04:28<56:00, 90.81s/it]
+ 55%|█████▌    | 44/80 [1:05:48<52:36, 87.68s/it]
+                                                 
+
+ 55%|█████▌    | 44/80 [1:05:48<52:36, 87.68s/it]
+ 56%|█████▋    | 45/80 [1:07:26<52:51, 90.61s/it]
+                                                 
+
+ 56%|█████▋    | 45/80 [1:07:26<52:51, 90.61s/it]
+ 57%|█████▊    | 46/80 [1:08:50<50:13, 88.63s/it]
+                                                 
+
+ 57%|█████▊    | 46/80 [1:08:50<50:13, 88.63s/it]
+ 59%|█████▉    | 47/80 [1:10:07<46:57, 85.38s/it]
+                                                 
+
+ 59%|█████▉    | 47/80 [1:10:07<46:57, 85.38s/it]
+ 60%|██████    | 48/80 [1:11:34<45:45, 85.79s/it]
+                                                 
+
+ 60%|██████    | 48/80 [1:11:34<45:45, 85.79s/it]
+ 61%|██████▏   | 49/80 [1:12:51<42:58, 83.19s/it]
+                                                 
+
+ 61%|██████▏   | 49/80 [1:12:51<42:58, 83.19s/it]
+ 62%|██████▎   | 50/80 [1:14:18<42:04, 84.16s/it]
+                                                 
+
+ 62%|██████▎   | 50/80 [1:14:18<42:04, 84.16s/it]
+ 64%|██████▍   | 51/80 [1:15:51<42:04, 87.05s/it]
+                                                 
+
+ 64%|██████▍   | 51/80 [1:15:51<42:04, 87.05s/it]
+ 65%|██████▌   | 52/80 [1:17:30<42:16, 90.58s/it]
+                                                 
+
+ 65%|██████▌   | 52/80 [1:17:30<42:16, 90.58s/it]
+ 66%|██████▋   | 53/80 [1:18:49<39:09, 87.04s/it]
+                                                 
+
+ 66%|██████▋   | 53/80 [1:18:49<39:09, 87.04s/it]
+ 68%|██████▊   | 54/80 [1:20:14<37:24, 86.34s/it]
+                                                 
+
+ 68%|██████▊   | 54/80 [1:20:14<37:24, 86.34s/it]
+ 69%|██████▉   | 55/80 [1:21:46<36:44, 88.20s/it]
+                                                 
+
+ 69%|██████▉   | 55/80 [1:21:46<36:44, 88.20s/it]
+ 70%|███████   | 56/80 [1:23:24<36:23, 90.98s/it]
+                                                 
+
+ 70%|███████   | 56/80 [1:23:24<36:23, 90.98s/it]
+ 71%|███████▏  | 57/80 [1:24:58<35:16, 92.01s/it]
+                                                 
+
+ 71%|███████▏  | 57/80 [1:24:58<35:16, 92.01s/it]
+ 72%|███████▎  | 58/80 [1:26:16<32:08, 87.64s/it]
+                                                 
+
+ 72%|███████▎  | 58/80 [1:26:16<32:08, 87.64s/it]
+ 74%|███████▍  | 59/80 [1:27:34<29:40, 84.77s/it]
+                                                 
+
+ 74%|███████▍  | 59/80 [1:27:34<29:40, 84.77s/it]
+ 75%|███████▌  | 60/80 [1:29:06<28:57, 86.88s/it]
+                                                 
+
+ 75%|███████▌  | 60/80 [1:29:06<28:57, 86.88s/it]
+ 76%|███████▋  | 61/80 [1:30:40<28:11, 89.03s/it]
+                                                 
+
+ 76%|███████▋  | 61/80 [1:30:40<28:11, 89.03s/it]
+ 78%|███████▊  | 62/80 [1:32:05<26:21, 87.84s/it]
+                                                 
+
+ 78%|███████▊  | 62/80 [1:32:05<26:21, 87.84s/it]
+ 79%|███████▉  | 63/80 [1:33:23<24:06, 85.11s/it]
+                                                 
+
+ 79%|███████▉  | 63/80 [1:33:23<24:06, 85.11s/it]
+ 80%|████████  | 64/80 [1:34:55<23:11, 86.99s/it]
+                                                 
+
+ 80%|████████  | 64/80 [1:34:55<23:11, 86.99s/it]
+ 81%|████████▏ | 65/80 [1:36:34<22:37, 90.53s/it]
+                                                 
+
+ 81%|████████▏ | 65/80 [1:36:34<22:37, 90.53s/it]
+ 82%|████████▎ | 66/80 [1:37:51<20:14, 86.73s/it]
+                                                 
+
+ 82%|████████▎ | 66/80 [1:37:51<20:14, 86.73s/it]
+ 84%|████████▍ | 67/80 [1:39:15<18:36, 85.89s/it]
+                                                 
+
+ 84%|████████▍ | 67/80 [1:39:15<18:36, 85.89s/it]
+ 85%|████████▌ | 68/80 [1:40:28<16:23, 81.96s/it]
+                                                 
+
+ 85%|████████▌ | 68/80 [1:40:28<16:23, 81.96s/it]
+ 86%|████████▋ | 69/80 [1:41:44<14:42, 80.21s/it]
+                                                 
+
+ 86%|████████▋ | 69/80 [1:41:44<14:42, 80.21s/it]
+ 88%|████████▊ | 70/80 [1:43:12<13:43, 82.34s/it]
+                                                 
+
+ 88%|████████▊ | 70/80 [1:43:12<13:43, 82.34s/it]Transient error Service Unavailable encountered while exporting metrics batch, retrying in 0.91s.
+
+ 89%|████████▉ | 71/80 [1:44:33<12:19, 82.12s/it]
+                                                 
+
+ 89%|████████▉ | 71/80 [1:44:33<12:19, 82.12s/it]
+ 90%|█████████ | 72/80 [1:45:59<11:06, 83.29s/it]
+                                                 
+
+ 90%|█████████ | 72/80 [1:45:59<11:06, 83.29s/it]
+ 91%|█████████▏| 73/80 [1:47:22<09:42, 83.18s/it]
+                                                 
+
+ 91%|█████████▏| 73/80 [1:47:22<09:42, 83.18s/it]
+ 92%|█████████▎| 74/80 [1:49:07<08:58, 89.77s/it]
+                                                 
+
+ 92%|█████████▎| 74/80 [1:49:07<08:58, 89.77s/it]
+ 94%|█████████▍| 75/80 [1:50:39<07:32, 90.50s/it]
+                                                 
+
+ 94%|█████████▍| 75/80 [1:50:39<07:32, 90.50s/it]
+ 95%|█████████▌| 76/80 [1:52:16<06:09, 92.30s/it]
+                                                 
+
+ 95%|█████████▌| 76/80 [1:52:16<06:09, 92.30s/it]
+ 96%|█████████▋| 77/80 [1:54:22<05:07, 102.56s/it]
+                                                  
+
+ 96%|█████████▋| 77/80 [1:54:22<05:07, 102.56s/it]
+ 98%|█████████▊| 78/80 [1:55:40<03:10, 95.08s/it] 
+                                                 
+
+ 98%|█████████▊| 78/80 [1:55:40<03:10, 95.08s/it]
+ 99%|█████████▉| 79/80 [1:56:57<01:29, 89.59s/it]
+                                                 
+
+ 99%|█████████▉| 79/80 [1:56:57<01:29, 89.59s/it]
+100%|██████████| 80/80 [1:57:06<00:00, 65.42s/it]
+                                                 
+
+100%|██████████| 80/80 [1:57:06<00:00, 65.42s/it]
+                                                 
+
+100%|██████████| 80/80 [1:57:09<00:00, 65.42s/it]
+100%|██████████| 80/80 [1:57:09<00:00, 87.87s/it]
+wandb: updating run metadata
+wandb: uploading history steps 82-85, summary, console lines 192-192
+wandb: 
+wandb: Run history:
+wandb:                    epoch ▁▁▁▁▁▂▂▂▂▂▂▂▃▃▃▃▃▃▃▄▄▄▄▅▅▅▆▆▆▆▇▇▇▇▇█████
+wandb:                grad_norm ▂█▂▂▂▁▂▂▁▁▁▁▁▂▁▂▁▂▁▂▁▁▁▂▁▁▁▁▂▁▁▁▃▂▁▁▁▂▂▃
+wandb:            learning_rate ████▇▇▇▇▇▇▆▆▆▆▆▆▅▅▅▅▅▅▅▄▄▄▄▃▃▃▃▃▃▂▂▂▂▂▁▁
+wandb:                     loss ▅▄▇▂▆▃▄▅▅▄▂▄▂▂▅▄▄▃▂▂▅▅▄▄▂▃▁▂▇█▃▁▂▃▂▃▃▄▃▂
+wandb:               total_flos ▁
+wandb:               train_loss ▁
+wandb:            train_runtime ▁
+wandb: train_samples_per_second ▁
+wandb:   train_steps_per_second ▁
+wandb:             trainer_step ▁▁▁▂▂▂▂▂▂▂▃▃▃▃▃▄▄▄▅▅▅▅▅▅▅▆▆▆▆▆▆▆▇▇▇▇▇▇██
+wandb:                       +2 ...
+wandb: 
+wandb: Run summary:
+wandb:    checkpoint final
+wandb:         epoch 1
+wandb:     grad_norm 0.41924
+wandb:       hf_repo FranCalveyra/tp-admi...
+wandb:   hf_revision 22ee5596c8d3014bd86c...
+wandb: learning_rate 0.0
+wandb:          loss 0.00331
+wandb:    total_flos 5.30050628723159e+16
+wandb:    train_loss 0.0056
+wandb: train_runtime 7029.4381
+wandb:            +6 ...
+wandb: 
+wandb: 🚀 View run 6d8edb168beb4e9b at: https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/6d8edb168beb4e9b
+wandb: ⭐️ View project at: https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: /kaggle/working/corridas/sft-aviso/entrenamiento/wandb/run-20261112_180354-6d8edb168beb4e9b/logs
+{'loss': '0.00687', 'grad_norm': '0.1752', 'learning_rate': '0.0001', 'epoch': '0.01264'}
+{'loss': '0.004526', 'grad_norm': '1.088', 'learning_rate': '9.875e-05', 'epoch': '0.02528'}
+{'loss': '0.006072', 'grad_norm': '0.1635', 'learning_rate': '9.75e-05', 'epoch': '0.03791'}
+{'loss': '0.007794', 'grad_norm': '0.2067', 'learning_rate': '9.625e-05', 'epoch': '0.05055'}
+{'loss': '0.00854', 'grad_norm': '0.2635', 'learning_rate': '9.5e-05', 'epoch': '0.06319'}
+{'loss': '0.009715', 'grad_norm': '0.1845', 'learning_rate': '9.375e-05', 'epoch': '0.07583'}
+{'loss': '0.004086', 'grad_norm': '0.1117', 'learning_rate': '9.25e-05', 'epoch': '0.08847'}
+{'loss': '0.00603', 'grad_norm': '0.1556', 'learning_rate': '9.125e-05', 'epoch': '0.1011'}
+{'loss': '0.007918', 'grad_norm': '0.1562', 'learning_rate': '9e-05', 'epoch': '0.1137'}
+{'loss': '0.00717', 'grad_norm': '0.3717', 'learning_rate': '8.875e-05', 'epoch': '0.1264'}
+{'loss': '0.004621', 'grad_norm': '0.07808', 'learning_rate': '8.75e-05', 'epoch': '0.139'}
+{'loss': '0.006531', 'grad_norm': '0.1979', 'learning_rate': '8.625e-05', 'epoch': '0.1517'}
+{'loss': '0.006754', 'grad_norm': '0.2122', 'learning_rate': '8.5e-05', 'epoch': '0.1643'}
+{'loss': '0.009732', 'grad_norm': '0.1875', 'learning_rate': '8.375e-05', 'epoch': '0.1769'}
+{'loss': '0.005338', 'grad_norm': '0.08821', 'learning_rate': '8.25e-05', 'epoch': '0.1896'}
+{'loss': '0.005075', 'grad_norm': '0.1123', 'learning_rate': '8.125e-05', 'epoch': '0.2022'}
+{'loss': '0.004614', 'grad_norm': '0.1072', 'learning_rate': '8e-05', 'epoch': '0.2148'}
+{'loss': '0.006215', 'grad_norm': '0.1172', 'learning_rate': '7.875e-05', 'epoch': '0.2275'}
+{'loss': '0.006477', 'grad_norm': '0.1449', 'learning_rate': '7.75e-05', 'epoch': '0.2401'}
+{'loss': '0.005958', 'grad_norm': '0.1372', 'learning_rate': '7.625e-05', 'epoch': '0.2528'}
+{'loss': '0.007206', 'grad_norm': '0.1117', 'learning_rate': '7.5e-05', 'epoch': '0.2654'}
+{'loss': '0.007137', 'grad_norm': '0.1378', 'learning_rate': '7.375e-05', 'epoch': '0.278'}
+{'loss': '0.006103', 'grad_norm': '0.2334', 'learning_rate': '7.25e-05', 'epoch': '0.2907'}
+{'loss': '0.005793', 'grad_norm': '0.136', 'learning_rate': '7.125e-05', 'epoch': '0.3033'}
+{'loss': '0.006025', 'grad_norm': '0.1222', 'learning_rate': '7e-05', 'epoch': '0.316'}
+{'loss': '0.008084', 'grad_norm': '0.18', 'learning_rate': '6.875e-05', 'epoch': '0.3286'}
+{'loss': '0.006272', 'grad_norm': '0.1366', 'learning_rate': '6.75e-05', 'epoch': '0.3412'}
+{'loss': '0.004854', 'grad_norm': '0.1173', 'learning_rate': '6.625e-05', 'epoch': '0.3539'}
+{'loss': '0.004396', 'grad_norm': '0.1418', 'learning_rate': '6.5e-05', 'epoch': '0.3665'}
+{'loss': '0.003467', 'grad_norm': '0.06707', 'learning_rate': '6.375e-05', 'epoch': '0.3791'}
+{'loss': '0.004337', 'grad_norm': '0.1306', 'learning_rate': '6.25e-05', 'epoch': '0.3918'}
+{'loss': '0.004407', 'grad_norm': '0.1239', 'learning_rate': '6.125e-05', 'epoch': '0.4044'}
+{'loss': '0.006254', 'grad_norm': '0.1669', 'learning_rate': '6e-05', 'epoch': '0.4171'}
+{'loss': '0.003844', 'grad_norm': '0.1098', 'learning_rate': '5.875e-05', 'epoch': '0.4297'}
+{'loss': '0.006259', 'grad_norm': '0.1094', 'learning_rate': '5.75e-05', 'epoch': '0.4423'}
+{'loss': '0.004139', 'grad_norm': '0.1703', 'learning_rate': '5.625e-05', 'epoch': '0.455'}
+{'loss': '0.00694', 'grad_norm': '0.2226', 'learning_rate': '5.5e-05', 'epoch': '0.4676'}
+{'loss': '0.006222', 'grad_norm': '0.1592', 'learning_rate': '5.375e-05', 'epoch': '0.4803'}
+{'loss': '0.002822', 'grad_norm': '0.08072', 'learning_rate': '5.25e-05', 'epoch': '0.4929'}
+{'loss': '0.00532', 'grad_norm': '0.1109', 'learning_rate': '5.125e-05', 'epoch': '0.5055'}
+{'loss': '0.005887', 'grad_norm': '0.1256', 'learning_rate': '5e-05', 'epoch': '0.5182'}
+{'loss': '0.006662', 'grad_norm': '0.1782', 'learning_rate': '4.875e-05', 'epoch': '0.5308'}
+{'loss': '0.005123', 'grad_norm': '0.1218', 'learning_rate': '4.75e-05', 'epoch': '0.5434'}
+{'loss': '0.004287', 'grad_norm': '0.1229', 'learning_rate': '4.625e-05', 'epoch': '0.5561'}
+{'loss': '0.004905', 'grad_norm': '0.1361', 'learning_rate': '4.5e-05', 'epoch': '0.5687'}
+{'loss': '0.004369', 'grad_norm': '0.1431', 'learning_rate': '4.375e-05', 'epoch': '0.5814'}
+{'loss': '0.005892', 'grad_norm': '0.1679', 'learning_rate': '4.25e-05', 'epoch': '0.594'}
+{'loss': '0.003734', 'grad_norm': '0.1577', 'learning_rate': '4.125e-05', 'epoch': '0.6066'}
+{'loss': '0.00584', 'grad_norm': '0.09578', 'learning_rate': '4e-05', 'epoch': '0.6193'}
+{'loss': '0.007654', 'grad_norm': '0.2429', 'learning_rate': '3.875e-05', 'epoch': '0.6319'}
+{'loss': '0.00705', 'grad_norm': '0.1806', 'learning_rate': '3.75e-05', 'epoch': '0.6445'}
+{'loss': '0.006022', 'grad_norm': '0.159', 'learning_rate': '3.625e-05', 'epoch': '0.6572'}
+{'loss': '0.006627', 'grad_norm': '0.1673', 'learning_rate': '3.5e-05', 'epoch': '0.6698'}
+{'loss': '0.003737', 'grad_norm': '0.09382', 'learning_rate': '3.375e-05', 'epoch': '0.6825'}
+{'loss': '0.004724', 'grad_norm': '0.1341', 'learning_rate': '3.25e-05', 'epoch': '0.6951'}
+{'loss': '0.007077', 'grad_norm': '0.1828', 'learning_rate': '3.125e-05', 'epoch': '0.7077'}
+{'loss': '0.008502', 'grad_norm': '0.2315', 'learning_rate': '3e-05', 'epoch': '0.7204'}
+{'loss': '0.003957', 'grad_norm': '0.1035', 'learning_rate': '2.875e-05', 'epoch': '0.733'}
+{'loss': '0.003559', 'grad_norm': '0.09316', 'learning_rate': '2.75e-05', 'epoch': '0.7457'}
+{'loss': '0.004538', 'grad_norm': '0.09481', 'learning_rate': '2.625e-05', 'epoch': '0.7583'}
+{'loss': '0.003128', 'grad_norm': '0.06859', 'learning_rate': '2.5e-05', 'epoch': '0.7709'}
+{'loss': '0.003479', 'grad_norm': '0.09198', 'learning_rate': '2.375e-05', 'epoch': '0.7836'}
+{'loss': '0.003838', 'grad_norm': '0.1243', 'learning_rate': '2.25e-05', 'epoch': '0.7962'}
+{'loss': '0.009149', 'grad_norm': '0.2926', 'learning_rate': '2.125e-05', 'epoch': '0.8088'}
+{'loss': '0.01078', 'grad_norm': '0.2422', 'learning_rate': '2e-05', 'epoch': '0.8215'}
+{'loss': '0.004828', 'grad_norm': '0.2554', 'learning_rate': '1.875e-05', 'epoch': '0.8341'}
+{'loss': '0.004994', 'grad_norm': '0.09721', 'learning_rate': '1.75e-05', 'epoch': '0.8468'}
+{'loss': '0.002677', 'grad_norm': '0.05409', 'learning_rate': '1.625e-05', 'epoch': '0.8594'}
+{'loss': '0.003655', 'grad_norm': '0.08501', 'learning_rate': '1.5e-05', 'epoch': '0.872'}
+{'loss': '0.004967', 'grad_norm': '0.208', 'learning_rate': '1.375e-05', 'epoch': '0.8847'}
+{'loss': '0.002673', 'grad_norm': '0.05904', 'learning_rate': '1.25e-05', 'epoch': '0.8973'}
+{'loss': '0.003396', 'grad_norm': '0.06766', 'learning_rate': '1.125e-05', 'epoch': '0.91'}
+{'loss': '0.00452', 'grad_norm': '0.4699', 'learning_rate': '1e-05', 'epoch': '0.9226'}
+{'loss': '0.005087', 'grad_norm': '0.1234', 'learning_rate': '8.75e-06', 'epoch': '0.9352'}
+{'loss': '0.004818', 'grad_norm': '0.1115', 'learning_rate': '7.5e-06', 'epoch': '0.9479'}
+{'loss': '0.007637', 'grad_norm': '0.1949', 'learning_rate': '6.25e-06', 'epoch': '0.9605'}
+{'loss': '0.006314', 'grad_norm': '0.143', 'learning_rate': '5e-06', 'epoch': '0.9731'}
+{'loss': '0.004511', 'grad_norm': '0.1877', 'learning_rate': '3.75e-06', 'epoch': '0.9858'}
+{'loss': '0.00394', 'grad_norm': '0.1085', 'learning_rate': '2.5e-06', 'epoch': '0.9984'}
+{'loss': '0.003305', 'grad_norm': '0.4192', 'learning_rate': '1.25e-06', 'epoch': '1'}
+{'train_runtime': '7029', 'train_samples_per_second': '0.09', 'train_steps_per_second': '0.011', 'train_loss': '0.005597', 'epoch': '1'}
+{
+  "estado": "finalizada",
+  "run_id": "6d8edb168beb4e9b",
+  "wandb_url": "https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/6d8edb168beb4e9b",
+  "publicaciones": [
+    {
+      "checkpoint": "checkpoint-20",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "5e855ed641e3520114758931d06896059c0645bb"
+    },
+    {
+      "checkpoint": "checkpoint-40",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "60a6ad1ea3d5bb75801511feaf6374f6a943edcb"
+    },
+    {
+      "checkpoint": "checkpoint-60",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "3b10b38d5372882d5773fbf89fafd87c5d1cb80f"
+    },
+    {
+      "checkpoint": "checkpoint-80",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "20aa3eaf36e5b64174185588bd8a7b75dbf06970"
+    },
+    {
+      "checkpoint": "final",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "22ee5596c8d3014bd86caaca6a87034d06e1d4e8"
+    }
+  ],
+  "vram_pico_gb": 20.289,
+  "vram_reservada_gb": 20.898,
+  "vram_pico_por_gpu_gb": [
+    12.304,
+    7.985
+  ]
+}

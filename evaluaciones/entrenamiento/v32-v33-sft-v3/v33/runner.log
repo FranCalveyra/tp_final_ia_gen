@@ -1,0 +1,518 @@
+wandb: [wandb.login()] Loaded credentials for https://api.forge.coreweave.com from WANDB_API_KEY.
+wandb: Currently logged in as: francalveyra (francalveyra-ia-gen) to https://api.forge.coreweave.com. Use `wandb login --relogin` to force relogin
+wandb: setting up run 3add2742ddfd4b42
+wandb: Tracking run with wandb version 0.31.0
+wandb: Run data is saved locally in /kaggle/working/corridas/sft-v3-2/entrenamiento/wandb/run-20261112_104701-3add2742ddfd4b42
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Resuming run 3add2742ddfd4b42
+wandb: ⭐️ View project at https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision
+wandb: 🚀 View run at https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/3add2742ddfd4b42
+
+Loading weights:   0%|          | 0/665 [00:00<?, ?it/s]
+Loading weights:   0%|          | 1/665 [00:15<2:52:59, 15.63s/it]
+Loading weights:   0%|          | 2/665 [00:48<4:45:12, 25.81s/it]
+Loading weights: 100%|██████████| 665/665 [00:48<00:00, 13.68it/s]
+[transformers] [1mGemma4ForConditionalGeneration LOAD REPORT[0m from: google/gemma-4-E4B-it
+Key                                                                          | Status     |  | 
+-----------------------------------------------------------------------------+------------+--+-
+model.vision_tower.encoder.layers.{0...15}.mlp.down_proj.linear.weight       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.v_proj.input_max                 | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.depthwise_conv1d.weight            | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.down_proj.output_max          | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_end.input_min               | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.q_proj.input_max        | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.output_min          | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_end.linear.weight           | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.pre_layer_norm.weight              | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.up_proj.input_min             | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.q_norm.weight           | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.q_proj.output_max       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.k_proj.output_min                | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.conv_norm.weight                   | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_end.output_max              | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.v_proj.input_max        | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.o_proj.input_min        | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.input_max           | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.up_proj.input_max             | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_2.linear.weight    | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.norm_pre_attn.weight                       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.v_proj.linear.weight    | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_start.output_max            | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_1.input_max        | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.down_proj.input_max           | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.up_proj.output_min            | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_start.input_max             | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.k_proj.input_min                 | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.up_proj.linear.weight         | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.v_proj.linear.weight             | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.k_proj.output_max                | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_1.input_min        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_2.input_max        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_1.input_min        | UNEXPECTED |  | 
+model.audio_tower.output_proj.weight                                         | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.q_proj.output_min                | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_start.linear.weight         | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.q_proj.input_max                 | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.q_proj.input_min        | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.k_proj.input_min        | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.input_layernorm.weight            | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.relative_k_proj.weight           | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_2.output_min       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.pre_feedforward_layernorm.weight  | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.norm_out.weight                            | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.o_proj.output_max       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.linear.weight       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.v_proj.output_min                | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.k_proj.output_max       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.q_proj.linear.weight    | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_2.input_min        | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.output_max          | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.v_proj.input_min        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.post.output_min                  | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_1.output_max       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.post_layer_norm.weight       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_end.output_min              | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.post.linear.weight               | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_2.input_max        | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.o_proj.linear.weight    | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_1.output_max       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.up_proj.output_max            | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.per_dim_scale                    | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.k_proj.input_max        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.pre_layer_norm.weight        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_1.output_min       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.q_proj.output_min       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.v_proj.output_min       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.pre_layer_norm.weight        | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.k_proj.linear.weight    | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_1.output_min       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_1.input_max        | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.down_proj.output_min          | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.norm_post_attn.weight                      | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.o_proj.output_min       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.down_proj.input_min           | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.k_norm.weight           | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_1.linear.weight    | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_2.output_max       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_2.input_min        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.post.input_max                   | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.post_layer_norm.weight       | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.post_attention_layernorm.weight   | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.k_proj.linear.weight             | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.o_proj.input_max        | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.q_proj.linear.weight             | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.v_proj.output_max       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.q_proj.input_min                 | UNEXPECTED |  | 
+model.audio_tower.subsample_conv_projection.layer0.norm.weight               | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.k_proj.input_max                 | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_start.output_min            | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.post_feedforward_layernorm.weight | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.self_attn.k_proj.output_min       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.post.input_min                   | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.q_proj.output_max                | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_start.input_min             | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_2.linear.weight    | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.lconv1d.linear_end.input_max               | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_2.output_max       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.v_proj.input_min                 | UNEXPECTED |  | 
+model.vision_tower.patch_embedder.input_proj.weight                          | UNEXPECTED |  | 
+model.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.input_min           | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.post.output_max                  | UNEXPECTED |  | 
+model.audio_tower.subsample_conv_projection.layer0.conv.weight               | UNEXPECTED |  | 
+model.audio_tower.subsample_conv_projection.layer1.conv.weight               | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_2.output_min       | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_1.linear.weight    | UNEXPECTED |  | 
+model.audio_tower.layers.{0...11}.self_attn.v_proj.output_max                | UNEXPECTED |  | 
+model.audio_tower.subsample_conv_projection.input_proj_linear.weight         | UNEXPECTED |  | 
+model.embed_vision.embedding_projection.weight                               | UNEXPECTED |  | 
+model.embed_audio.embedding_projection.weight                                | UNEXPECTED |  | 
+model.audio_tower.output_proj.bias                                           | UNEXPECTED |  | 
+model.vision_tower.patch_embedder.position_embedding_table                   | UNEXPECTED |  | 
+model.audio_tower.subsample_conv_projection.layer1.norm.weight               | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+
+  0%|          | 0/363 [00:00<?, ?it/s]
+ 83%|████████▎ | 301/363 [01:00<00:12,  4.95it/s]
+                                                 
+
+ 83%|████████▎ | 301/363 [01:00<00:12,  4.95it/s]
+ 83%|████████▎ | 302/363 [02:22<00:35,  1.70it/s]
+                                                 
+
+ 83%|████████▎ | 302/363 [02:22<00:35,  1.70it/s]
+ 83%|████████▎ | 303/363 [03:50<01:10,  1.17s/it]
+                                                 
+
+ 83%|████████▎ | 303/363 [03:50<01:10,  1.17s/it]
+ 84%|████████▎ | 304/363 [05:17<01:57,  1.99s/it]
+                                                 
+
+ 84%|████████▎ | 304/363 [05:17<01:57,  1.99s/it]
+ 84%|████████▍ | 305/363 [06:43<02:59,  3.10s/it]
+                                                 
+
+ 84%|████████▍ | 305/363 [06:43<02:59,  3.10s/it]
+ 84%|████████▍ | 306/363 [07:59<04:15,  4.48s/it]
+                                                 
+
+ 84%|████████▍ | 306/363 [07:59<04:15,  4.48s/it]
+ 85%|████████▍ | 307/363 [09:08<05:45,  6.17s/it]
+                                                 
+
+ 85%|████████▍ | 307/363 [09:08<05:45,  6.17s/it]
+ 85%|████████▍ | 308/363 [10:19<07:46,  8.49s/it]
+                                                 
+
+ 85%|████████▍ | 308/363 [10:19<07:46,  8.49s/it]
+ 85%|████████▌ | 309/363 [11:49<11:12, 12.45s/it]
+                                                 
+
+ 85%|████████▌ | 309/363 [11:49<11:12, 12.45s/it]
+ 85%|████████▌ | 310/363 [12:58<14:15, 16.14s/it]
+                                                 
+
+ 85%|████████▌ | 310/363 [12:58<14:15, 16.14s/it]
+ 86%|████████▌ | 311/363 [14:14<18:25, 21.25s/it]
+                                                 
+
+ 86%|████████▌ | 311/363 [14:14<18:25, 21.25s/it]
+ 86%|████████▌ | 312/363 [15:31<23:10, 27.27s/it]
+                                                 
+
+ 86%|████████▌ | 312/363 [15:31<23:10, 27.27s/it]
+ 86%|████████▌ | 313/363 [16:55<29:07, 34.95s/it]
+                                                 
+
+ 86%|████████▌ | 313/363 [16:55<29:07, 34.95s/it]
+ 87%|████████▋ | 314/363 [18:25<35:48, 43.84s/it]
+                                                 
+
+ 87%|████████▋ | 314/363 [18:25<35:48, 43.84s/it]
+ 87%|████████▋ | 315/363 [19:55<41:53, 52.36s/it]
+                                                 
+
+ 87%|████████▋ | 315/363 [19:55<41:53, 52.36s/it]
+ 87%|████████▋ | 316/363 [21:29<47:54, 61.16s/it]
+                                                 
+
+ 87%|████████▋ | 316/363 [21:29<47:54, 61.16s/it]
+ 87%|████████▋ | 317/363 [22:38<48:12, 62.89s/it]
+                                                 
+
+ 87%|████████▋ | 317/363 [22:38<48:12, 62.89s/it]
+ 88%|████████▊ | 318/363 [23:50<48:53, 65.20s/it]
+                                                 
+
+ 88%|████████▊ | 318/363 [23:50<48:53, 65.20s/it]
+ 88%|████████▊ | 319/363 [25:16<51:49, 70.68s/it]
+                                                 
+
+ 88%|████████▊ | 319/363 [25:16<51:49, 70.68s/it]
+ 88%|████████▊ | 320/363 [26:43<53:48, 75.09s/it]
+                                                 
+
+ 88%|████████▊ | 320/363 [26:43<53:48, 75.09s/it]
+ 88%|████████▊ | 321/363 [27:59<52:45, 75.37s/it]
+                                                 
+
+ 88%|████████▊ | 321/363 [27:59<52:45, 75.37s/it]
+ 89%|████████▊ | 322/363 [29:11<50:50, 74.41s/it]
+                                                 
+
+ 89%|████████▊ | 322/363 [29:11<50:50, 74.41s/it]
+ 89%|████████▉ | 323/363 [30:24<49:23, 74.09s/it]
+                                                 
+
+ 89%|████████▉ | 323/363 [30:24<49:23, 74.09s/it]
+ 89%|████████▉ | 324/363 [31:41<48:39, 74.85s/it]
+                                                 
+
+ 89%|████████▉ | 324/363 [31:41<48:39, 74.85s/it]
+ 90%|████████▉ | 325/363 [33:14<50:47, 80.19s/it]
+                                                 
+
+ 90%|████████▉ | 325/363 [33:14<50:47, 80.19s/it]
+ 90%|████████▉ | 326/363 [34:27<48:14, 78.23s/it]
+                                                 
+
+ 90%|████████▉ | 326/363 [34:27<48:14, 78.23s/it]
+ 90%|█████████ | 327/363 [35:40<45:59, 76.65s/it]
+                                                 
+
+ 90%|█████████ | 327/363 [35:40<45:59, 76.65s/it]
+ 90%|█████████ | 328/363 [36:51<43:37, 74.78s/it]
+                                                 
+
+ 90%|█████████ | 328/363 [36:51<43:37, 74.78s/it]
+ 91%|█████████ | 329/363 [38:07<42:42, 75.36s/it]
+                                                 
+
+ 91%|█████████ | 329/363 [38:07<42:42, 75.36s/it]
+ 91%|█████████ | 330/363 [39:23<41:29, 75.44s/it]
+                                                 
+
+ 91%|█████████ | 330/363 [39:23<41:29, 75.44s/it]
+ 91%|█████████ | 331/363 [40:55<42:54, 80.46s/it]
+                                                 
+
+ 91%|█████████ | 331/363 [40:55<42:54, 80.46s/it]
+ 91%|█████████▏| 332/363 [42:13<41:12, 79.77s/it]
+                                                 
+
+ 91%|█████████▏| 332/363 [42:13<41:12, 79.77s/it]
+ 92%|█████████▏| 333/363 [43:32<39:39, 79.32s/it]
+                                                 
+
+ 92%|█████████▏| 333/363 [43:32<39:39, 79.32s/it]
+ 92%|█████████▏| 334/363 [44:54<38:44, 80.14s/it]
+                                                 
+
+ 92%|█████████▏| 334/363 [44:54<38:44, 80.14s/it]
+ 92%|█████████▏| 335/363 [46:18<38:01, 81.48s/it]
+                                                 
+
+ 92%|█████████▏| 335/363 [46:18<38:01, 81.48s/it]
+ 93%|█████████▎| 336/363 [47:40<36:38, 81.43s/it]
+                                                 
+
+ 93%|█████████▎| 336/363 [47:40<36:38, 81.43s/it]
+ 93%|█████████▎| 337/363 [48:54<34:18, 79.15s/it]
+                                                 
+
+ 93%|█████████▎| 337/363 [48:54<34:18, 79.15s/it]
+ 93%|█████████▎| 338/363 [50:11<32:47, 78.72s/it]
+                                                 
+
+ 93%|█████████▎| 338/363 [50:11<32:47, 78.72s/it]
+ 93%|█████████▎| 339/363 [51:49<33:45, 84.39s/it]
+                                                 
+
+ 93%|█████████▎| 339/363 [51:49<33:45, 84.39s/it]
+ 94%|█████████▎| 340/363 [53:05<31:27, 82.05s/it]
+                                                 
+
+ 94%|█████████▎| 340/363 [53:05<31:27, 82.05s/it]
+ 94%|█████████▍| 341/363 [54:23<29:32, 80.58s/it]
+                                                 
+
+ 94%|█████████▍| 341/363 [54:23<29:32, 80.58s/it]
+ 94%|█████████▍| 342/363 [55:35<27:21, 78.15s/it]
+                                                 
+
+ 94%|█████████▍| 342/363 [55:35<27:21, 78.15s/it]
+ 94%|█████████▍| 343/363 [56:41<24:51, 74.57s/it]
+                                                 
+
+ 94%|█████████▍| 343/363 [56:41<24:51, 74.57s/it]
+ 95%|█████████▍| 344/363 [58:00<24:01, 75.87s/it]
+                                                 
+
+ 95%|█████████▍| 344/363 [58:00<24:01, 75.87s/it]
+ 95%|█████████▌| 345/363 [59:25<23:31, 78.44s/it]
+                                                 
+
+ 95%|█████████▌| 345/363 [59:25<23:31, 78.44s/it]
+ 95%|█████████▌| 346/363 [1:00:49<22:44, 80.28s/it]
+                                                   
+
+ 95%|█████████▌| 346/363 [1:00:49<22:44, 80.28s/it]
+ 96%|█████████▌| 347/363 [1:02:06<21:05, 79.12s/it]
+                                                   
+
+ 96%|█████████▌| 347/363 [1:02:06<21:05, 79.12s/it]
+ 96%|█████████▌| 348/363 [1:03:33<20:22, 81.48s/it]
+                                                   
+
+ 96%|█████████▌| 348/363 [1:03:33<20:22, 81.48s/it]
+ 96%|█████████▌| 349/363 [1:04:51<18:45, 80.43s/it]
+                                                   
+
+ 96%|█████████▌| 349/363 [1:04:51<18:45, 80.43s/it]
+ 96%|█████████▋| 350/363 [1:06:15<17:42, 81.71s/it]
+                                                   
+
+ 96%|█████████▋| 350/363 [1:06:15<17:42, 81.71s/it]
+ 97%|█████████▋| 351/363 [1:07:45<16:47, 83.97s/it]
+                                                   
+
+ 97%|█████████▋| 351/363 [1:07:45<16:47, 83.97s/it]
+ 97%|█████████▋| 352/363 [1:09:05<15:11, 82.85s/it]
+                                                   
+
+ 97%|█████████▋| 352/363 [1:09:05<15:11, 82.85s/it]
+ 97%|█████████▋| 353/363 [1:10:35<14:10, 85.08s/it]
+                                                   
+
+ 97%|█████████▋| 353/363 [1:10:35<14:10, 85.08s/it]
+ 98%|█████████▊| 354/363 [1:11:42<11:56, 79.65s/it]
+                                                   
+
+ 98%|█████████▊| 354/363 [1:11:42<11:56, 79.65s/it]
+ 98%|█████████▊| 355/363 [1:13:11<10:58, 82.31s/it]
+                                                   
+
+ 98%|█████████▊| 355/363 [1:13:11<10:58, 82.31s/it]
+ 98%|█████████▊| 356/363 [1:14:26<09:21, 80.16s/it]
+                                                   
+
+ 98%|█████████▊| 356/363 [1:14:26<09:21, 80.16s/it]
+ 98%|█████████▊| 357/363 [1:15:51<08:10, 81.67s/it]
+                                                   
+
+ 98%|█████████▊| 357/363 [1:15:51<08:10, 81.67s/it]
+ 99%|█████████▊| 358/363 [1:17:18<06:57, 83.44s/it]
+                                                   
+
+ 99%|█████████▊| 358/363 [1:17:18<06:57, 83.44s/it]
+ 99%|█████████▉| 359/363 [1:18:59<05:54, 88.64s/it]
+                                                   
+
+ 99%|█████████▉| 359/363 [1:18:59<05:54, 88.64s/it]
+ 99%|█████████▉| 360/363 [1:20:38<04:35, 91.73s/it]
+                                                   
+
+ 99%|█████████▉| 360/363 [1:20:38<04:35, 91.73s/it]
+ 99%|█████████▉| 361/363 [1:22:09<03:02, 91.37s/it]
+                                                   
+
+ 99%|█████████▉| 361/363 [1:22:09<03:02, 91.37s/it]
+100%|█████████▉| 362/363 [1:23:32<01:28, 88.84s/it]
+                                                   
+
+100%|█████████▉| 362/363 [1:23:32<01:28, 88.84s/it]
+100%|██████████| 363/363 [1:24:24<00:00, 78.02s/it]
+                                                   
+
+100%|██████████| 363/363 [1:24:24<00:00, 78.02s/it]
+                                                   
+
+100%|██████████| 363/363 [1:24:32<00:00, 78.02s/it]
+100%|██████████| 363/363 [1:24:32<00:00, 13.97s/it]
+wandb: updating run metadata
+wandb: uploading output.log; uploading wandb-summary.json; uploading config.yaml
+wandb: uploading wandb-summary.json
+wandb: 
+wandb: Run history:
+wandb:                    epoch ▁▁▁▁▁▂▂▂▂▂▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▆▆▆▆▆▆▆▇▇▇▇████
+wandb:                grad_norm ▁▁▁▂▁▂▂▂▁▂▁▂▂▁▂▂▁▁▂▁▂▂▂▂▁▂▁▁█▁▁▁▂▂▂▁▂▂▃▂
+wandb:            learning_rate █████▇▇▇▆▆▆▆▆▅▅▅▅▅▄▄▄▄▄▄▄▃▃▃▃▃▂▂▂▂▂▂▁▁▁▁
+wandb:                     loss ▁▄▅▄▁▃█▄▂▆▂▅▂▄▁▃▄▃▄▃▃▅▂▄█▂▃▃▃▂▂▃▂▂▂▃▄▅▅▅
+wandb:               total_flos ▁
+wandb:               train_loss ▁
+wandb:            train_runtime ▁
+wandb: train_samples_per_second ▁
+wandb:   train_steps_per_second ▁
+wandb:             trainer_step ▁▁▁▁▁▂▂▂▂▂▃▃▃▃▃▄▄▄▄▅▅▅▅▆▆▆▆▆▆▇▇▇▇▇▇▇████
+wandb:                       +2 ...
+wandb: 
+wandb: Run summary:
+wandb:    checkpoint final
+wandb:         epoch 1
+wandb:     grad_norm 0.20395
+wandb:       hf_repo FranCalveyra/tp-admi...
+wandb:   hf_revision dc41674a8a2561a72488...
+wandb: learning_rate 0.0
+wandb:          loss 0.00585
+wandb:    total_flos 2.383187261939159e+17
+wandb:    train_loss 0.00436
+wandb: train_runtime 5072.188
+wandb:            +6 ...
+wandb: 
+wandb: 🚀 View run 3add2742ddfd4b42 at: https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/3add2742ddfd4b42
+wandb: ⭐️ View project at: https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: /kaggle/working/corridas/sft-v3-2/entrenamiento/wandb/run-20261112_104701-3add2742ddfd4b42/logs
+{'loss': '0.002092', 'grad_norm': '0.05778', 'learning_rate': '3.471e-05', 'epoch': '0.8303'}
+{'loss': '0.00466', 'grad_norm': '0.0899', 'learning_rate': '3.416e-05', 'epoch': '0.8331'}
+{'loss': '0.006014', 'grad_norm': '0.1278', 'learning_rate': '3.361e-05', 'epoch': '0.8359'}
+{'loss': '0.006462', 'grad_norm': '0.1054', 'learning_rate': '3.306e-05', 'epoch': '0.8386'}
+{'loss': '0.004833', 'grad_norm': '0.1268', 'learning_rate': '3.251e-05', 'epoch': '0.8414'}
+{'loss': '0.003591', 'grad_norm': '0.08353', 'learning_rate': '3.196e-05', 'epoch': '0.8441'}
+{'loss': '0.002781', 'grad_norm': '0.1488', 'learning_rate': '3.14e-05', 'epoch': '0.8469'}
+{'loss': '0.001744', 'grad_norm': '0.0773', 'learning_rate': '3.085e-05', 'epoch': '0.8497'}
+{'loss': '0.004849', 'grad_norm': '0.1044', 'learning_rate': '3.03e-05', 'epoch': '0.8524'}
+{'loss': '0.002647', 'grad_norm': '0.1063', 'learning_rate': '2.975e-05', 'epoch': '0.8552'}
+{'loss': '0.003723', 'grad_norm': '0.1377', 'learning_rate': '2.92e-05', 'epoch': '0.8579'}
+{'loss': '0.002234', 'grad_norm': '0.2464', 'learning_rate': '2.865e-05', 'epoch': '0.8607'}
+{'loss': '0.004943', 'grad_norm': '0.1682', 'learning_rate': '2.81e-05', 'epoch': '0.8634'}
+{'loss': '0.009405', 'grad_norm': '0.2057', 'learning_rate': '2.755e-05', 'epoch': '0.8662'}
+{'loss': '0.005009', 'grad_norm': '0.1131', 'learning_rate': '2.7e-05', 'epoch': '0.869'}
+{'loss': '0.00461', 'grad_norm': '0.1452', 'learning_rate': '2.645e-05', 'epoch': '0.8717'}
+{'loss': '0.003284', 'grad_norm': '0.0749', 'learning_rate': '2.59e-05', 'epoch': '0.8745'}
+{'loss': '0.004071', 'grad_norm': '0.1067', 'learning_rate': '2.534e-05', 'epoch': '0.8772'}
+{'loss': '0.007438', 'grad_norm': '0.2025', 'learning_rate': '2.479e-05', 'epoch': '0.88'}
+{'loss': '0.008495', 'grad_norm': '0.1664', 'learning_rate': '2.424e-05', 'epoch': '0.8828'}
+{'loss': '0.002629', 'grad_norm': '0.1183', 'learning_rate': '2.369e-05', 'epoch': '0.8855'}
+{'loss': '0.005925', 'grad_norm': '0.1951', 'learning_rate': '2.314e-05', 'epoch': '0.8883'}
+{'loss': '0.00301', 'grad_norm': '0.08776', 'learning_rate': '2.259e-05', 'epoch': '0.891'}
+{'loss': '0.003295', 'grad_norm': '0.1268', 'learning_rate': '2.204e-05', 'epoch': '0.8938'}
+{'loss': '0.005614', 'grad_norm': '0.1102', 'learning_rate': '2.149e-05', 'epoch': '0.8966'}
+{'loss': '0.001894', 'grad_norm': '0.06626', 'learning_rate': '2.094e-05', 'epoch': '0.8993'}
+{'loss': '0.001508', 'grad_norm': '0.07332', 'learning_rate': '2.039e-05', 'epoch': '0.9021'}
+{'loss': '0.00408', 'grad_norm': '0.2316', 'learning_rate': '1.983e-05', 'epoch': '0.9048'}
+{'loss': '0.004927', 'grad_norm': '0.09378', 'learning_rate': '1.928e-05', 'epoch': '0.9076'}
+{'loss': '0.003774', 'grad_norm': '0.1344', 'learning_rate': '1.873e-05', 'epoch': '0.9103'}
+{'loss': '0.005479', 'grad_norm': '0.1341', 'learning_rate': '1.818e-05', 'epoch': '0.9131'}
+{'loss': '0.003544', 'grad_norm': '0.07983', 'learning_rate': '1.763e-05', 'epoch': '0.9159'}
+{'loss': '0.002947', 'grad_norm': '0.135', 'learning_rate': '1.708e-05', 'epoch': '0.9186'}
+{'loss': '0.004469', 'grad_norm': '0.2351', 'learning_rate': '1.653e-05', 'epoch': '0.9214'}
+{'loss': '0.005774', 'grad_norm': '0.127', 'learning_rate': '1.598e-05', 'epoch': '0.9241'}
+{'loss': '0.002907', 'grad_norm': '0.1715', 'learning_rate': '1.543e-05', 'epoch': '0.9269'}
+{'loss': '0.003861', 'grad_norm': '0.1205', 'learning_rate': '1.488e-05', 'epoch': '0.9297'}
+{'loss': '0.005232', 'grad_norm': '0.1649', 'learning_rate': '1.433e-05', 'epoch': '0.9324'}
+{'loss': '0.009728', 'grad_norm': '0.2231', 'learning_rate': '1.377e-05', 'epoch': '0.9352'}
+{'loss': '0.00475', 'grad_norm': '0.1333', 'learning_rate': '1.322e-05', 'epoch': '0.9379'}
+{'loss': '0.004328', 'grad_norm': '0.1165', 'learning_rate': '1.267e-05', 'epoch': '0.9407'}
+{'loss': '0.00241', 'grad_norm': '0.1109', 'learning_rate': '1.212e-05', 'epoch': '0.9434'}
+{'loss': '0.003903', 'grad_norm': '0.1245', 'learning_rate': '1.157e-05', 'epoch': '0.9462'}
+{'loss': '0.004218', 'grad_norm': '0.8741', 'learning_rate': '1.102e-05', 'epoch': '0.949'}
+{'loss': '0.004327', 'grad_norm': '0.1077', 'learning_rate': '1.047e-05', 'epoch': '0.9517'}
+{'loss': '0.002416', 'grad_norm': '0.07668', 'learning_rate': '9.917e-06', 'epoch': '0.9545'}
+{'loss': '0.004887', 'grad_norm': '0.137', 'learning_rate': '9.366e-06', 'epoch': '0.9572'}
+{'loss': '0.003065', 'grad_norm': '0.1125', 'learning_rate': '8.815e-06', 'epoch': '0.96'}
+{'loss': '0.003565', 'grad_norm': '0.2774', 'learning_rate': '8.264e-06', 'epoch': '0.9628'}
+{'loss': '0.003419', 'grad_norm': '0.09615', 'learning_rate': '7.713e-06', 'epoch': '0.9655'}
+{'loss': '0.003205', 'grad_norm': '0.1481', 'learning_rate': '7.163e-06', 'epoch': '0.9683'}
+{'loss': '0.006444', 'grad_norm': '0.1767', 'learning_rate': '6.612e-06', 'epoch': '0.971'}
+{'loss': '0.003359', 'grad_norm': '0.1328', 'learning_rate': '6.061e-06', 'epoch': '0.9738'}
+{'loss': '0.002662', 'grad_norm': '0.099', 'learning_rate': '5.51e-06', 'epoch': '0.9766'}
+{'loss': '0.004558', 'grad_norm': '0.1023', 'learning_rate': '4.959e-06', 'epoch': '0.9793'}
+{'loss': '0.003321', 'grad_norm': '0.09033', 'learning_rate': '4.408e-06', 'epoch': '0.9821'}
+{'loss': '0.004363', 'grad_norm': '0.1567', 'learning_rate': '3.857e-06', 'epoch': '0.9848'}
+{'loss': '0.00492', 'grad_norm': '0.1455', 'learning_rate': '3.306e-06', 'epoch': '0.9876'}
+{'loss': '0.006037', 'grad_norm': '0.1389', 'learning_rate': '2.755e-06', 'epoch': '0.9903'}
+{'loss': '0.006074', 'grad_norm': '0.2195', 'learning_rate': '2.204e-06', 'epoch': '0.9931'}
+{'loss': '0.006684', 'grad_norm': '0.2632', 'learning_rate': '1.653e-06', 'epoch': '0.9959'}
+{'loss': '0.002604', 'grad_norm': '0.07457', 'learning_rate': '1.102e-06', 'epoch': '0.9986'}
+{'loss': '0.005852', 'grad_norm': '0.2039', 'learning_rate': '5.51e-07', 'epoch': '1'}
+{'train_runtime': '5072', 'train_samples_per_second': '0.099', 'train_steps_per_second': '0.012', 'train_loss': '0.004363', 'epoch': '1'}
+{
+  "estado": "finalizada",
+  "run_id": "3add2742ddfd4b42",
+  "wandb_url": "https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/3add2742ddfd4b42",
+  "publicaciones": [
+    {
+      "checkpoint": "checkpoint-350",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "00175ae4b808b1e22a9628023d41d5121eba3133"
+    },
+    {
+      "checkpoint": "checkpoint-363",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "fc35d5430334e4f685ad481d7e5e8a519536bf4b"
+    },
+    {
+      "checkpoint": "final",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "dc41674a8a2561a724884be2170ff6808efa6e96"
+    }
+  ],
+  "vram_pico_gb": 19.966,
+  "vram_reservada_gb": 20.583,
+  "vram_pico_por_gpu_gb": [
+    12.1,
+    7.866
+  ]
+}
