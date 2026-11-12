@@ -30,7 +30,8 @@ export HF_TOKEN=<token de Hugging Face>   # la aplicación no lee .env sola
 `HF_TOKEN` tiene que poder leer el modelo base y el repo privado `FranCalveyra/tp-admision`, compartido con la
 cátedra. `WANDB_API_KEY` solo hace falta para entrenar. **No hace falta ninguna otra variable:** sin ellas,
 `construir_agente()` usa lo de la tabla de arriba. `.env.example` lista las opcionales (lote, prompt, otro
-adapter); no exporten `ADAPTER_REPO` vacío, porque pide el modelo base sin adapter.
+adapter) y se puede exportar tal cual: deja comentadas las del adapter (`ADAPTER_REPO` vacío pediría el modelo
+base sin adapter).
 
 ### 2. Un caso
 
@@ -316,7 +317,7 @@ Seguimos probando en **Kaggle T4 x2 para desarrollo**; esto no acredita cumplimi
 La consigna exige **A100 de 40 GB también para entrenar**, no solo para la evaluación final
 ([mission.md, línea 98](mission.md#modelo-y-cómputo)); además exige recursos/costos/tiempos en ese hardware
 ([línea 220, Parte 5](mission.md#el-informe)). **No hay una excepción acordada con la cátedra.**
-Modal fue descartado por el equipo; la vía A100 sigue por determinar. El menú del notebook baseline de Fran
+**No usamos Modal** (la plataforma que sugiere la consigna) porque para habilitar el crédito pide cargar una tarjeta de crédito, y decidimos no hacerlo (2026-11-05). La vía A100 sigue por determinar. El menú del notebook baseline de Fran
 no ofrece A100 ([evidencia y alcance](docs/kaggle.md)); no se generaliza a todas las cuentas/contextos.
 
 - **Impacto:** faltan pruebas A100 de entrenamiento, inferencia/evaluación y mediciones de VRAM, tiempos,

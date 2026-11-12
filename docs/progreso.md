@@ -1129,4 +1129,10 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Fase 3, formato de los mensajes (Kaggle v37, ~20 min de jugar):** `procedimiento-formato-v1` sin adapter da
   10/40 contra 9/40 de B en el dev (2 ganados, 1 perdido; controles que se compensan); contexto −2 %, tiempo −8 %.
   Dentro del ruido: **no se adopta** (además exigiría reentrenar). Versionado en `evaluaciones/dev/v37-formato`.
-- **Estado del PR #24:** todo lo que depende de GPU para la entrega está cerrado; queda mergear.
+- **PR #24 mergeado a `main` (`49e8c85`, 2026-11-12) y #3 cerrado.** La entrega en `main`: `procedimiento-v1` +
+  adapter `dc41674a` + lote 4. Pendientes: acceso de la cátedra a HF/W&B (#16), A100 (KI-A100-001, #5),
+  `.env.example` (Fran), INFORME y Loom (equipo).
+- **Motivo de no usar Modal, explícito donde lo lee la cátedra** (Known Issue del README y Parte 5): habilitar su
+  crédito exige cargar una tarjeta de crédito y decidimos no hacerlo.
+- **`.env.example` corregido (Fran):** `ADAPTER_*` comentadas (exportarlo ya no apaga el adapter), comentario de
+  `PROMPT_SPEC` al día y `MODELO_LOTE=4`. Cierra el hueco 5 de la auditoría.
