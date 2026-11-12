@@ -1134,3 +1134,5 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   `.env.example` (Fran), INFORME y Loom (equipo).
 - **Motivo de no usar Modal, explícito donde lo lee la cátedra** (Known Issue del README y Parte 5): habilitar su
   crédito exige cargar una tarjeta de crédito y decidimos no hacerlo.
+- **`.env.example` corregido (Fran):** `ADAPTER_*` comentadas (exportarlo ya no apaga el adapter), comentario de
+  `PROMPT_SPEC` al día y `MODELO_LOTE=4`. Cierra el hueco 5 de la auditoría.

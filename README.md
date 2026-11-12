@@ -30,7 +30,8 @@ export HF_TOKEN=<token de Hugging Face>   # la aplicación no lee .env sola
 `HF_TOKEN` tiene que poder leer el modelo base y el repo privado `FranCalveyra/tp-admision`, compartido con la
 cátedra. `WANDB_API_KEY` solo hace falta para entrenar. **No hace falta ninguna otra variable:** sin ellas,
 `construir_agente()` usa lo de la tabla de arriba. `.env.example` lista las opcionales (lote, prompt, otro
-adapter); no exporten `ADAPTER_REPO` vacío, porque pide el modelo base sin adapter.
+adapter) y se puede exportar tal cual: deja comentadas las del adapter (`ADAPTER_REPO` vacío pediría el modelo
+base sin adapter).
 
 ### 2. Un caso
 
