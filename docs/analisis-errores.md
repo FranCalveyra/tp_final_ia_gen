@@ -227,6 +227,38 @@ Todas: Gemma 4 E4B **sin entrenar**, Kaggle T4, normas original, 50 casos de pr�
   estas corridas con `comparar`; el entrenamiento tiene que bajar «modelo» en verificación/entidad y «costumbre»
   en el aviso sin devolver las fallas del buscador.
 
+### 2026-11-12 · Pasada 7: fila `ambos` contra `solo_prompt` en práctica (solo reporte)
+
+- **Corridas:** `corridas/kaggle/v27/corridas/evaluacion-solo-prompt/solo_prompt-<v>` (base + `procedimiento-v1`,
+  commit `a5745f0`) contra `corridas/kaggle/v34/x/evaluacion-entrenado/ambos-<v>` (adapter
+  `FranCalveyra/tp-admision@dc41674a/final` + `procedimiento-v1`, commit `3adf12e`); buscador `baseline`, lote 4,
+  T4. Salidas: `corridas/analisis/2026-11-12-cmp-v34-ambos-vs-solo-prompt-<v>/`. El adapter no se eligió con esto.
+- **Resultado:** original 14 → 30 (gana 16, **pierde 0**), b 16 → 29 (13/0), c 12 → 33 (21/0); signos p < 0,001
+  en las tres (versiones no independientes).
+
+| Control (original) | Arreglados | Rotos | Fuentes antes (F/C/B/M) | Fuentes después (F/C/B/M) |
+|---|---|---|---|---|
+| registro | 9 | 0 | 0/0/0/9 | 0/0/0/0 |
+| box_antes_del_registro | 5 | 1 | 0/0/0/5 | 0/0/0/1 |
+| cobertura | 8 | 1 | 0/3/0/8 | 0/0/1/3 |
+| entidad_a_notificar | 12 | 1 | 0/2/0/12 | 0/0/0/3 |
+| aviso_al_voluntariado | 0 | 0 | 0/14/0/0 | 0/14/0/0 |
+| verificacion | 20 | 0 | 0/3/0/17 | 0/0/0/0 |
+
+- **Hallazgo:** el entrenamiento hace lo que la pasada 6 pedía: verificación pasa de 17–20 fallas «modelo» a 0 y
+  entidad a notificar de 11–14 a 0–4, sin devolver las fallas del buscador (1 en cobertura). Las 3 versiones de
+  normas mejoran igual: aprendió a aplicar normas, no a memorizarlas.
+- **El aviso no se mueve, y la causa es concreta:** las 14 fallas por versión son **todos** los pacientes de 75 años
+  o más sin acompañante (esperada `true`), y el modelo responde `false`. Con o sin adapter, nunca responde `true`
+  en esos casos. Los datos de entrenamiento no tienen el problema: en `v3-procedimiento` la regla se cumple sin
+  excepciones (302 `true` = todos los 75+/sin acompañante; 2.598 `false`). La nota de triage tiene el mismo formato
+  en ambos lados («N años», «Acompañante: ninguno»). Hipótesis: con 10 % de positivos y un solo token en juego, 1
+  época con LoRA r=8 solo en q/v no aprende la regla condicional y queda en la clase mayoritaria; la pérdida media
+  (~0,005) no lo muestra. **Sin verificar:** falta ver si el adapter también responde `false` en conversaciones de
+  entrenamiento o del conjunto de desarrollo (requiere GPU).
+- **Para #15:** confirmar la hipótesis en el conjunto de desarrollo antes de cambiar el entrenamiento; la práctica
+  no puede elegir el remedio.
+
 ## Uso para #13 y #15
 
 - **Qué conclusiones se usaron para diseñar candidatos de #13** (solo patrones genéricos, sin contenido de casos

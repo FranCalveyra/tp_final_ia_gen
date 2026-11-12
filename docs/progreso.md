@@ -1069,4 +1069,11 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   base sola. El runner de evaluación vacía `ADAPTER_*` en las filas sin adapter. 274 tests CPU OK (1 omitido).
   **Bloqueo:** el repo HF debe seguir privado (mission.md:194) y compartirse con la cátedra; sin la invitación
   (#16, faltan sus usuarios) su `HF_TOKEN` no podrá leer el adapter.
-- **Próximo paso:** resolver el acceso al adapter, analizar errores de `ambos` (aviso) y abrir el PR de la rama.
+- **PR #24** abierto con la rama (`fix/3-perdida-supervisada` → `main`).
+- **Pasada 7 (#14, CPU):** `ambos` contra `solo_prompt` gana 16/13/21 casos y no pierde ninguno. Las fallas de
+  verificación y entidad desaparecen. El aviso queda igual: el modelo responde `false` en todos los 75+ sin
+  acompañante, aunque el entrenamiento tiene la regla completa (302 positivos). Detalle e hipótesis en
+  [análisis de errores](analisis-errores.md#2026-11-12--pasada-7-fila-ambos-contra-solo_prompt-en-práctica-solo-reporte).
+  Salidas de v27 descargadas de Kaggle a `corridas/kaggle/v27` (no versionado).
+- **Próximo paso:** comprobar la hipótesis del aviso en el conjunto de desarrollo (GPU corta) antes de decidir un
+  segundo entrenamiento.
