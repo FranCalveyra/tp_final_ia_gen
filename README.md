@@ -67,12 +67,12 @@ Los 50 casos de práctica con las normas original, b y c, en las cuatro filas de
 `runner.json` con la procedencia de cada corrida.
 
 ```bash
-for plan in actual solo-prompt entrenado; do   # sin_entrenar | solo_prompt | solo_entrenamiento y ambos
+for plan in actual solo-prompt entrenado-v39; do   # sin_entrenar | solo_prompt | solo_entrenamiento y ambos (adapter 770c9fac)
   uv run python infra/kaggle_evaluacion.py --plan configuraciones/evaluacion/$plan.json \
       --salida corridas/evaluacion-$plan --dtype bfloat16 --device-map cuda:0
 done
 uv run python -m scripts.tabla_evaluacion --evaluacion corridas/evaluacion-actual \
-    --evaluacion corridas/evaluacion-solo-prompt --evaluacion corridas/evaluacion-entrenado \
+    --evaluacion corridas/evaluacion-solo-prompt --evaluacion corridas/evaluacion-entrenado-v39 \
     --salida corridas/tabla-practica
 ```
 
