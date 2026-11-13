@@ -1,0 +1,1211 @@
+{
+  "generado": "2026-11-13T12:57:58-0300",
+  "comando": [
+    "python",
+    "-m",
+    "scripts.tabla_evaluacion",
+    "--evaluacion",
+    "evaluaciones/practica/v25-sin-entrenar",
+    "--evaluacion",
+    "evaluaciones/practica/v27-solo-prompt",
+    "--evaluacion",
+    "evaluaciones/practica/v40-entrenado-v39",
+    "--salida",
+    "evaluaciones/practica/tabla-v39"
+  ],
+  "git": {
+    "commit": "ed1a94658e02dee2f9446561194ee8eeedcf7aeb",
+    "sucio": false
+  },
+  "nota": "Puntuado sobre los 50 casos de práctica solo para reportar: la práctica no se usó para seleccionar prompt, checkpoint ni hiperparámetros.",
+  "filas": [
+    "sin_entrenar",
+    "solo_prompt",
+    "solo_entrenamiento",
+    "ambos"
+  ],
+  "versiones": [
+    "original",
+    "b",
+    "c"
+  ],
+  "referencia_catedra": {
+    "sin entrenar": {
+      "original": 12,
+      "b": 15,
+      "c": 12
+    },
+    "fine-tuning supervisado simple (datos perfectos de la cátedra)": {
+      "original": 25,
+      "b": 24,
+      "c": 25
+    }
+  },
+  "celdas": [
+    {
+      "etiqueta": "sin_entrenar",
+      "carpeta": "evaluaciones/practica/v25-sin-entrenar/sin_entrenar-original",
+      "version": "original",
+      "resueltos": 10,
+      "casos": 50,
+      "parcial_medio": 0.831,
+      "por_control": {
+        "registro": 0.76,
+        "numero_documento": 1.0,
+        "box_antes_del_registro": 0.72,
+        "circuito": 0.98,
+        "plazo_circuito_min": 0.92,
+        "cobertura": 0.8,
+        "entidad_a_notificar": 0.82,
+        "aviso_al_voluntariado": 0.72,
+        "verificacion": 0.76
+      },
+      "sin_decision": 0,
+      "llamadas_medio": 4.9,
+      "busquedas_por_caso": 1.34,
+      "caracteres_de_contexto_por_caso": 19954,
+      "segundos_por_caso": 16.066,
+      "segundos": {
+        "construir_buscador": 0.012,
+        "construir_agente": 21.648,
+        "jugar_lote": 803.3,
+        "jugar_lote_por_caso": 16.066
+      },
+      "error": null,
+      "procedencia": {
+        "commit": "f4d73001f7e74407d42ecee6c22c201dd14cf24e",
+        "sucio": false,
+        "modelo": "google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2",
+        "checkpoint": "sin entrenar",
+        "prompt": {
+          "nombre": "baseline",
+          "version": 1,
+          "sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474",
+          "archivo": "configuraciones/prompts/baseline.json"
+        },
+        "buscador": {
+          "variante": "baseline",
+          "sin_comunes": false,
+          "prefijo": null,
+          "umbral_relativo": 0.0,
+          "k_entorno": 2
+        },
+        "configuracion": {
+          "modelo": "google/gemma-4-E4B-it",
+          "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+          "max_tokens_nuevos": 512,
+          "max_contexto": 8192,
+          "lote": 4,
+          "adapter_repo": null,
+          "adapter_revision": null,
+          "adapter_subcarpeta": "final",
+          "metricas": "/kaggle/working/corridas/evaluacion-actual/sin_entrenar-original/metricas.jsonl",
+          "dtype": "float16",
+          "device_map": "auto"
+        },
+        "hardware": {
+          "gpus": [
+            "Tesla T4, 15360 MiB, 580.178.04",
+            "Tesla T4, 15360 MiB, 580.178.04"
+          ],
+          "torch": {
+            "torch": "2.15.0+cu132",
+            "cuda": "13.2",
+            "gpus": 2,
+            "bf16_nativo": false
+          },
+          "python": "3.13.16"
+        },
+        "inicio": "2026-11-10T22:07:00+0000",
+        "fin": "2026-11-10T22:20:46+0000",
+        "trazas": "evaluaciones/practica/v25-sin-entrenar/sin_entrenar-original/salida/trazas.jsonl",
+        "trazas_sha256": "05c52625a43c6ee0404e8c59a25aa379bab781450e80556f33cf136a06611177",
+        "esperadas": "practica/esperadas-original.jsonl",
+        "esperadas_sha256": "700c136b490aced6e5a16709bef5b71e9a0eba7f71d1a67b61804fedf3399bda",
+        "comando_jugar": "MODELO_LOTE=4 BUSCADOR_VARIANTE=baseline PROMPT_SPEC=configuraciones/prompts/baseline.json python infra/kaggle_baseline.py --variante original --cantidad 50 --salida /kaggle/working/corridas/evaluacion-actual/sin_entrenar-original --dtype float16 --device-map auto",
+        "comando_jugar_origen": "reconstruido de runner.json",
+        "comando_plan": [
+          "python",
+          "infra/kaggle_evaluacion.py",
+          "--plan",
+          "configuraciones/evaluacion/actual.json",
+          "--salida",
+          "/kaggle/working/corridas/evaluacion-actual"
+        ],
+        "plan_sha256": "1bb43a4122f143d84c449e2b8a22c03d996e0b61ba7b36af0c39e7851873cd6d",
+        "comando_puntuar": "python -m admision.correr puntuar --trazas evaluaciones/practica/v25-sin-entrenar/sin_entrenar-original/salida/trazas.jsonl --esperadas practica/esperadas-original.jsonl --salida evaluaciones/practica/tabla-v39/corridas/sin_entrenar-original"
+      },
+      "avisos": [
+        "no corrió en A100: tiempos y resultados no comparables con la entrega"
+      ]
+    },
+    {
+      "etiqueta": "sin_entrenar",
+      "carpeta": "evaluaciones/practica/v25-sin-entrenar/sin_entrenar-b",
+      "version": "b",
+      "resueltos": 10,
+      "casos": 50,
+      "parcial_medio": 0.82,
+      "por_control": {
+        "registro": 0.78,
+        "numero_documento": 1.0,
+        "box_antes_del_registro": 0.72,
+        "circuito": 0.98,
+        "plazo_circuito_min": 0.92,
+        "cobertura": 0.8,
+        "entidad_a_notificar": 0.72,
+        "aviso_al_voluntariado": 0.72,
+        "verificacion": 0.74
+      },
+      "sin_decision": 0,
+      "llamadas_medio": 4.9,
+      "busquedas_por_caso": 1.34,
+      "caracteres_de_contexto_por_caso": 19838,
+      "segundos_por_caso": 15.443,
+      "segundos": {
+        "construir_buscador": 0.011,
+        "construir_agente": 21.187,
+        "jugar_lote": 772.156,
+        "jugar_lote_por_caso": 15.443
+      },
+      "error": null,
+      "procedencia": {
+        "commit": "f4d73001f7e74407d42ecee6c22c201dd14cf24e",
+        "sucio": false,
+        "modelo": "google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2",
+        "checkpoint": "sin entrenar",
+        "prompt": {
+          "nombre": "baseline",
+          "version": 1,
+          "sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474",
+          "archivo": "configuraciones/prompts/baseline.json"
+        },
+        "buscador": {
+          "variante": "baseline",
+          "sin_comunes": false,
+          "prefijo": null,
+          "umbral_relativo": 0.0,
+          "k_entorno": 2
+        },
+        "configuracion": {
+          "modelo": "google/gemma-4-E4B-it",
+          "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+          "max_tokens_nuevos": 512,
+          "max_contexto": 8192,
+          "lote": 4,
+          "adapter_repo": null,
+          "adapter_revision": null,
+          "adapter_subcarpeta": "final",
+          "metricas": "/kaggle/working/corridas/evaluacion-actual/sin_entrenar-b/metricas.jsonl",
+          "dtype": "float16",
+          "device_map": "auto"
+        },
+        "hardware": {
+          "gpus": [
+            "Tesla T4, 15360 MiB, 580.178.04",
+            "Tesla T4, 15360 MiB, 580.178.04"
+          ],
+          "torch": {
+            "torch": "2.15.0+cu132",
+            "cuda": "13.2",
+            "gpus": 2,
+            "bf16_nativo": false
+          },
+          "python": "3.13.16"
+        },
+        "inicio": "2026-11-10T22:20:49+0000",
+        "fin": "2026-11-10T22:34:04+0000",
+        "trazas": "evaluaciones/practica/v25-sin-entrenar/sin_entrenar-b/salida/trazas.jsonl",
+        "trazas_sha256": "626ce4e95e0a7437dfef741d22749e3557297f443431181f960e4aeadb6203a4",
+        "esperadas": "practica/esperadas-b.jsonl",
+        "esperadas_sha256": "236cf4b078f8018d07213d46a0d9433f428c37078276d7f166dcc36e6259f837",
+        "comando_jugar": "MODELO_LOTE=4 BUSCADOR_VARIANTE=baseline PROMPT_SPEC=configuraciones/prompts/baseline.json python infra/kaggle_baseline.py --variante b --cantidad 50 --salida /kaggle/working/corridas/evaluacion-actual/sin_entrenar-b --dtype float16 --device-map auto",
+        "comando_jugar_origen": "reconstruido de runner.json",
+        "comando_plan": [
+          "python",
+          "infra/kaggle_evaluacion.py",
+          "--plan",
+          "configuraciones/evaluacion/actual.json",
+          "--salida",
+          "/kaggle/working/corridas/evaluacion-actual"
+        ],
+        "plan_sha256": "1bb43a4122f143d84c449e2b8a22c03d996e0b61ba7b36af0c39e7851873cd6d",
+        "comando_puntuar": "python -m admision.correr puntuar --trazas evaluaciones/practica/v25-sin-entrenar/sin_entrenar-b/salida/trazas.jsonl --esperadas practica/esperadas-b.jsonl --salida evaluaciones/practica/tabla-v39/corridas/sin_entrenar-b"
+      },
+      "avisos": [
+        "no corrió en A100: tiempos y resultados no comparables con la entrega"
+      ]
+    },
+    {
+      "etiqueta": "sin_entrenar",
+      "carpeta": "evaluaciones/practica/v25-sin-entrenar/sin_entrenar-c",
+      "version": "c",
+      "resueltos": 7,
+      "casos": 50,
+      "parcial_medio": 0.816,
+      "por_control": {
+        "registro": 0.68,
+        "numero_documento": 1.0,
+        "box_antes_del_registro": 0.72,
+        "circuito": 0.98,
+        "plazo_circuito_min": 0.92,
+        "cobertura": 0.76,
+        "entidad_a_notificar": 0.8,
+        "aviso_al_voluntariado": 0.72,
+        "verificacion": 0.76
+      },
+      "sin_decision": 0,
+      "llamadas_medio": 4.9,
+      "busquedas_por_caso": 1.32,
+      "caracteres_de_contexto_por_caso": 19733,
+      "segundos_por_caso": 15.568,
+      "segundos": {
+        "construir_buscador": 0.011,
+        "construir_agente": 20.528,
+        "jugar_lote": 778.375,
+        "jugar_lote_por_caso": 15.568
+      },
+      "error": null,
+      "procedencia": {
+        "commit": "f4d73001f7e74407d42ecee6c22c201dd14cf24e",
+        "sucio": false,
+        "modelo": "google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2",
+        "checkpoint": "sin entrenar",
+        "prompt": {
+          "nombre": "baseline",
+          "version": 1,
+          "sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474",
+          "archivo": "configuraciones/prompts/baseline.json"
+        },
+        "buscador": {
+          "variante": "baseline",
+          "sin_comunes": false,
+          "prefijo": null,
+          "umbral_relativo": 0.0,
+          "k_entorno": 2
+        },
+        "configuracion": {
+          "modelo": "google/gemma-4-E4B-it",
+          "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+          "max_tokens_nuevos": 512,
+          "max_contexto": 8192,
+          "lote": 4,
+          "adapter_repo": null,
+          "adapter_revision": null,
+          "adapter_subcarpeta": "final",
+          "metricas": "/kaggle/working/corridas/evaluacion-actual/sin_entrenar-c/metricas.jsonl",
+          "dtype": "float16",
+          "device_map": "auto"
+        },
+        "hardware": {
+          "gpus": [
+            "Tesla T4, 15360 MiB, 580.178.04",
+            "Tesla T4, 15360 MiB, 580.178.04"
+          ],
+          "torch": {
+            "torch": "2.15.0+cu132",
+            "cuda": "13.2",
+            "gpus": 2,
+            "bf16_nativo": false
+          },
+          "python": "3.13.16"
+        },
+        "inicio": "2026-11-10T22:34:06+0000",
+        "fin": "2026-11-10T22:47:27+0000",
+        "trazas": "evaluaciones/practica/v25-sin-entrenar/sin_entrenar-c/salida/trazas.jsonl",
+        "trazas_sha256": "53383fbdc4bfe13ee542d6682fc7e81654f612705a0851c8a5e70bdfca4c5d03",
+        "esperadas": "practica/esperadas-c.jsonl",
+        "esperadas_sha256": "2c0463dfd395d787a1186bf574b792d5563c5263314d5176391b76f3ab8b01e8",
+        "comando_jugar": "MODELO_LOTE=4 BUSCADOR_VARIANTE=baseline PROMPT_SPEC=configuraciones/prompts/baseline.json python infra/kaggle_baseline.py --variante c --cantidad 50 --salida /kaggle/working/corridas/evaluacion-actual/sin_entrenar-c --dtype float16 --device-map auto",
+        "comando_jugar_origen": "reconstruido de runner.json",
+        "comando_plan": [
+          "python",
+          "infra/kaggle_evaluacion.py",
+          "--plan",
+          "configuraciones/evaluacion/actual.json",
+          "--salida",
+          "/kaggle/working/corridas/evaluacion-actual"
+        ],
+        "plan_sha256": "1bb43a4122f143d84c449e2b8a22c03d996e0b61ba7b36af0c39e7851873cd6d",
+        "comando_puntuar": "python -m admision.correr puntuar --trazas evaluaciones/practica/v25-sin-entrenar/sin_entrenar-c/salida/trazas.jsonl --esperadas practica/esperadas-c.jsonl --salida evaluaciones/practica/tabla-v39/corridas/sin_entrenar-c"
+      },
+      "avisos": [
+        "no corrió en A100: tiempos y resultados no comparables con la entrega"
+      ]
+    },
+    {
+      "etiqueta": "solo_prompt",
+      "carpeta": "evaluaciones/practica/v27-solo-prompt/solo_prompt-original",
+      "version": "original",
+      "resueltos": 14,
+      "casos": 50,
+      "parcial_medio": 0.836,
+      "por_control": {
+        "registro": 0.82,
+        "numero_documento": 1.0,
+        "box_antes_del_registro": 0.9,
+        "circuito": 1.0,
+        "plazo_circuito_min": 0.98,
+        "cobertura": 0.78,
+        "entidad_a_notificar": 0.72,
+        "aviso_al_voluntariado": 0.72,
+        "verificacion": 0.6
+      },
+      "sin_decision": 0,
+      "llamadas_medio": 6.6,
+      "busquedas_por_caso": 3.5,
+      "caracteres_de_contexto_por_caso": 51982,
+      "segundos_por_caso": 24.861,
+      "segundos": {
+        "construir_buscador": 0.013,
+        "construir_agente": 147.924,
+        "jugar_lote": 1243.069,
+        "jugar_lote_por_caso": 24.861
+      },
+      "error": null,
+      "procedencia": {
+        "commit": "a5745f034bf2d025fee8c36477ea5b0dd3564367",
+        "sucio": false,
+        "modelo": "google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2",
+        "checkpoint": "sin entrenar",
+        "prompt": {
+          "nombre": "procedimiento-v1",
+          "version": 1,
+          "sha256": "8c692c2c67850f1448b5f4ecbda6037713110983c41b0e9da933612d2291ecdd",
+          "archivo": "configuraciones/prompts/procedimiento-v1.json"
+        },
+        "buscador": {
+          "variante": "baseline",
+          "sin_comunes": false,
+          "prefijo": null,
+          "umbral_relativo": 0.0,
+          "k_entorno": 2
+        },
+        "configuracion": {
+          "modelo": "google/gemma-4-E4B-it",
+          "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+          "max_tokens_nuevos": 512,
+          "max_contexto": 8192,
+          "lote": 4,
+          "adapter_repo": null,
+          "adapter_revision": null,
+          "adapter_subcarpeta": "final",
+          "metricas": "/kaggle/working/corridas/evaluacion-solo-prompt/solo_prompt-original/metricas.jsonl",
+          "dtype": "float16",
+          "device_map": "auto"
+        },
+        "hardware": {
+          "gpus": [
+            "Tesla T4, 15360 MiB, 580.178.04",
+            "Tesla T4, 15360 MiB, 580.178.04"
+          ],
+          "torch": {
+            "torch": "2.15.0+cu132",
+            "cuda": "13.2",
+            "gpus": 2,
+            "bf16_nativo": false
+          },
+          "python": "3.13.16"
+        },
+        "inicio": "2026-11-11T02:35:54+0000",
+        "fin": "2026-11-11T02:59:07+0000",
+        "trazas": "evaluaciones/practica/v27-solo-prompt/solo_prompt-original/salida/trazas.jsonl",
+        "trazas_sha256": "9af8ce2630e6c03a79f1b24f1c34320f7dfb6c50915aee358c54da587679c7ae",
+        "esperadas": "practica/esperadas-original.jsonl",
+        "esperadas_sha256": "700c136b490aced6e5a16709bef5b71e9a0eba7f71d1a67b61804fedf3399bda",
+        "comando_jugar": "MODELO_LOTE=4 BUSCADOR_VARIANTE=baseline PROMPT_SPEC=configuraciones/prompts/procedimiento-v1.json python infra/kaggle_baseline.py --variante original --cantidad 50 --salida /kaggle/working/corridas/evaluacion-solo-prompt/solo_prompt-original --dtype float16 --device-map auto",
+        "comando_jugar_origen": "reconstruido de runner.json",
+        "comando_plan": [
+          "python",
+          "infra/kaggle_evaluacion.py",
+          "--plan",
+          "configuraciones/evaluacion/solo-prompt.json",
+          "--salida",
+          "/kaggle/working/corridas/evaluacion-solo-prompt"
+        ],
+        "plan_sha256": "84d6f2be1d9d0f20ab35a60db5b469fdaac443659c7d0840536e9db31d58e938",
+        "comando_puntuar": "python -m admision.correr puntuar --trazas evaluaciones/practica/v27-solo-prompt/solo_prompt-original/salida/trazas.jsonl --esperadas practica/esperadas-original.jsonl --salida evaluaciones/practica/tabla-v39/corridas/solo_prompt-original"
+      },
+      "avisos": [
+        "no corrió en A100: tiempos y resultados no comparables con la entrega"
+      ]
+    },
+    {
+      "etiqueta": "solo_prompt",
+      "carpeta": "evaluaciones/practica/v27-solo-prompt/solo_prompt-b",
+      "version": "b",
+      "resueltos": 16,
+      "casos": 50,
+      "parcial_medio": 0.856,
+      "por_control": {
+        "registro": 0.82,
+        "numero_documento": 1.0,
+        "box_antes_del_registro": 0.96,
+        "circuito": 1.0,
+        "plazo_circuito_min": 1.0,
+        "cobertura": 0.82,
+        "entidad_a_notificar": 0.72,
+        "aviso_al_voluntariado": 0.72,
+        "verificacion": 0.66
+      },
+      "sin_decision": 0,
+      "llamadas_medio": 6.8,
+      "busquedas_por_caso": 3.62,
+      "caracteres_de_contexto_por_caso": 54577,
+      "segundos_por_caso": 26.607,
+      "segundos": {
+        "construir_buscador": 0.011,
+        "construir_agente": 43.241,
+        "jugar_lote": 1330.348,
+        "jugar_lote_por_caso": 26.607
+      },
+      "error": null,
+      "procedencia": {
+        "commit": "a5745f034bf2d025fee8c36477ea5b0dd3564367",
+        "sucio": false,
+        "modelo": "google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2",
+        "checkpoint": "sin entrenar",
+        "prompt": {
+          "nombre": "procedimiento-v1",
+          "version": 1,
+          "sha256": "8c692c2c67850f1448b5f4ecbda6037713110983c41b0e9da933612d2291ecdd",
+          "archivo": "configuraciones/prompts/procedimiento-v1.json"
+        },
+        "buscador": {
+          "variante": "baseline",
+          "sin_comunes": false,
+          "prefijo": null,
+          "umbral_relativo": 0.0,
+          "k_entorno": 2
+        },
+        "configuracion": {
+          "modelo": "google/gemma-4-E4B-it",
+          "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+          "max_tokens_nuevos": 512,
+          "max_contexto": 8192,
+          "lote": 4,
+          "adapter_repo": null,
+          "adapter_revision": null,
+          "adapter_subcarpeta": "final",
+          "metricas": "/kaggle/working/corridas/evaluacion-solo-prompt/solo_prompt-b/metricas.jsonl",
+          "dtype": "float16",
+          "device_map": "auto"
+        },
+        "hardware": {
+          "gpus": [
+            "Tesla T4, 15360 MiB, 580.178.04",
+            "Tesla T4, 15360 MiB, 580.178.04"
+          ],
+          "torch": {
+            "torch": "2.15.0+cu132",
+            "cuda": "13.2",
+            "gpus": 2,
+            "bf16_nativo": false
+          },
+          "python": "3.13.16"
+        },
+        "inicio": "2026-11-11T02:59:10+0000",
+        "fin": "2026-11-11T03:22:08+0000",
+        "trazas": "evaluaciones/practica/v27-solo-prompt/solo_prompt-b/salida/trazas.jsonl",
+        "trazas_sha256": "0a20271e851cea88623f847f0c351fdb0730adcc4185bb7ad3f4a80755443bbf",
+        "esperadas": "practica/esperadas-b.jsonl",
+        "esperadas_sha256": "236cf4b078f8018d07213d46a0d9433f428c37078276d7f166dcc36e6259f837",
+        "comando_jugar": "MODELO_LOTE=4 BUSCADOR_VARIANTE=baseline PROMPT_SPEC=configuraciones/prompts/procedimiento-v1.json python infra/kaggle_baseline.py --variante b --cantidad 50 --salida /kaggle/working/corridas/evaluacion-solo-prompt/solo_prompt-b --dtype float16 --device-map auto",
+        "comando_jugar_origen": "reconstruido de runner.json",
+        "comando_plan": [
+          "python",
+          "infra/kaggle_evaluacion.py",
+          "--plan",
+          "configuraciones/evaluacion/solo-prompt.json",
+          "--salida",
+          "/kaggle/working/corridas/evaluacion-solo-prompt"
+        ],
+        "plan_sha256": "84d6f2be1d9d0f20ab35a60db5b469fdaac443659c7d0840536e9db31d58e938",
+        "comando_puntuar": "python -m admision.correr puntuar --trazas evaluaciones/practica/v27-solo-prompt/solo_prompt-b/salida/trazas.jsonl --esperadas practica/esperadas-b.jsonl --salida evaluaciones/practica/tabla-v39/corridas/solo_prompt-b"
+      },
+      "avisos": [
+        "no corrió en A100: tiempos y resultados no comparables con la entrega"
+      ]
+    },
+    {
+      "etiqueta": "solo_prompt",
+      "carpeta": "evaluaciones/practica/v27-solo-prompt/solo_prompt-c",
+      "version": "c",
+      "resueltos": 12,
+      "casos": 50,
+      "parcial_medio": 0.822,
+      "por_control": {
+        "registro": 0.72,
+        "numero_documento": 1.0,
+        "box_antes_del_registro": 0.94,
+        "circuito": 1.0,
+        "plazo_circuito_min": 0.96,
+        "cobertura": 0.74,
+        "entidad_a_notificar": 0.72,
+        "aviso_al_voluntariado": 0.72,
+        "verificacion": 0.6
+      },
+      "sin_decision": 0,
+      "llamadas_medio": 6.6,
+      "busquedas_por_caso": 3.46,
+      "caracteres_de_contexto_por_caso": 50928,
+      "segundos_por_caso": 24.431,
+      "segundos": {
+        "construir_buscador": 0.012,
+        "construir_agente": 39.387,
+        "jugar_lote": 1221.563,
+        "jugar_lote_por_caso": 24.431
+      },
+      "error": null,
+      "procedencia": {
+        "commit": "a5745f034bf2d025fee8c36477ea5b0dd3564367",
+        "sucio": false,
+        "modelo": "google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2",
+        "checkpoint": "sin entrenar",
+        "prompt": {
+          "nombre": "procedimiento-v1",
+          "version": 1,
+          "sha256": "8c692c2c67850f1448b5f4ecbda6037713110983c41b0e9da933612d2291ecdd",
+          "archivo": "configuraciones/prompts/procedimiento-v1.json"
+        },
+        "buscador": {
+          "variante": "baseline",
+          "sin_comunes": false,
+          "prefijo": null,
+          "umbral_relativo": 0.0,
+          "k_entorno": 2
+        },
+        "configuracion": {
+          "modelo": "google/gemma-4-E4B-it",
+          "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+          "max_tokens_nuevos": 512,
+          "max_contexto": 8192,
+          "lote": 4,
+          "adapter_repo": null,
+          "adapter_revision": null,
+          "adapter_subcarpeta": "final",
+          "metricas": "/kaggle/working/corridas/evaluacion-solo-prompt/solo_prompt-c/metricas.jsonl",
+          "dtype": "float16",
+          "device_map": "auto"
+        },
+        "hardware": {
+          "gpus": [
+            "Tesla T4, 15360 MiB, 580.178.04",
+            "Tesla T4, 15360 MiB, 580.178.04"
+          ],
+          "torch": {
+            "torch": "2.15.0+cu132",
+            "cuda": "13.2",
+            "gpus": 2,
+            "bf16_nativo": false
+          },
+          "python": "3.13.16"
+        },
+        "inicio": "2026-11-11T03:22:13+0000",
+        "fin": "2026-11-11T03:43:16+0000",
+        "trazas": "evaluaciones/practica/v27-solo-prompt/solo_prompt-c/salida/trazas.jsonl",
+        "trazas_sha256": "b9b4e5e413503a6336ac64e889a5ead9c6569c0e59e8c4434cc2b67745c84fdb",
+        "esperadas": "practica/esperadas-c.jsonl",
+        "esperadas_sha256": "2c0463dfd395d787a1186bf574b792d5563c5263314d5176391b76f3ab8b01e8",
+        "comando_jugar": "MODELO_LOTE=4 BUSCADOR_VARIANTE=baseline PROMPT_SPEC=configuraciones/prompts/procedimiento-v1.json python infra/kaggle_baseline.py --variante c --cantidad 50 --salida /kaggle/working/corridas/evaluacion-solo-prompt/solo_prompt-c --dtype float16 --device-map auto",
+        "comando_jugar_origen": "reconstruido de runner.json",
+        "comando_plan": [
+          "python",
+          "infra/kaggle_evaluacion.py",
+          "--plan",
+          "configuraciones/evaluacion/solo-prompt.json",
+          "--salida",
+          "/kaggle/working/corridas/evaluacion-solo-prompt"
+        ],
+        "plan_sha256": "84d6f2be1d9d0f20ab35a60db5b469fdaac443659c7d0840536e9db31d58e938",
+        "comando_puntuar": "python -m admision.correr puntuar --trazas evaluaciones/practica/v27-solo-prompt/solo_prompt-c/salida/trazas.jsonl --esperadas practica/esperadas-c.jsonl --salida evaluaciones/practica/tabla-v39/corridas/solo_prompt-c"
+      },
+      "avisos": [
+        "no corrió en A100: tiempos y resultados no comparables con la entrega"
+      ]
+    },
+    {
+      "etiqueta": "solo_entrenamiento",
+      "carpeta": "evaluaciones/practica/v40-entrenado-v39/solo_entrenamiento-original",
+      "version": "original",
+      "resueltos": 17,
+      "casos": 50,
+      "parcial_medio": 0.802,
+      "por_control": {
+        "registro": 0.84,
+        "numero_documento": 0.94,
+        "box_antes_del_registro": 0.86,
+        "circuito": 0.78,
+        "plazo_circuito_min": 0.74,
+        "cobertura": 0.84,
+        "entidad_a_notificar": 0.8,
+        "aviso_al_voluntariado": 0.62,
+        "verificacion": 0.8
+      },
+      "sin_decision": 3,
+      "llamadas_medio": 6.9,
+      "busquedas_por_caso": 3.46,
+      "caracteres_de_contexto_por_caso": 51597,
+      "segundos_por_caso": 30.209,
+      "segundos": {
+        "construir_buscador": 0.013,
+        "construir_agente": 154.99,
+        "jugar_lote": 1510.474,
+        "jugar_lote_por_caso": 30.209
+      },
+      "error": null,
+      "procedencia": {
+        "commit": "1405aabfe7574928dee52e80b4007e3492e2dcd4",
+        "sucio": false,
+        "modelo": "google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2",
+        "checkpoint": "FranCalveyra/tp-admision@770c9fac84d5718b0b2cf4c40c3451cad322ac9e/final",
+        "prompt": {
+          "nombre": "baseline",
+          "version": 1,
+          "sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474",
+          "archivo": "configuraciones/prompts/baseline.json"
+        },
+        "buscador": {
+          "variante": "baseline",
+          "sin_comunes": false,
+          "prefijo": null,
+          "umbral_relativo": 0.0,
+          "k_entorno": 2
+        },
+        "configuracion": {
+          "modelo": "google/gemma-4-E4B-it",
+          "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+          "max_tokens_nuevos": 512,
+          "max_contexto": 8192,
+          "lote": 4,
+          "adapter_repo": "FranCalveyra/tp-admision",
+          "adapter_revision": "770c9fac84d5718b0b2cf4c40c3451cad322ac9e",
+          "adapter_subcarpeta": "final",
+          "metricas": "/kaggle/working/corridas/evaluacion-entrenado-v39/solo_entrenamiento-original/metricas.jsonl",
+          "dtype": "float16",
+          "device_map": "auto"
+        },
+        "hardware": {
+          "gpus": [
+            "Tesla T4, 15360 MiB, 580.178.04",
+            "Tesla T4, 15360 MiB, 580.178.04"
+          ],
+          "torch": {
+            "torch": "2.15.0+cu132",
+            "cuda": "13.2",
+            "gpus": 2,
+            "bf16_nativo": false
+          },
+          "python": "3.13.16"
+        },
+        "inicio": "2026-11-13T13:24:43+0000",
+        "fin": "2026-11-13T13:52:31+0000",
+        "trazas": "evaluaciones/practica/v40-entrenado-v39/solo_entrenamiento-original/salida/trazas.jsonl",
+        "trazas_sha256": "984427d62c18b7d93bb5924bbb682ec32830aa9ed710cb79d190052e66f9a10a",
+        "esperadas": "practica/esperadas-original.jsonl",
+        "esperadas_sha256": "700c136b490aced6e5a16709bef5b71e9a0eba7f71d1a67b61804fedf3399bda",
+        "comando_jugar": "MODELO_LOTE=4 BUSCADOR_VARIANTE=baseline PROMPT_SPEC=configuraciones/prompts/baseline.json ADAPTER_REPO=FranCalveyra/tp-admision ADAPTER_REVISION=770c9fac84d5718b0b2cf4c40c3451cad322ac9e ADAPTER_SUBCARPETA=final python infra/kaggle_baseline.py --variante original --cantidad 50 --salida /kaggle/working/corridas/evaluacion-entrenado-v39/solo_entrenamiento-original --dtype float16 --device-map auto",
+        "comando_jugar_origen": "reconstruido de runner.json",
+        "comando_plan": [
+          "python",
+          "infra/kaggle_evaluacion.py",
+          "--plan",
+          "configuraciones/evaluacion/entrenado-v39.json",
+          "--salida",
+          "/kaggle/working/corridas/evaluacion-entrenado-v39"
+        ],
+        "plan_sha256": "558b3dc7c9ca921115999c4899c325540c3b5ad93f5985902810c58a0817fad9",
+        "comando_puntuar": "python -m admision.correr puntuar --trazas evaluaciones/practica/v40-entrenado-v39/solo_entrenamiento-original/salida/trazas.jsonl --esperadas practica/esperadas-original.jsonl --salida evaluaciones/practica/tabla-v39/corridas/solo_entrenamiento-original"
+      },
+      "avisos": [
+        "no corrió en A100: tiempos y resultados no comparables con la entrega"
+      ]
+    },
+    {
+      "etiqueta": "solo_entrenamiento",
+      "carpeta": "evaluaciones/practica/v40-entrenado-v39/solo_entrenamiento-b",
+      "version": "b",
+      "resueltos": 14,
+      "casos": 50,
+      "parcial_medio": 0.791,
+      "por_control": {
+        "registro": 0.86,
+        "numero_documento": 0.94,
+        "box_antes_del_registro": 0.84,
+        "circuito": 0.76,
+        "plazo_circuito_min": 0.7,
+        "cobertura": 0.8,
+        "entidad_a_notificar": 0.8,
+        "aviso_al_voluntariado": 0.58,
+        "verificacion": 0.84
+      },
+      "sin_decision": 3,
+      "llamadas_medio": 6.7,
+      "busquedas_por_caso": 3.24,
+      "caracteres_de_contexto_por_caso": 48430,
+      "segundos_por_caso": 29.712,
+      "segundos": {
+        "construir_buscador": 0.013,
+        "construir_agente": 48.809,
+        "jugar_lote": 1485.621,
+        "jugar_lote_por_caso": 29.712
+      },
+      "error": null,
+      "procedencia": {
+        "commit": "1405aabfe7574928dee52e80b4007e3492e2dcd4",
+        "sucio": false,
+        "modelo": "google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2",
+        "checkpoint": "FranCalveyra/tp-admision@770c9fac84d5718b0b2cf4c40c3451cad322ac9e/final",
+        "prompt": {
+          "nombre": "baseline",
+          "version": 1,
+          "sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474",
+          "archivo": "configuraciones/prompts/baseline.json"
+        },
+        "buscador": {
+          "variante": "baseline",
+          "sin_comunes": false,
+          "prefijo": null,
+          "umbral_relativo": 0.0,
+          "k_entorno": 2
+        },
+        "configuracion": {
+          "modelo": "google/gemma-4-E4B-it",
+          "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+          "max_tokens_nuevos": 512,
+          "max_contexto": 8192,
+          "lote": 4,
+          "adapter_repo": "FranCalveyra/tp-admision",
+          "adapter_revision": "770c9fac84d5718b0b2cf4c40c3451cad322ac9e",
+          "adapter_subcarpeta": "final",
+          "metricas": "/kaggle/working/corridas/evaluacion-entrenado-v39/solo_entrenamiento-b/metricas.jsonl",
+          "dtype": "float16",
+          "device_map": "auto"
+        },
+        "hardware": {
+          "gpus": [
+            "Tesla T4, 15360 MiB, 580.178.04",
+            "Tesla T4, 15360 MiB, 580.178.04"
+          ],
+          "torch": {
+            "torch": "2.15.0+cu132",
+            "cuda": "13.2",
+            "gpus": 2,
+            "bf16_nativo": false
+          },
+          "python": "3.13.16"
+        },
+        "inicio": "2026-11-13T13:52:35+0000",
+        "fin": "2026-11-13T14:18:14+0000",
+        "trazas": "evaluaciones/practica/v40-entrenado-v39/solo_entrenamiento-b/salida/trazas.jsonl",
+        "trazas_sha256": "e578921678f9191ffe10a5b83e70abedaa8984e23461072cd5223a600a2b0814",
+        "esperadas": "practica/esperadas-b.jsonl",
+        "esperadas_sha256": "236cf4b078f8018d07213d46a0d9433f428c37078276d7f166dcc36e6259f837",
+        "comando_jugar": "MODELO_LOTE=4 BUSCADOR_VARIANTE=baseline PROMPT_SPEC=configuraciones/prompts/baseline.json ADAPTER_REPO=FranCalveyra/tp-admision ADAPTER_REVISION=770c9fac84d5718b0b2cf4c40c3451cad322ac9e ADAPTER_SUBCARPETA=final python infra/kaggle_baseline.py --variante b --cantidad 50 --salida /kaggle/working/corridas/evaluacion-entrenado-v39/solo_entrenamiento-b --dtype float16 --device-map auto",
+        "comando_jugar_origen": "reconstruido de runner.json",
+        "comando_plan": [
+          "python",
+          "infra/kaggle_evaluacion.py",
+          "--plan",
+          "configuraciones/evaluacion/entrenado-v39.json",
+          "--salida",
+          "/kaggle/working/corridas/evaluacion-entrenado-v39"
+        ],
+        "plan_sha256": "558b3dc7c9ca921115999c4899c325540c3b5ad93f5985902810c58a0817fad9",
+        "comando_puntuar": "python -m admision.correr puntuar --trazas evaluaciones/practica/v40-entrenado-v39/solo_entrenamiento-b/salida/trazas.jsonl --esperadas practica/esperadas-b.jsonl --salida evaluaciones/practica/tabla-v39/corridas/solo_entrenamiento-b"
+      },
+      "avisos": [
+        "no corrió en A100: tiempos y resultados no comparables con la entrega"
+      ]
+    },
+    {
+      "etiqueta": "solo_entrenamiento",
+      "carpeta": "evaluaciones/practica/v40-entrenado-v39/solo_entrenamiento-c",
+      "version": "c",
+      "resueltos": 20,
+      "casos": 50,
+      "parcial_medio": 0.851,
+      "por_control": {
+        "registro": 0.84,
+        "numero_documento": 0.98,
+        "box_antes_del_registro": 0.92,
+        "circuito": 0.8,
+        "plazo_circuito_min": 0.76,
+        "cobertura": 0.9,
+        "entidad_a_notificar": 0.92,
+        "aviso_al_voluntariado": 0.7,
+        "verificacion": 0.84
+      },
+      "sin_decision": 1,
+      "llamadas_medio": 6.6,
+      "busquedas_por_caso": 2.94,
+      "caracteres_de_contexto_por_caso": 44100,
+      "segundos_por_caso": 27.728,
+      "segundos": {
+        "construir_buscador": 0.013,
+        "construir_agente": 43.931,
+        "jugar_lote": 1386.421,
+        "jugar_lote_por_caso": 27.728
+      },
+      "error": null,
+      "procedencia": {
+        "commit": "1405aabfe7574928dee52e80b4007e3492e2dcd4",
+        "sucio": false,
+        "modelo": "google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2",
+        "checkpoint": "FranCalveyra/tp-admision@770c9fac84d5718b0b2cf4c40c3451cad322ac9e/final",
+        "prompt": {
+          "nombre": "baseline",
+          "version": 1,
+          "sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474",
+          "archivo": "configuraciones/prompts/baseline.json"
+        },
+        "buscador": {
+          "variante": "baseline",
+          "sin_comunes": false,
+          "prefijo": null,
+          "umbral_relativo": 0.0,
+          "k_entorno": 2
+        },
+        "configuracion": {
+          "modelo": "google/gemma-4-E4B-it",
+          "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+          "max_tokens_nuevos": 512,
+          "max_contexto": 8192,
+          "lote": 4,
+          "adapter_repo": "FranCalveyra/tp-admision",
+          "adapter_revision": "770c9fac84d5718b0b2cf4c40c3451cad322ac9e",
+          "adapter_subcarpeta": "final",
+          "metricas": "/kaggle/working/corridas/evaluacion-entrenado-v39/solo_entrenamiento-c/metricas.jsonl",
+          "dtype": "float16",
+          "device_map": "auto"
+        },
+        "hardware": {
+          "gpus": [
+            "Tesla T4, 15360 MiB, 580.178.04",
+            "Tesla T4, 15360 MiB, 580.178.04"
+          ],
+          "torch": {
+            "torch": "2.15.0+cu132",
+            "cuda": "13.2",
+            "gpus": 2,
+            "bf16_nativo": false
+          },
+          "python": "3.13.16"
+        },
+        "inicio": "2026-11-13T14:18:19+0000",
+        "fin": "2026-11-13T14:42:12+0000",
+        "trazas": "evaluaciones/practica/v40-entrenado-v39/solo_entrenamiento-c/salida/trazas.jsonl",
+        "trazas_sha256": "b6b0bd8221d05850dade7584ae91dfca008e0b7f598ad50ef0884f6883d66953",
+        "esperadas": "practica/esperadas-c.jsonl",
+        "esperadas_sha256": "2c0463dfd395d787a1186bf574b792d5563c5263314d5176391b76f3ab8b01e8",
+        "comando_jugar": "MODELO_LOTE=4 BUSCADOR_VARIANTE=baseline PROMPT_SPEC=configuraciones/prompts/baseline.json ADAPTER_REPO=FranCalveyra/tp-admision ADAPTER_REVISION=770c9fac84d5718b0b2cf4c40c3451cad322ac9e ADAPTER_SUBCARPETA=final python infra/kaggle_baseline.py --variante c --cantidad 50 --salida /kaggle/working/corridas/evaluacion-entrenado-v39/solo_entrenamiento-c --dtype float16 --device-map auto",
+        "comando_jugar_origen": "reconstruido de runner.json",
+        "comando_plan": [
+          "python",
+          "infra/kaggle_evaluacion.py",
+          "--plan",
+          "configuraciones/evaluacion/entrenado-v39.json",
+          "--salida",
+          "/kaggle/working/corridas/evaluacion-entrenado-v39"
+        ],
+        "plan_sha256": "558b3dc7c9ca921115999c4899c325540c3b5ad93f5985902810c58a0817fad9",
+        "comando_puntuar": "python -m admision.correr puntuar --trazas evaluaciones/practica/v40-entrenado-v39/solo_entrenamiento-c/salida/trazas.jsonl --esperadas practica/esperadas-c.jsonl --salida evaluaciones/practica/tabla-v39/corridas/solo_entrenamiento-c"
+      },
+      "avisos": [
+        "no corrió en A100: tiempos y resultados no comparables con la entrega"
+      ]
+    },
+    {
+      "etiqueta": "ambos",
+      "carpeta": "evaluaciones/practica/v40-entrenado-v39/ambos-original",
+      "version": "original",
+      "resueltos": 36,
+      "casos": 50,
+      "parcial_medio": 0.967,
+      "por_control": {
+        "registro": 1.0,
+        "numero_documento": 1.0,
+        "box_antes_del_registro": 1.0,
+        "circuito": 1.0,
+        "plazo_circuito_min": 1.0,
+        "cobertura": 0.94,
+        "entidad_a_notificar": 0.94,
+        "aviso_al_voluntariado": 0.82,
+        "verificacion": 1.0
+      },
+      "sin_decision": 0,
+      "llamadas_medio": 6.7,
+      "busquedas_por_caso": 3.18,
+      "caracteres_de_contexto_por_caso": 52449,
+      "segundos_por_caso": 28.763,
+      "segundos": {
+        "construir_buscador": 0.013,
+        "construir_agente": 27.003,
+        "jugar_lote": 1438.17,
+        "jugar_lote_por_caso": 28.763
+      },
+      "error": null,
+      "procedencia": {
+        "commit": "1405aabfe7574928dee52e80b4007e3492e2dcd4",
+        "sucio": false,
+        "modelo": "google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2",
+        "checkpoint": "FranCalveyra/tp-admision@770c9fac84d5718b0b2cf4c40c3451cad322ac9e/final",
+        "prompt": {
+          "nombre": "procedimiento-v1",
+          "version": 1,
+          "sha256": "8c692c2c67850f1448b5f4ecbda6037713110983c41b0e9da933612d2291ecdd",
+          "archivo": "configuraciones/prompts/procedimiento-v1.json"
+        },
+        "buscador": {
+          "variante": "baseline",
+          "sin_comunes": false,
+          "prefijo": null,
+          "umbral_relativo": 0.0,
+          "k_entorno": 2
+        },
+        "configuracion": {
+          "modelo": "google/gemma-4-E4B-it",
+          "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+          "max_tokens_nuevos": 512,
+          "max_contexto": 8192,
+          "lote": 4,
+          "adapter_repo": "FranCalveyra/tp-admision",
+          "adapter_revision": "770c9fac84d5718b0b2cf4c40c3451cad322ac9e",
+          "adapter_subcarpeta": "final",
+          "metricas": "/kaggle/working/corridas/evaluacion-entrenado-v39/ambos-original/metricas.jsonl",
+          "dtype": "float16",
+          "device_map": "auto"
+        },
+        "hardware": {
+          "gpus": [
+            "Tesla T4, 15360 MiB, 580.178.04",
+            "Tesla T4, 15360 MiB, 580.178.04"
+          ],
+          "torch": {
+            "torch": "2.15.0+cu132",
+            "cuda": "13.2",
+            "gpus": 2,
+            "bf16_nativo": false
+          },
+          "python": "3.13.16"
+        },
+        "inicio": "2026-11-13T14:42:15+0000",
+        "fin": "2026-11-13T15:06:42+0000",
+        "trazas": "evaluaciones/practica/v40-entrenado-v39/ambos-original/salida/trazas.jsonl",
+        "trazas_sha256": "c8ac65048b070bb1fd7888487f850ef7f8498b6dbe1e10fb1519eaa9278b8838",
+        "esperadas": "practica/esperadas-original.jsonl",
+        "esperadas_sha256": "700c136b490aced6e5a16709bef5b71e9a0eba7f71d1a67b61804fedf3399bda",
+        "comando_jugar": "MODELO_LOTE=4 BUSCADOR_VARIANTE=baseline PROMPT_SPEC=configuraciones/prompts/procedimiento-v1.json ADAPTER_REPO=FranCalveyra/tp-admision ADAPTER_REVISION=770c9fac84d5718b0b2cf4c40c3451cad322ac9e ADAPTER_SUBCARPETA=final python infra/kaggle_baseline.py --variante original --cantidad 50 --salida /kaggle/working/corridas/evaluacion-entrenado-v39/ambos-original --dtype float16 --device-map auto",
+        "comando_jugar_origen": "reconstruido de runner.json",
+        "comando_plan": [
+          "python",
+          "infra/kaggle_evaluacion.py",
+          "--plan",
+          "configuraciones/evaluacion/entrenado-v39.json",
+          "--salida",
+          "/kaggle/working/corridas/evaluacion-entrenado-v39"
+        ],
+        "plan_sha256": "558b3dc7c9ca921115999c4899c325540c3b5ad93f5985902810c58a0817fad9",
+        "comando_puntuar": "python -m admision.correr puntuar --trazas evaluaciones/practica/v40-entrenado-v39/ambos-original/salida/trazas.jsonl --esperadas practica/esperadas-original.jsonl --salida evaluaciones/practica/tabla-v39/corridas/ambos-original"
+      },
+      "avisos": [
+        "no corrió en A100: tiempos y resultados no comparables con la entrega"
+      ]
+    },
+    {
+      "etiqueta": "ambos",
+      "carpeta": "evaluaciones/practica/v40-entrenado-v39/ambos-b",
+      "version": "b",
+      "resueltos": 28,
+      "casos": 50,
+      "parcial_medio": 0.949,
+      "por_control": {
+        "registro": 0.98,
+        "numero_documento": 1.0,
+        "box_antes_del_registro": 1.0,
+        "circuito": 1.0,
+        "plazo_circuito_min": 1.0,
+        "cobertura": 0.94,
+        "entidad_a_notificar": 0.92,
+        "aviso_al_voluntariado": 0.7,
+        "verificacion": 1.0
+      },
+      "sin_decision": 0,
+      "llamadas_medio": 6.7,
+      "busquedas_por_caso": 3.16,
+      "caracteres_de_contexto_por_caso": 52089,
+      "segundos_por_caso": 27.822,
+      "segundos": {
+        "construir_buscador": 0.015,
+        "construir_agente": 28.08,
+        "jugar_lote": 1391.114,
+        "jugar_lote_por_caso": 27.822
+      },
+      "error": null,
+      "procedencia": {
+        "commit": "1405aabfe7574928dee52e80b4007e3492e2dcd4",
+        "sucio": false,
+        "modelo": "google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2",
+        "checkpoint": "FranCalveyra/tp-admision@770c9fac84d5718b0b2cf4c40c3451cad322ac9e/final",
+        "prompt": {
+          "nombre": "procedimiento-v1",
+          "version": 1,
+          "sha256": "8c692c2c67850f1448b5f4ecbda6037713110983c41b0e9da933612d2291ecdd",
+          "archivo": "configuraciones/prompts/procedimiento-v1.json"
+        },
+        "buscador": {
+          "variante": "baseline",
+          "sin_comunes": false,
+          "prefijo": null,
+          "umbral_relativo": 0.0,
+          "k_entorno": 2
+        },
+        "configuracion": {
+          "modelo": "google/gemma-4-E4B-it",
+          "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+          "max_tokens_nuevos": 512,
+          "max_contexto": 8192,
+          "lote": 4,
+          "adapter_repo": "FranCalveyra/tp-admision",
+          "adapter_revision": "770c9fac84d5718b0b2cf4c40c3451cad322ac9e",
+          "adapter_subcarpeta": "final",
+          "metricas": "/kaggle/working/corridas/evaluacion-entrenado-v39/ambos-b/metricas.jsonl",
+          "dtype": "float16",
+          "device_map": "auto"
+        },
+        "hardware": {
+          "gpus": [
+            "Tesla T4, 15360 MiB, 580.178.04",
+            "Tesla T4, 15360 MiB, 580.178.04"
+          ],
+          "torch": {
+            "torch": "2.15.0+cu132",
+            "cuda": "13.2",
+            "gpus": 2,
+            "bf16_nativo": false
+          },
+          "python": "3.13.16"
+        },
+        "inicio": "2026-11-13T15:06:45+0000",
+        "fin": "2026-11-13T15:30:26+0000",
+        "trazas": "evaluaciones/practica/v40-entrenado-v39/ambos-b/salida/trazas.jsonl",
+        "trazas_sha256": "a7ce13b0916c7823ba72dcea14a0495985572d2e9413aeecc9cc87a445379f21",
+        "esperadas": "practica/esperadas-b.jsonl",
+        "esperadas_sha256": "236cf4b078f8018d07213d46a0d9433f428c37078276d7f166dcc36e6259f837",
+        "comando_jugar": "MODELO_LOTE=4 BUSCADOR_VARIANTE=baseline PROMPT_SPEC=configuraciones/prompts/procedimiento-v1.json ADAPTER_REPO=FranCalveyra/tp-admision ADAPTER_REVISION=770c9fac84d5718b0b2cf4c40c3451cad322ac9e ADAPTER_SUBCARPETA=final python infra/kaggle_baseline.py --variante b --cantidad 50 --salida /kaggle/working/corridas/evaluacion-entrenado-v39/ambos-b --dtype float16 --device-map auto",
+        "comando_jugar_origen": "reconstruido de runner.json",
+        "comando_plan": [
+          "python",
+          "infra/kaggle_evaluacion.py",
+          "--plan",
+          "configuraciones/evaluacion/entrenado-v39.json",
+          "--salida",
+          "/kaggle/working/corridas/evaluacion-entrenado-v39"
+        ],
+        "plan_sha256": "558b3dc7c9ca921115999c4899c325540c3b5ad93f5985902810c58a0817fad9",
+        "comando_puntuar": "python -m admision.correr puntuar --trazas evaluaciones/practica/v40-entrenado-v39/ambos-b/salida/trazas.jsonl --esperadas practica/esperadas-b.jsonl --salida evaluaciones/practica/tabla-v39/corridas/ambos-b"
+      },
+      "avisos": [
+        "no corrió en A100: tiempos y resultados no comparables con la entrega"
+      ]
+    },
+    {
+      "etiqueta": "ambos",
+      "carpeta": "evaluaciones/practica/v40-entrenado-v39/ambos-c",
+      "version": "c",
+      "resueltos": 36,
+      "casos": 50,
+      "parcial_medio": 0.962,
+      "por_control": {
+        "registro": 0.98,
+        "numero_documento": 1.0,
+        "box_antes_del_registro": 1.0,
+        "circuito": 1.0,
+        "plazo_circuito_min": 1.0,
+        "cobertura": 0.9,
+        "entidad_a_notificar": 1.0,
+        "aviso_al_voluntariado": 0.78,
+        "verificacion": 1.0
+      },
+      "sin_decision": 0,
+      "llamadas_medio": 6.7,
+      "busquedas_por_caso": 3.18,
+      "caracteres_de_contexto_por_caso": 52309,
+      "segundos_por_caso": 28.423,
+      "segundos": {
+        "construir_buscador": 0.012,
+        "construir_agente": 24.07,
+        "jugar_lote": 1421.14,
+        "jugar_lote_por_caso": 28.423
+      },
+      "error": null,
+      "procedencia": {
+        "commit": "1405aabfe7574928dee52e80b4007e3492e2dcd4",
+        "sucio": false,
+        "modelo": "google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2",
+        "checkpoint": "FranCalveyra/tp-admision@770c9fac84d5718b0b2cf4c40c3451cad322ac9e/final",
+        "prompt": {
+          "nombre": "procedimiento-v1",
+          "version": 1,
+          "sha256": "8c692c2c67850f1448b5f4ecbda6037713110983c41b0e9da933612d2291ecdd",
+          "archivo": "configuraciones/prompts/procedimiento-v1.json"
+        },
+        "buscador": {
+          "variante": "baseline",
+          "sin_comunes": false,
+          "prefijo": null,
+          "umbral_relativo": 0.0,
+          "k_entorno": 2
+        },
+        "configuracion": {
+          "modelo": "google/gemma-4-E4B-it",
+          "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+          "max_tokens_nuevos": 512,
+          "max_contexto": 8192,
+          "lote": 4,
+          "adapter_repo": "FranCalveyra/tp-admision",
+          "adapter_revision": "770c9fac84d5718b0b2cf4c40c3451cad322ac9e",
+          "adapter_subcarpeta": "final",
+          "metricas": "/kaggle/working/corridas/evaluacion-entrenado-v39/ambos-c/metricas.jsonl",
+          "dtype": "float16",
+          "device_map": "auto"
+        },
+        "hardware": {
+          "gpus": [
+            "Tesla T4, 15360 MiB, 580.178.04",
+            "Tesla T4, 15360 MiB, 580.178.04"
+          ],
+          "torch": {
+            "torch": "2.15.0+cu132",
+            "cuda": "13.2",
+            "gpus": 2,
+            "bf16_nativo": false
+          },
+          "python": "3.13.16"
+        },
+        "inicio": "2026-11-13T15:30:29+0000",
+        "fin": "2026-11-13T15:54:36+0000",
+        "trazas": "evaluaciones/practica/v40-entrenado-v39/ambos-c/salida/trazas.jsonl",
+        "trazas_sha256": "b8376184a5b4b7fd76ce34d795aa5c8b71db4a2747000a9afc42590de38c0668",
+        "esperadas": "practica/esperadas-c.jsonl",
+        "esperadas_sha256": "2c0463dfd395d787a1186bf574b792d5563c5263314d5176391b76f3ab8b01e8",
+        "comando_jugar": "MODELO_LOTE=4 BUSCADOR_VARIANTE=baseline PROMPT_SPEC=configuraciones/prompts/procedimiento-v1.json ADAPTER_REPO=FranCalveyra/tp-admision ADAPTER_REVISION=770c9fac84d5718b0b2cf4c40c3451cad322ac9e ADAPTER_SUBCARPETA=final python infra/kaggle_baseline.py --variante c --cantidad 50 --salida /kaggle/working/corridas/evaluacion-entrenado-v39/ambos-c --dtype float16 --device-map auto",
+        "comando_jugar_origen": "reconstruido de runner.json",
+        "comando_plan": [
+          "python",
+          "infra/kaggle_evaluacion.py",
+          "--plan",
+          "configuraciones/evaluacion/entrenado-v39.json",
+          "--salida",
+          "/kaggle/working/corridas/evaluacion-entrenado-v39"
+        ],
+        "plan_sha256": "558b3dc7c9ca921115999c4899c325540c3b5ad93f5985902810c58a0817fad9",
+        "comando_puntuar": "python -m admision.correr puntuar --trazas evaluaciones/practica/v40-entrenado-v39/ambos-c/salida/trazas.jsonl --esperadas practica/esperadas-c.jsonl --salida evaluaciones/practica/tabla-v39/corridas/ambos-c"
+      },
+      "avisos": [
+        "no corrió en A100: tiempos y resultados no comparables con la entrega"
+      ]
+    }
+  ],
+  "faltantes": []
+}
