@@ -1216,3 +1216,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   `explorar_buscadores` se regeneraron en CPU con las mismas métricas y están en `evaluaciones/rag/`. Ya no queda
   ningún número del informe sin evidencia versionada.
 
+### 2026-11-13: README de la evaluación completa (CPU, rama `docs/guion-loom`)
+
+- **Fix del README:** el paso 4 (evaluación completa) usaba el plan `entrenado` (adapter `dc41674a`) y reproducía la
+  tabla vieja. Ahora usa `entrenado-v39` (`770c9fac`), que es el de la entrega y el de `tabla-v39`.
