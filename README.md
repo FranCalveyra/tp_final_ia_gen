@@ -217,7 +217,7 @@ def construir_agente():                # carga el modelo una sola vez
 - **Libres:** el mensaje de sistema, el formato de los mensajes al modelo, la cantidad de búsquedas y la estrategia.
 - **Formato del último mensaje:** el adapter v39 escribe `Edad: N años. Acompañante: X.`, un salto de línea y el JSON de
   `registrar_decision`. El texto previo no tiene llaves, así que `extraer_json` de la cátedra (`admision/ejemplo.py`) lo
-  lee igual. La práctica con este adapter está **pendiente (Kaggle v40)**.
+  lee igual. La práctica con este adapter (Kaggle v40, solo para reportar) dio 36/28/36 en la fila `ambos`; ver [`evaluaciones/practica/tabla-v39`](evaluaciones/practica/tabla-v39/tabla.md).
 - En operación, el agente no llama a ningún servicio externo.
 
 `admision/ejemplo.py` es el agente de la referencia de la cátedra, con su mensaje de sistema. Pueden usarlo o

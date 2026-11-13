@@ -12,14 +12,16 @@ del modelo, cada llamada a herramienta con su observación y la ficha), tiempos,
 | `practica/v25-sin-entrenar/` | v25 | `configuraciones/evaluacion/actual.json` | `sin_entrenar` |
 | `practica/v27-solo-prompt/` | v27 | `configuraciones/evaluacion/solo-prompt.json` | `solo_prompt` |
 | `practica/v34-entrenado/` | v34 | `configuraciones/evaluacion/entrenado.json` | `solo_entrenamiento`, `ambos` |
-| `practica/tabla/` | — | — | Tabla de la Parte 4 con la procedencia de cada celda y `resultados.jsonl` por corrida |
+| `practica/v40-entrenado-v39/` | v40 | `configuraciones/evaluacion/entrenado-v39.json` | `solo_entrenamiento`, `ambos` con el adapter de la entrega v39 (`770c9fac`) |
+| `practica/tabla-v39/` | — | — | **Tabla vigente** de la Parte 4 (v25 + v27 + v40) con la procedencia de cada celda y `resultados.jsonl` por corrida |
+| `practica/tabla/` | — | — | Tabla histórica (v25 + v27 + v34, adapter `dc41674a`); se conserva como historial |
 
 La tabla se regenera, sin GPU, con:
 
 ```bash
 uv run python -m scripts.tabla_evaluacion --evaluacion evaluaciones/practica/v25-sin-entrenar \
-    --evaluacion evaluaciones/practica/v27-solo-prompt --evaluacion evaluaciones/practica/v34-entrenado \
-    --salida <carpeta nueva>
+    --evaluacion evaluaciones/practica/v27-solo-prompt --evaluacion evaluaciones/practica/v40-entrenado-v39 \
+    --salida <carpeta nueva>   # la vigente es practica/tabla-v39
 ```
 
 ## Conjunto de desarrollo (`datos/prompt-dev/v1`, 40 casos; con esto se eligió)

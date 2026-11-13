@@ -330,8 +330,8 @@ la práctica de la v38 no se corrió.
 sin acompañante).** La v39 siguió entrenando `dc41674a` 1 época (142 pasos) sobre `datos/conversaciones/v6-aviso-datos`
 (1.133 conversaciones; el último mensaje lleva `Edad: N años. Acompañante: X.` antes del JSON), `peso_aviso` 20,
 lr 1e-4. Se midió en el dev con la misma configuración que v35, v36 y v38 (`procedimiento-v1`, n1 + n2). Comando y
-datos: `datos/prompt-dev/v1`, 40 casos, `evaluaciones/dev/v39-datos`. La práctica de la v39 queda **pendiente
-(Kaggle v40)**: es solo para reportar.
+datos: `datos/prompt-dev/v1`, 40 casos, `evaluaciones/dev/v39-datos`. La práctica de la v39 se corrió después
+(Kaggle v40) solo para reportar; ver la nota al final de esta pasada.
 
 | Dev, 40 casos | v35 (`dc41674a`) | v38 (`17e9fe3d`) | v39 (`770c9fac`) |
 |---|---:|---:|---:|
@@ -353,6 +353,9 @@ datos: `datos/prompt-dev/v1`, 40 casos, `evaluaciones/dev/v39-datos`. La prácti
 - **Entrenamiento:** 11.735 s, 20,36 GB de VRAM pico, pérdida final ponderada 0,038, W&B `41ec01f292e64306`.
 - Corridas en `evaluaciones/dev/v39-datos`; recibos en `evaluaciones/entrenamiento/v39-datos` (checkpoints 20 a 140,
   142 y `final` en HF).
+- **Práctica (Kaggle v40), reportada y no usada para elegir:** la v39 ya estaba adoptada con el dev. `ambos` dio
+  36/28/36 = 100/150 contra 30/29/33 = 92/150 del adapter anterior; el aviso pasó de 0,72 a 0,82/0,70/0,78. En la
+  versión b perdió un caso neto (29 a 28). Tabla en `evaluaciones/practica/tabla-v39`.
 
 ## Uso para #13 y #15
 

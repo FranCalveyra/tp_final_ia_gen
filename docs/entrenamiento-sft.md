@@ -160,7 +160,7 @@ de `sft-aviso-peso.json` (adapter inicial `dc41674a`, lr 1e-4, `peso_aviso` 20, 
 ponderada 0,038 y media 0,0398, W&B `41ec01f292e64306`, código `5a36ecf`, `final`
 `770c9fac84d5718b0b2cf4c40c3451cad322ac9e`. En el dev dio 31/40 contra 26/40 de v35 ([pasada 10](analisis-errores.md)).
 La pérdida es ponderada: no es comparable con v36. Recibos en `evaluaciones/entrenamiento/v39-datos`; práctica
-pendiente (Kaggle v40).
+(Kaggle v40, solo para reportar): `ambos` 36/28/36 = 100/150, en [`evaluaciones/practica/tabla-v39`](../evaluaciones/practica/tabla-v39/tabla.md).
 
 ## Estado de cierre de infraestructura y límites restantes
 
