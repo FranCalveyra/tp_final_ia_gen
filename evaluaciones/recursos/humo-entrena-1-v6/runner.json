@@ -1,0 +1,78 @@
+{
+  "modo": "nuevo",
+  "ejecucion": {
+    "precision": "fp16",
+    "dispositivos": "auto",
+    "guardar_cada": 2
+  },
+  "publicar": true,
+  "wandb": "online",
+  "hf_repo": "FranCalveyra/tp-admision",
+  "modelo": "google/gemma-4-E4B-it",
+  "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+  "semilla": 42,
+  "configuracion": {
+    "batch_size": 1,
+    "epochs": 2,
+    "gradient_accumulation_steps": 1,
+    "hf_repo": "FranCalveyra/tp-admision",
+    "learning_rate": 0.0002,
+    "max_seq_length": 8192,
+    "modelo": "google/gemma-4-E4B-it",
+    "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+    "semilla": 42,
+    "version": 1,
+    "wandb_entity": "francalveyra-ia-gen",
+    "wandb_project": "tp-admision"
+  },
+  "reanudacion": null,
+  "commit": "acc95b255875184c9098f259e839dd5957950fad",
+  "sucio": false,
+  "maquina": {
+    "commit": "acc95b255875184c9098f259e839dd5957950fad",
+    "sucio": false,
+    "gpus": [
+      "Tesla T4, 15360 MiB, 580.178.04",
+      "Tesla T4, 15360 MiB, 580.178.04"
+    ],
+    "torch": {
+      "torch": "2.15.0+cu132",
+      "cuda": "13.2",
+      "gpus": 2,
+      "bf16_nativo": false
+    },
+    "python": "3.13.16"
+  },
+  "estado": "terminada",
+  "inicio": "2026-11-04T22:54:44+0000",
+  "fin": "2026-11-04T22:57:27+0000",
+  "returncode": 0,
+  "log_final": "wandb: [wandb.login()] Loaded credentials for https://api.forge.coreweave.com from WANDB_API_KEY.\nwandb: Currently logged in as: francalveyra (francalveyra-ia-gen) to https://api.forge.coreweave.com. Use `wandb login --relogin` to force relogin\nwandb: Tracking run with wandb version 0.31.0\nwandb: Run data is saved locally in /kaggle/working/corridas/humo-entrena-1/entrenamiento/wandb/run-20261104_225459-b9088ec869814b35\nwandb: Run `wandb offline` to turn off syncing.\nwandb: Syncing run b9088ec869814b35\nwandb: ⭐️ View project at https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision\nwandb: 🚀 View run at https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/b9088ec869814b35\n\nLoading weights:   0%|          | 0/2076 [00:00<?, ?it/s]\nLoading weights:   2%|▏         | 34/2076 [00:00<00:07, 276.89it/s]\nLoading weights:   3%|▎         | 65/2076 [00:00<00:09, 201.90it/s]\nLoading weights:   6%|▌         | 119/2076 [00:00<00:06, 318.28it/s]\nLoading weights:   8%|▊         | 156/2076 [00:00<00:07, 265.46it/s]\nLoading weights:   9%|▉         | 187/2076 [00:00<00:06, 272.34it/s]\nLoading weights:  10%|█         | 217/2076 [00:00<00:07, 255.15it/s]\nLoading weights:  12%|█▏        | 251/2076 [00:01<00:08, 226.39it/s]\nLoading weights:  15%|█▌        | 313/2076 [00:01<00:06, 256.20it/s]\nLoading weights:  18%|█▊        | 375/2076 [00:01<00:06, 272.00it/s]\nLoading weights:  21%|██        | 432/2076 [00:01<00:05, 327.96it/s]\nLoading weights:  23%|██▎       | 468/2076 [00:01<00:05, 295.16it/s]\nLoading weights:  24%|██▍       | 500/2076 [00:01<00:05, 284.35it/s]\nLoading weights:  27%|██▋       | 556/2076 [00:01<00:04, 325.21it/s]\nLoading weights:  28%|██▊       | 590/2076 [00:02<00:04, 305.08it/s]\nLoading weights:  30%|███       | 623/2076 [00:02<00:05, 269.47it/s]\nLoading weights:  33%|███▎      | 685/2076 [00:02<00:04, 298.86it/s]\nLoading weights:  36%|███▌      | 752/2076 [00:02<00:03, 334.59it/s]\nLoading weights:  36%|███▌      | 752/2076 [00:19<00:03, 334.59it/s]\nLoading weights:  36%|███▋      | 755/2076 [00:43<07:16,  3.03it/s] \nLoading weights:  80%|███████▉  | 1659/2076 [00:43<00:12, 34.07it/s]\nLoading weights: 100%|██████████| 2076/2076 [00:43<00:00, 47.41it/s]\n\n  0%|          | 0/8 [00:00<?, ?it/s]\n 12%|█▎        | 1/8 [00:02<00:14,  2.04s/it]\n                                             \n\n 12%|█▎        | 1/8 [00:02<00:14,  2.04s/it]\n 25%|██▌       | 2/8 [00:02<00:07,  1.27s/it]\n                                             \n\n 25%|██▌       | 2/8 [00:02<00:07,  1.27s/it]\n 38%|███▊      | 3/8 [00:06<00:10,  2.17s/it]\n                                             \n\n 38%|███▊      | 3/8 [00:06<00:10,  2.17s/it]\n 50%|█████     | 4/8 [00:06<00:06,  1.55s/it]\n                                             \n\n 50%|█████     | 4/8 [00:06<00:06,  1.55s/it]\n 62%|██████▎   | 5/8 [00:10<00:06,  2.26s/it]\n                                             \n\n 62%|██████▎   | 5/8 [00:10<00:06,  2.26s/it]\n 75%|███████▌  | 6/8 [00:10<00:03,  1.70s/it]\n                                             \n\n 75%|███████▌  | 6/8 [00:10<00:03,  1.70s/it]\n 88%|████████▊ | 7/8 [00:14<00:02,  2.24s/it]\n                                             \n\n 88%|████████▊ | 7/8 [00:14<00:02,  2.24s/it]\n100%|██████████| 8/8 [00:14<00:00,  1.72s/it]\n                                             \n\n100%|██████████| 8/8 [00:14<00:00,  1.72s/it]\n                                             \n\n100%|██████████| 8/8 [00:17<00:00,  1.72s/it]\n100%|██████████| 8/8 [00:17<00:00,  2.18s/it]\nwandb: updating run metadata\nwandb: uploading history steps 6-13, summary, console lines 1-1\nwandb: \nwandb: Run history:\nwandb:                    epoch ▁▂▃▄▅▆▇██\nwandb:                grad_norm ▁▁▄▅▇▇▇█\nwandb:            learning_rate █▇▆▅▄▃▂▁\nwandb:                     loss █▇▆▄▃▂▂▁\nwandb:               total_flos ▁\nwandb:               train_loss ▁\nwandb:            train_runtime ▁\nwandb: train_samples_per_second ▁\nwandb:   train_steps_per_second ▁\nwandb:             trainer_step ▁▂▃▄▅▆▇██\nwandb: \nwandb: Run summary:\nwandb:    checkpoint final\nwandb:         epoch 2\nwandb:     grad_norm 1.74308\nwandb:       hf_repo FranCalveyra/tp-admi...\nwandb:   hf_revision 2fa71b9945a39accb8cf...\nwandb: learning_rate 3e-05\nwandb:          loss 2.17751\nwandb:    total_flos 36556044194304.0\nwandb:    train_loss 2.40317\nwandb: train_runtime 17.4291\nwandb:            +3 ...\nwandb: \nwandb: 🚀 View run b9088ec869814b35 at: https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/b9088ec869814b35\nwandb: ⭐️ View project at: https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision\nwandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)\nwandb: Find logs at: /kaggle/working/corridas/humo-entrena-1/entrenamiento/wandb/run-20261104_225459-b9088ec869814b35/logs\n{'loss': '2.679', 'grad_norm': '1.084', 'learning_rate': '0.0002', 'epoch': '0.25'}\n{'loss': '2.599', 'grad_norm': '1.082', 'learning_rate': '0.000175', 'epoch': '0.5'}\n{'loss': '2.52', 'grad_norm': '1.327', 'learning_rate': '0.00015', 'epoch': '0.75'}\n{'loss': '2.418', 'grad_norm': '1.464', 'learning_rate': '0.000125', 'epoch': '1'}\n{'loss': '2.346', 'grad_norm': '1.613', 'learning_rate': '0.0001', 'epoch': '1.25'}\n{'loss': '2.269', 'grad_norm': '1.651', 'learning_rate': '7.5e-05', 'epoch': '1.5'}\n{'loss': '2.217', 'grad_norm': '1.694', 'learning_rate': '5e-05', 'epoch': '1.75'}\n{'loss': '2.178', 'grad_norm': '1.743', 'learning_rate': '2.5e-05', 'epoch': '2'}\n{'train_runtime': '17.43', 'train_samples_per_second': '0.459', 'train_steps_per_second': '0.459', 'train_loss': '2.403', 'epoch': '2'}\n{\n  \"estado\": \"finalizada\",\n  \"run_id\": \"b9088ec869814b35\",\n  \"wandb_url\": \"https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/b9088ec869814b35\",\n  \"publicaciones\": [\n    {\n      \"checkpoint\": \"checkpoint-2\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"f11b0814564f09e2ff788937db3fba111317f149\"\n    },\n    {\n      \"checkpoint\": \"checkpoint-4\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"70808f81cd95092b02f2b7a75159966eff941f9a\"\n    },\n    {\n      \"checkpoint\": \"checkpoint-6\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"3932007fe20d91c8aa2f0095f69d9c3bee73c5d0\"\n    },\n    {\n      \"checkpoint\": \"checkpoint-8\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"0d6d84a88cb7dff92494ad1f5a423b269472889a\"\n    },\n    {\n      \"checkpoint\": \"final\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"2fa71b9945a39accb8cff212f2e8cdb265ea1d19\"\n    }\n  ]\n}\n",
+  "publicaciones": [
+    {
+      "checkpoint": "checkpoint-2",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "f11b0814564f09e2ff788937db3fba111317f149"
+    },
+    {
+      "checkpoint": "checkpoint-4",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "70808f81cd95092b02f2b7a75159966eff941f9a"
+    },
+    {
+      "checkpoint": "checkpoint-6",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "3932007fe20d91c8aa2f0095f69d9c3bee73c5d0"
+    },
+    {
+      "checkpoint": "checkpoint-8",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "0d6d84a88cb7dff92494ad1f5a423b269472889a"
+    },
+    {
+      "checkpoint": "final",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "2fa71b9945a39accb8cff212f2e8cdb265ea1d19"
+    }
+  ]
+}

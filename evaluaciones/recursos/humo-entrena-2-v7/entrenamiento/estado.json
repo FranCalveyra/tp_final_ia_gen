@@ -1,0 +1,27 @@
+{
+  "estado": "finalizada",
+  "publicaciones": [
+    {
+      "checkpoint": "checkpoint-4",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "32363aa9f1c0c8e4221912e1641c67b9dde29955"
+    },
+    {
+      "checkpoint": "checkpoint-6",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "f88db48a4371a75d4f8026dafdc025716bc84cac"
+    },
+    {
+      "checkpoint": "checkpoint-8",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "79121d53ac971d9bb46ad614f8f5b68704d8ea6c"
+    },
+    {
+      "checkpoint": "final",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "391c3eba7c89fd91054d902afbf8b7e7100f82e8"
+    }
+  ],
+  "run_id": "b9088ec869814b35",
+  "wandb_url": "https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/b9088ec869814b35"
+}

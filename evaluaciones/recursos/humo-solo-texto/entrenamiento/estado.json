@@ -1,0 +1,38 @@
+{
+  "estado": "finalizada",
+  "publicaciones": [
+    {
+      "checkpoint": "checkpoint-2",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "ff99d513ed3df1df6adde41517cc1086fad8d679"
+    },
+    {
+      "checkpoint": "checkpoint-4",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "0e9453360ac56f230971ca189c30d445fbed0ac5"
+    },
+    {
+      "checkpoint": "checkpoint-6",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "45515598c59d9bd630666dfa1d79a446b437cf4b"
+    },
+    {
+      "checkpoint": "checkpoint-8",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "8af6b4a343e1c25ae3568e54919039ed05abf9ce"
+    },
+    {
+      "checkpoint": "final",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "69570fc94e663bf68b70765f431e1b99f93e7774"
+    }
+  ],
+  "run_id": "c2b7df5c7f3b4b12",
+  "vram_pico_gb": 15.675,
+  "vram_pico_por_gpu_gb": [
+    9.545,
+    6.13
+  ],
+  "vram_reservada_gb": 15.818,
+  "wandb_url": "https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/c2b7df5c7f3b4b12"
+}

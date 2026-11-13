@@ -1,0 +1,29 @@
+
+Loading weights:   0%|          | 0/2076 [00:00<?, ?it/s]
+Loading weights:   3%|▎         | 65/2076 [00:00<00:04, 420.92it/s]
+Loading weights:   6%|▌         | 127/2076 [00:00<00:05, 332.44it/s]
+Loading weights:   9%|▉         | 184/2076 [00:00<00:04, 393.18it/s]
+Loading weights:  11%|█         | 227/2076 [00:00<00:05, 348.54it/s]
+Loading weights:  13%|█▎        | 264/2076 [00:00<00:06, 293.06it/s]
+Loading weights:  15%|█▌        | 313/2076 [00:01<00:06, 277.47it/s]
+Loading weights:  18%|█▊        | 375/2076 [00:01<00:05, 288.69it/s]
+Loading weights:  21%|██        | 429/2076 [00:01<00:04, 337.42it/s]
+Loading weights:  22%|██▏       | 466/2076 [00:01<00:05, 317.97it/s]
+Loading weights:  24%|██▍       | 500/2076 [00:01<00:05, 274.97it/s]
+Loading weights:  27%|██▋       | 556/2076 [00:01<00:04, 335.01it/s]
+Loading weights:  29%|██▊       | 593/2076 [00:01<00:04, 307.05it/s]
+Loading weights:  30%|███       | 627/2076 [00:02<00:05, 281.32it/s]
+Loading weights:  33%|███▎      | 680/2076 [00:02<00:04, 337.96it/s]
+Loading weights:  35%|███▍      | 717/2076 [00:02<00:04, 279.86it/s]
+Loading weights:  36%|███▋      | 754/2076 [00:16<02:24,  9.18it/s] 
+Loading weights:  36%|███▋      | 755/2076 [00:32<05:59,  3.68it/s]
+Loading weights: 100%|██████████| 2076/2076 [00:32<00:00, 63.74it/s]
+{
+  "casos": 50,
+  "con_ficha": 50,
+  "construir_buscador": 0.011,
+  "construir_agente": 47.233,
+  "error": null,
+  "jugar_lote": 788.126,
+  "jugar_lote_por_caso": 15.763
+}

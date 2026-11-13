@@ -692,8 +692,8 @@ El lote se barrió con el modelo sin entrenar, normas originales y 50 casos (sec
 Comando (bitácora, 2026-11-04): `for l in 1 8 16; do MODELO_LOTE=$l python infra/kaggle_baseline.py --variante
 original --cantidad 50 --salida ...; done` (commit `11bf3d6`, salidas `lote-original-l{1,8,16}`); el lote 4 es `base-original-l4`
 (commit `a89f5b9`, mismo runner con `MODELO_LOTE=4`). Puntuado con `admision.correr puntuar` contra
-`practica/esperadas-original.jsonl`. Los artefactos (`corridas/kaggle/lote-*` y `base-original-l4`) **no están
-versionados**; los números salen de la bitácora y de la Parte 5 detallada.
+`practica/esperadas-original.jsonl`. Los artefactos están versionados en `evaluaciones/recursos/lote-original-l{1,8,16}`,
+`base-original-l4` y `diag-l8` (lote 8 con `CUDA_LAUNCH_BLOCKING=1`).
 
 **Tres tiempos distintos para el modelo sin entrenar con lote 4** (15,2 s en v22, 15,6 s en `a89f5b9` y 15,4–16,1 s
 en v25) son corridas distintas: otra sesión de Kaggle, otro commit y, en v22, la comparación de buscadores. No hay

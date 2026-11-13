@@ -1204,3 +1204,9 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Correcciones de la auditoría aplicadas:** `v4-aviso` es 302/633 = 47,7 % positivos; ~350 supervisados por
   conversación; carga del modelo 20,5–155,0 s según las corridas versionadas; fila de párrafos del buscador separada;
   origen (comando, configuración y checkpoint) en 5.1, 5.3 y la fase 1 de la Parte 3; anexo de la Parte 5 al día con v39/v40.
+- **Evidencia de recursos versionada:** las corridas que citan la Parte 5 y su anexo (`base-{original,b,c}-l4`,
+  `lote-original-l{1,8,16}`, `diag-l8`, `solo-texto-l4` y los humos de entrenamiento, 4,7 MB) pasaron de `corridas/kaggle/`
+  a `evaluaciones/recursos/` sin editar. El escaneo de secretos dio limpio: solo aparece el aviso de W&B que nombra la
+  variable, sin ningún valor, y no hay pesos. Sigue sin evidencia la comparación de buscadores con el agente de la Parte 2
+  (`corridas/kaggle/v22` y `corridas/rag-*-20261110` no existen ni en local).
+

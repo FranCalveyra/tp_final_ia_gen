@@ -16,7 +16,7 @@ vía alternativa **a determinar**. Datos/curación/prompt finales corresponden a
 | Retomar tras corte | exige optimizer/scheduler/RNG/Trainer/adapter/manifiestos; fp16 exige scaler; recuperación HF con revisión fijada en Kaggle | v7 descargó checkpoint-2 HF y continuó pasos 3–8; valida recuperar el último checkpoint completo, no pasos posteriores o escrituras parciales |
 | Martu puede operarlo | comandos y contratos debajo, validación CPU disponible | falta que lo use con datos/prompt acordados; no se ejecutó ese experimento |
 
-**Artefactos reales locales, no versionados:** `corridas/kaggle/humo-entrena-1-v6` y `humo-entrena-2-v7`:
+**Artefactos reales, versionados:** `evaluaciones/recursos/humo-entrena-1-v6` y `humo-entrena-2-v7`:
 ambos `runner.json` dicen `terminada`, `returncode=0`; `estado.json` dice `finalizada`, mismo
 `run_id=b9088ec869814b35`. Reanudación desde `checkpoint-2`, revisión
 `f11b0814564f09e2ff788937db3fba111317f149`; v7 publica nuevos 4/6/8/final. La curva es cercana, no idéntica bit a bit

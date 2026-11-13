@@ -1,0 +1,37 @@
+{
+  "variante": "original",
+  "cantidad": 50,
+  "configuracion": {
+    "modelo": "google/gemma-4-E4B-it",
+    "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+    "max_tokens_nuevos": 512,
+    "max_contexto": 8192,
+    "lote": 8,
+    "adapter_repo": null,
+    "adapter_revision": null,
+    "adapter_subcarpeta": "final",
+    "metricas": "/kaggle/working/corridas/lote-original-l8/metricas.jsonl",
+    "dtype": "float16",
+    "device_map": "auto"
+  },
+  "maquina": {
+    "commit": "11bf3d6d71c49f014aa1c90ef063a0a100291750",
+    "sucio": false,
+    "gpus": [
+      "Tesla T4, 15360 MiB, 580.178.04",
+      "Tesla T4, 15360 MiB, 580.178.04"
+    ],
+    "torch": {
+      "torch": "2.15.0+cu132",
+      "cuda": "13.2",
+      "gpus": 2,
+      "bf16_nativo": false
+    },
+    "python": "3.13.16"
+  },
+  "estado": "terminada",
+  "inicio": "2026-11-04T20:47:26+0000",
+  "fin": "2026-11-04T20:54:40+0000",
+  "returncode": 0,
+  "log_final": "\nLoading weights:   0%|          | 0/2076 [00:00<?, ?it/s]\nLoading weights:   3%|▎         | 70/2076 [00:00<00:02, 671.24it/s]\nLoading weights:   7%|▋         | 138/2076 [00:00<00:04, 402.14it/s]\nLoading weights:   9%|▉         | 189/2076 [00:00<00:05, 335.36it/s]\nLoading weights:  12%|█▏        | 246/2076 [00:00<00:04, 392.38it/s]\nLoading weights:  14%|█▍        | 290/2076 [00:00<00:05, 330.71it/s]\nLoading weights:  16%|█▌        | 327/2076 [00:00<00:05, 317.89it/s]\nLoading weights:  18%|█▊        | 375/2076 [00:01<00:05, 305.24it/s]\nLoading weights:  21%|██        | 429/2076 [00:01<00:04, 351.42it/s]\nLoading weights:  22%|██▏       | 467/2076 [00:01<00:05, 309.46it/s]\nLoading weights:  24%|██▍       | 501/2076 [00:01<00:05, 270.72it/s]\nLoading weights:  27%|██▋       | 556/2076 [00:01<00:04, 323.42it/s]\nLoading weights:  29%|██▊       | 592/2076 [00:01<00:05, 277.08it/s]\nLoading weights:  30%|███       | 623/2076 [00:01<00:05, 278.08it/s]\nLoading weights:  33%|███▎      | 677/2076 [00:02<00:04, 322.22it/s]\nLoading weights:  34%|███▍      | 711/2076 [00:02<00:04, 282.88it/s]\nLoading weights:  36%|███▌      | 752/2076 [00:02<00:04, 285.81it/s]\nLoading weights:  36%|███▌      | 752/2076 [00:19<00:04, 285.81it/s]\nLoading weights:  36%|███▋      | 755/2076 [00:34<07:13,  3.04it/s] \nLoading weights:  58%|█████▊    | 1196/2076 [00:34<00:39, 22.48it/s]\nLoading weights: 100%|██████████| 2076/2076 [00:34<00:00, 60.23it/s]\njugar_lote falló: AcceleratorError: CUDA error: unspecified launch failure\nSearch for `cudaErrorLaunchFailure' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\nThe CUDA driver logged these messages, which may provide useful details:\nReturning 719 (CUDA_ERROR_LAUNCH_FAILED) from cuMemFree_v2\n\n\n{\n  \"casos\": 50,\n  \"con_ficha\": 16,\n  \"construir_buscador\": 0.012,\n  \"construir_agente\": 49.585,\n  \"error\": \"AcceleratorError: CUDA error: unspecified launch failure\\nSearch for `cudaErrorLaunchFailure' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\\nThe CUDA driver logged these messages, which may provide useful details:\\nReturning 719 (CUDA_ERROR_LAUNCH_FAILED) from cuMemFree_v2\\n\\n\",\n  \"jugar_lote\": 379.527,\n  \"jugar_lote_por_caso\": 7.591\n}\n"
+}

@@ -44,7 +44,7 @@ Puntuado con `admision.correr puntuar`. **Una sola corrida por configuración.**
 | b | 10/50 | 0,820 | 15,8 | 47,2 s | 64 | 17,2 |
 | c | 7/50 | 0,816 | 16,1 | 34,1 s | 64 | 16,8 |
 
-Fuentes: `corridas/kaggle/base-{original,b,c}-l4/{puntuacion.json,salida/tiempos.json,metricas.jsonl}`.
+Fuentes: `evaluaciones/recursos/base-{original,b,c}-l4/{puntuacion.json,salida/tiempos.json,metricas.jsonl}`.
 Tokens/s = tokens generados sobre segundos de `generate`, sumados sobre los micro-lotes
 (cálculo propio). Los resueltos no son comparables con la referencia de la cátedra (12, 15, 12,
 medida en otra GPU y otra precisión); acá importan los recursos.
@@ -84,7 +84,7 @@ Cada caso es una conversación de 3 a 8 llamadas al modelo. Mínimo / mediana / 
 - **Corridas versionadas** (`evaluaciones/practica/*/salida/tiempos.json`): modelo base 20,5–21,6 s (v25) y
   39,4–43,2 s (v27, normas b y c); base + adapter 22,6–48,8 s (v34 con `dc41674a` y v40 con el v39). La primera
   corrida de algunas sesiones tardó mucho más: 147,9 s (v27, base) y 141,8–155,0 s (v34 y v40, con adapter).
-- **Corridas no versionadas, históricas** (`corridas/kaggle/`, base sin entrenar): 145,6 s en `base-original-l4`,
+- **Corridas históricas** (`evaluaciones/recursos/`, base sin entrenar): 145,6 s en `base-original-l4`,
   156,0 s en `lote-original-l1`, 125,7 s en `solo-texto-l4` y 47,2/34,1 s en `base-b-l4`/`base-c-l4`.
 
 Es un costo fijo por proceso: pesa en producción si las instancias se levantan seguido (sección 5).
@@ -103,7 +103,7 @@ y 16; el lote 4 viene de otra sesión de Kaggle (commit `a89f5b9`), con posible 
 | 8 | **cayó** (28 micro-lotes) | inválido | 20,2 GB (11,5 + 8,7) | 30,3 GB | 25,3 | 28 | 13,5 |
 | 16 | **cayó** (10 micro-lotes) | inválido | 22,7 GB (12,8 + 9,8) | 28,0 GB | 34,5 | 10 | 15,1 |
 
-Fuentes: `corridas/kaggle/{lote-original-l1,base-original-l4,lote-original-l8,lote-original-l16}/{salida/tiempos.json,metricas.jsonl,runner.json}`.
+Fuentes: `evaluaciones/recursos/{lote-original-l1,base-original-l4,lote-original-l8,lote-original-l16}/{salida/tiempos.json,metricas.jsonl,runner.json}`.
 VRAM = máximo por GPU sobre los micro-lotes, sumado (cálculo propio). Es **cota superior**, porque los
 picos por GPU pueden no coincidir. Reservada incluye memoria asignada más caché: **no sumar ambas columnas**
 ni confundirlas con memoria física disponible. Los s/caso de 8/16 originales son de corridas cortadas: no sirven para comparar.
@@ -188,11 +188,11 @@ Resultados y s/caso de las filas v39: `evaluaciones/practica/tabla-v39/tabla.md`
 y ancho de las filas v39: cálculo propio sobre `evaluaciones/practica/v40-entrenado-v39/*/metricas.jsonl` (suma sobre micro-lotes / 50;
 VRAM = máximo por GPU sumado; ancho = máximo de `ancho_entrada`). El mismo cálculo reproduce las filas del adapter `dc41674a` desde
 `evaluaciones/practica/v34-entrenado/`.
-Fuentes de las filas anteriores: `corridas/kaggle/{base-*-l4,v27/…/solo_prompt-*,v34/…/{solo_entrenamiento,ambos}-*}/{salida/tiempos.json,metricas.jsonl}`
+Fuentes de las filas anteriores: `evaluaciones/recursos/base-*-l4`, `evaluaciones/practica/v27-solo-prompt/solo_prompt-*` y `evaluaciones/practica/v34-entrenado/{solo_entrenamiento,ambos}-*`, cada una con `{salida/tiempos.json,metricas.jsonl}`
 (sumas y máximos propios sobre `metricas.jsonl`; VRAM = máximo por GPU sumado, cota superior). La fila
 `sin_entrenar` sale de la corrida versionada v25 (`evaluaciones/practica/v25-sin-entrenar/`), que reprodujo los
-resueltos 10/10/7 de `base-*-l4` (sección 1.1); los 15,6–16,1 s/caso y 19,08 GB con torres de `corridas/kaggle/base-*-l4`
-(commit `a89f5b9`, no versionadas) quedan como historial. Carga del modelo (`construir_agente`): sección 1.3.
+resueltos 10/10/7 de `base-*-l4` (sección 1.1); los 15,6–16,1 s/caso y 19,08 GB con torres de `evaluaciones/recursos/base-*-l4`
+(commit `a89f5b9`) quedan como historial. Carga del modelo (`construir_agente`): sección 1.3.
 
 - **El costo lo pone el prompt, no el adapter:** el adapter se fusiona al cargar, así que no agrega capas. Las
   filas con adapter y las demás cargan solo texto; la VRAM pasa de 18,12 GB (base solo texto, `solo-texto-l4`) a
@@ -220,7 +220,7 @@ del modelo de lenguaje (r=8, alpha 16), `corrida.json`.
 | v6 (`humo-entrena-1-v6`) | desde cero, 8 pasos, checkpoint cada 2 | 163 s | 17,4 s (2,18 s/paso) | 2,679 a 2,178 |
 | v7 (`humo-entrena-2-v7`) | reanuda desde `checkpoint-2` bajado de HF | 177 s | 15,8 s (pasos 3 a 8) | pasos 3 a 8 cercanos a v6, no idénticos |
 
-Fuentes: `corridas/kaggle/humo-entrena-{1-v6,2-v7}/{runner.json,runner.log,entrenamiento/checkpoint-*/trainer_state.json}`.
+Fuentes: `evaluaciones/recursos/humo-entrena-{1-v6,2-v7}/{runner.json,runner.log,entrenamiento/checkpoint-*/trainer_state.json}`.
 El tiempo del runner excluye la instalación de dependencias; la carga de pesos tardó ~43 s
 (`runner.log`). La bitácora reporta 7 y 9 min de sesión completa.
 
@@ -228,7 +228,7 @@ El tiempo del runner excluye la instalación de dependencias; la carga de pesos 
   `max_seq_length=8192` (`entrenamiento/corrida.json`). O sea, **1 conversación por paso**. Es la
   configuración del humo, no una decisión de la corrida final.
 - **VRAM de entrenamiento (humo, solo texto): 15,7 GB pico** (9,5 + 6,1 por GPU; 15,8 GB reservada),
-  de `corridas/kaggle/humo-solo-texto/runner.json` (`vram`). Son 4 conversaciones sintéticas cortas con
+  de `evaluaciones/recursos/humo-solo-texto/runner.json` (`vram`). Son 4 conversaciones sintéticas cortas con
   batch 1: **no representa** la corrida real. **PENDIENTE:** el valor con secuencias reales, que el
   entrenador ya registra en W&B, `estado.json` y `runner.json`.
 - **Checkpoints y publicación:** cada checkpoint se sube a HF con revisión, y la reanudación
@@ -335,11 +335,11 @@ que eso empeora la latencia de cada caso ni recomendar un lote para tráfico int
   sin extrapolar más allá). 22,7 GB es menos que los 40 GB de la A100, lo que *sugiere* margen para
   lotes grandes, pero las dos GPU no son comparables (las corridas reportan 15.360 MiB por T4 y el modelo se reparte;
   la A100 tiene una sola GPU de 40 GB). En **lote 8** no reapareció el fallo con `CUDA_LAUNCH_BLOCKING=1`
-  (`corridas/kaggle/diag-l8`); no se probó lote 16 con ese flag. Sugiere concurrencia/asincronía del modelo
+  (`evaluaciones/recursos/diag-l8`); no se probó lote 16 con ese flag. Sugiere concurrencia/asincronía del modelo
   repartido en 2 GPU, pero no identifica la causa ni descarta todas las formas de presión de memoria.
   En A100 cambia la topología: sigue siendo necesario medirlo.
 - Desde 2026-11-05 el modelo se carga **sin las torres de visión y audio**: con el mismo lote 4, la VRAM pico
-  bajó de 19,1 a 18,1 GB con trazas idénticas en los 50 casos (`corridas/kaggle/solo-texto-l4`). Las cifras
+  bajó de 19,1 a 18,1 GB con trazas idénticas en los 50 casos (`evaluaciones/recursos/solo-texto-l4`). Las cifras
   anteriores de esta sección incluyen las torres.
 - No medimos KV cache por conversación ni el techo de lote antes de quedarse sin memoria.
 - **PENDIENTE (A100-40GB):** repetir el barrido 1/4/8/16/32 con `MODELO_METRICAS`, registrar el
@@ -395,8 +395,8 @@ utilización, latencia y costos adicionales futuros no están medidos: **no se p
 
 ## 8. De dónde sale cada número
 
-Artefactos locales en `corridas/kaggle/` (no versionados, regenerables solo volviendo a correr en
-Kaggle; la bitácora [progreso.md](progreso.md) los resume con commit y fecha).
+Las corridas de recursos están versionadas tal cual las dejó Kaggle en `evaluaciones/recursos/`, y las de
+práctica en `evaluaciones/practica/`. La bitácora [progreso.md](progreso.md) las resume con commit y fecha.
 
 | Número | Artefacto o cálculo |
 |---|---|

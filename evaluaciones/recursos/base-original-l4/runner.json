@@ -1,0 +1,37 @@
+{
+  "variante": "original",
+  "cantidad": 50,
+  "configuracion": {
+    "modelo": "google/gemma-4-E4B-it",
+    "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+    "max_tokens_nuevos": 512,
+    "max_contexto": 8192,
+    "lote": 1,
+    "adapter_repo": null,
+    "adapter_revision": null,
+    "adapter_subcarpeta": "final",
+    "metricas": null,
+    "dtype": "float16",
+    "device_map": "auto"
+  },
+  "maquina": {
+    "commit": "a89f5b99e4162ba74d612275e443897769247430",
+    "sucio": false,
+    "gpus": [
+      "Tesla T4, 15360 MiB, 580.178.04",
+      "Tesla T4, 15360 MiB, 580.178.04"
+    ],
+    "torch": {
+      "torch": "2.15.0+cu132",
+      "cuda": "13.2",
+      "gpus": 2,
+      "bf16_nativo": false
+    },
+    "python": "3.13.16"
+  },
+  "estado": "terminada",
+  "inicio": "2026-11-04T19:18:33+0000",
+  "fin": "2026-11-04T19:34:03+0000",
+  "returncode": 0,
+  "log_final": "\nLoading weights:   0%|          | 0/2076 [00:00<?, ?it/s]\nLoading weights:   3%|▎         | 65/2076 [00:00<00:05, 393.65it/s]\nLoading weights:   6%|▌         | 116/2076 [00:00<00:04, 433.86it/s]\nLoading weights:   8%|▊         | 161/2076 [00:00<00:06, 305.58it/s]\nLoading weights:   9%|▉         | 195/2076 [00:00<00:07, 258.46it/s]\nLoading weights:  12%|█▏        | 251/2076 [00:00<00:06, 272.31it/s]\nLoading weights:  15%|█▌        | 313/2076 [00:01<00:06, 284.06it/s]\nLoading weights:  18%|█▊        | 367/2076 [00:01<00:05, 335.90it/s]\nLoading weights:  20%|█▉        | 405/2076 [00:01<00:05, 317.88it/s]\nLoading weights:  21%|██        | 439/2076 [00:01<00:05, 279.75it/s]\nLoading weights:  24%|██▍       | 499/2076 [00:01<00:05, 282.62it/s]\nLoading weights:  27%|██▋       | 561/2076 [00:01<00:05, 288.83it/s]\nLoading weights:  30%|███       | 623/2076 [00:02<00:04, 296.53it/s]\nLoading weights:  33%|███▎      | 677/2076 [00:02<00:04, 340.09it/s]\nLoading weights:  34%|███▍      | 714/2076 [00:02<00:04, 316.80it/s]\nLoading weights:  36%|███▌      | 752/2076 [00:02<00:04, 308.30it/s]\nLoading weights:  36%|███▌      | 752/2076 [00:16<00:04, 308.30it/s]\nLoading weights:  36%|███▋      | 754/2076 [00:17<03:00,  7.31it/s] \nLoading weights:  36%|███▋      | 755/2076 [00:44<10:40,  2.06it/s]\nLoading weights:  99%|█████████▉| 2065/2076 [00:44<00:00, 51.74it/s]\nLoading weights: 100%|██████████| 2076/2076 [00:44<00:00, 46.95it/s]\n{\n  \"casos\": 50,\n  \"con_ficha\": 50,\n  \"construir_buscador\": 0.011,\n  \"construir_agente\": 145.593,\n  \"error\": null,\n  \"jugar_lote\": 782.102,\n  \"jugar_lote_por_caso\": 15.642\n}\n"
+}
