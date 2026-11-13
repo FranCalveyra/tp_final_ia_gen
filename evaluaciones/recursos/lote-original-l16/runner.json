@@ -1,0 +1,37 @@
+{
+  "variante": "original",
+  "cantidad": 50,
+  "configuracion": {
+    "modelo": "google/gemma-4-E4B-it",
+    "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+    "max_tokens_nuevos": 512,
+    "max_contexto": 8192,
+    "lote": 16,
+    "adapter_repo": null,
+    "adapter_revision": null,
+    "adapter_subcarpeta": "final",
+    "metricas": "/kaggle/working/corridas/lote-original-l16/metricas.jsonl",
+    "dtype": "float16",
+    "device_map": "auto"
+  },
+  "maquina": {
+    "commit": "11bf3d6d71c49f014aa1c90ef063a0a100291750",
+    "sucio": false,
+    "gpus": [
+      "Tesla T4, 15360 MiB, 580.178.04",
+      "Tesla T4, 15360 MiB, 580.178.04"
+    ],
+    "torch": {
+      "torch": "2.15.0+cu132",
+      "cuda": "13.2",
+      "gpus": 2,
+      "bf16_nativo": false
+    },
+    "python": "3.13.16"
+  },
+  "estado": "terminada",
+  "inicio": "2026-11-04T20:54:46+0000",
+  "fin": "2026-11-04T20:57:59+0000",
+  "returncode": 0,
+  "log_final": "\nLoading weights:   0%|          | 0/2076 [00:00<?, ?it/s]\nLoading weights:  10%|█         | 209/2076 [00:00<00:00, 2080.85it/s]\nLoading weights:  20%|██        | 418/2076 [00:00<00:00, 1951.69it/s]\nLoading weights:  30%|██▉       | 614/2076 [00:00<00:00, 1944.24it/s]\nLoading weights:  39%|███▉      | 809/2076 [00:15<00:37, 34.03it/s]  \nLoading weights:  64%|██████▍   | 1327/2076 [00:15<00:09, 82.96it/s]\nLoading weights:  79%|███████▉  | 1650/2076 [00:17<00:04, 99.38it/s]\nLoading weights:  90%|████████▉ | 1862/2076 [00:17<00:01, 129.63it/s]\nLoading weights: 100%|█████████▉| 2074/2076 [00:17<00:00, 171.17it/s]\nLoading weights: 100%|██████████| 2076/2076 [00:17<00:00, 119.36it/s]\njugar_lote falló: AcceleratorError: CUDA error: unspecified launch failure\nSearch for `cudaErrorLaunchFailure' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\nThe CUDA driver logged these messages, which may provide useful details:\nReturning 719 (CUDA_ERROR_LAUNCH_FAILED) from cuMemFree_v2\n\n\n{\n  \"casos\": 50,\n  \"con_ficha\": 0,\n  \"construir_buscador\": 0.011,\n  \"construir_agente\": 39.658,\n  \"error\": \"AcceleratorError: CUDA error: unspecified launch failure\\nSearch for `cudaErrorLaunchFailure' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\\nThe CUDA driver logged these messages, which may provide useful details:\\nReturning 719 (CUDA_ERROR_LAUNCH_FAILED) from cuMemFree_v2\\n\\n\",\n  \"jugar_lote\": 151.912,\n  \"jugar_lote_por_caso\": 3.038\n}\n"
+}

@@ -95,8 +95,8 @@ Para la tabla de la Parte 4 (varias configuraciones × original/b/c) usar el pla
 ## Entrenamiento SFT (humo) en Kaggle
 
 Estado: **humo validado en GPU T4**. v6 entrenó ocho pasos y publicó checkpoints 2/4/6/8/final;
-v7 retomó checkpoint-2 publicado y completó con el mismo run_id W&B. Artefactos locales:
-`corridas/kaggle/humo-entrena-{1-v6,2-v7}`. La variante `humo-solo-texto` terminó y registró
+v7 retomó checkpoint-2 publicado y completó con el mismo run_id W&B. Artefactos versionados:
+`evaluaciones/recursos/humo-entrena-{1-v6,2-v7}`. La variante `humo-solo-texto` terminó y registró
 15,675 GB pico (suma de GPU) con conversaciones cortas. Ver [evidencia SFT](entrenamiento-sft.md).
 Sigue siendo una **prueba de pipeline sintética**, no calidad ni memoria de un entrenamiento real,
 y no valida A100 ni promete recuperar pasos posteriores al último checkpoint íntegro.

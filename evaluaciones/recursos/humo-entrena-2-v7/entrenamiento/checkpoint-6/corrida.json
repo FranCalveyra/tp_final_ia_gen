@@ -1,0 +1,56 @@
+{
+  "codigo": {
+    "commit": "acc95b255875184c9098f259e839dd5957950fad",
+    "dirty": false
+  },
+  "ejecucion": {
+    "dispositivos": "auto",
+    "guardar_cada": 2,
+    "precision": "fp16"
+  },
+  "identidad": {
+    "archivos": {
+      "configuracion.json": "eec4545a4f0577ad87bc326bbd9471d9f4feee4040319d1610ef02889acf0bfb",
+      "conversaciones.jsonl": "9584f5c4e263eee896797e4f6500321f000ad3af55306646772604cc2227f511",
+      "manifiesto-tokens.json": "8ef776766136deaa1a848116ddef47d4e277de807fd10caa2ce338fd28851b1e",
+      "manifiesto.json": "cee755a513ff166208ad191533e777cb7b2acdc9c388f059d83dcab5463a1998",
+      "tokens.jsonl": "c8847934ee9cb3125adb9d41eee964301acddefded87e7e2a19f9026bb6ab9be"
+    },
+    "configuracion": {
+      "batch_size": 1,
+      "epochs": 2,
+      "gradient_accumulation_steps": 1,
+      "hf_repo": "FranCalveyra/tp-admision",
+      "learning_rate": 0.0002,
+      "max_seq_length": 8192,
+      "modelo": "google/gemma-4-E4B-it",
+      "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+      "semilla": 42,
+      "version": 1,
+      "wandb_entity": "francalveyra-ia-gen",
+      "wandb_project": "tp-admision"
+    },
+    "lora": {
+      "lora_alpha": 16,
+      "lora_dropout": 0.0,
+      "r": 8,
+      "target_modules": "(.*\\.)?language_model\\.layers\\.\\d+\\.self_attn\\.(q_proj|v_proj)",
+      "task_type": "CAUSAL_LM"
+    },
+    "politica": {
+      "bf16": false,
+      "fp16": true,
+      "gradient_checkpointing": true,
+      "gradient_checkpointing_kwargs": {
+        "use_reentrant": false
+      },
+      "save_only_model": false,
+      "save_steps": 2
+    },
+    "uv_lock_sha256": "9c6c6d9c395b6552cecf015739609809577ecee27a15d37c63a8b8766c12c2c5"
+  },
+  "online": true,
+  "publicar": true,
+  "run_id": "b9088ec869814b35",
+  "version": 1
+}

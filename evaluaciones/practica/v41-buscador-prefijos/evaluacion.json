@@ -1,0 +1,77 @@
+{
+  "plan": {
+    "version": 1,
+    "nombre": "parte2-buscador-prefijos",
+    "descripcion": "Parte 2, pasada 1 (rehecha porque los artefactos de Kaggle v22 se perdieron): el agente sin entrenar con el buscador prefijos, 50 casos de práctica y normas originales. Es la misma configuración que la fila sin_entrenar de actual.json (v25), salvo el buscador, así que se compara contra evaluaciones/practica/v25-sin-entrenar/sin_entrenar-original. Solo para reportar: la elección del buscador no se hace con práctica.",
+    "cantidad": 50,
+    "versiones": [
+      "original"
+    ],
+    "lote": 4,
+    "buscador": "prefijos",
+    "configuraciones": [
+      {
+        "etiqueta": "sin_entrenar_prefijos",
+        "descripcion": "Modelo base sin adapter, prompt baseline y buscador prefijos.",
+        "prompt": "configuraciones/prompts/baseline.json",
+        "prompt_sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474",
+        "adapter": null
+      }
+    ]
+  },
+  "plan_archivo": "configuraciones/evaluacion/buscador-prefijos.json",
+  "plan_sha256": "bd8fd08aac9e3d306f647efda7dd721698f02b5b0ad8b8bec2bc27fdb4467d39",
+  "comando": [
+    "python",
+    "infra/kaggle_evaluacion.py",
+    "--plan",
+    "configuraciones/evaluacion/buscador-prefijos.json",
+    "--salida",
+    "/kaggle/working/corridas/evaluacion-prefijos"
+  ],
+  "maquina": {
+    "commit": "6f6a4f5da8950101abec01a5fc322fcff9d29a4d",
+    "sucio": false,
+    "gpus": [
+      "Tesla T4, 15360 MiB, 580.178.04",
+      "Tesla T4, 15360 MiB, 580.178.04"
+    ],
+    "torch": {
+      "torch": "2.15.0+cu132",
+      "cuda": "13.2",
+      "gpus": 2,
+      "bf16_nativo": false
+    },
+    "python": "3.13.16"
+  },
+  "inicio": "2026-11-13T19:37:30+0000",
+  "dtype": "float16",
+  "device_map": "auto",
+  "corridas": [
+    {
+      "etiqueta": "sin_entrenar_prefijos",
+      "version": "original",
+      "cantidad": 50,
+      "carpeta": "sin_entrenar_prefijos-original",
+      "prompt": {
+        "archivo": "configuraciones/prompts/baseline.json",
+        "nombre": "baseline",
+        "version": 1,
+        "sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474"
+      },
+      "adapter": null,
+      "variables": {
+        "PROMPT_SPEC": "configuraciones/prompts/baseline.json",
+        "MODELO_LOTE": "4",
+        "BUSCADOR_VARIANTE": "prefijos",
+        "ADAPTER_REPO": "",
+        "ADAPTER_REVISION": "",
+        "ADAPTER_SUBCARPETA": ""
+      },
+      "estado": "terminada",
+      "returncode": 0,
+      "error": null
+    }
+  ],
+  "fin": "2026-11-13T19:53:16+0000"
+}

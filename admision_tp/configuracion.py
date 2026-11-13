@@ -9,8 +9,8 @@ REPO_HF = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*")
 SUBCARPETA_HF = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*")
 DTYPES = ("bfloat16", "float16", "float32")
 DEVICE_MAP = re.compile(r"auto|cuda(:\d+)?")
-# Adapter de la entrega (SFT sobre v3-procedimiento, Kaggle v32+v33). Sin ADAPTER_REPO en el entorno se usa este;
-# ADAPTER_REPO vacío pide la base sola.
+# Adapter de la entrega (v39: SFT sobre v6-aviso-datos, continuado desde dc41674a, Kaggle v39).
+# Sin ADAPTER_REPO en el entorno se usa este; ADAPTER_REPO vacío pide la base sola.
 ADAPTER_ENTREGA = ("FranCalveyra/tp-admision", "770c9fac84d5718b0b2cf4c40c3451cad322ac9e")
 # Lote de la entrega: con el que corrieron todas las evaluaciones reportadas (evaluaciones/). MODELO_LOTE lo cambia.
 LOTE_ENTREGA = 4

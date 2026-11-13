@@ -284,9 +284,9 @@ Decisión tomada solo con el dev; la práctica de la v36 no se corrió.
 | Resto (aviso `false`) | **32/32** | 20/32 (10 menores de 75 y 2 mayores con acompañante con `true`) |
 | Otros controles que cambiaron | — | registro 1 arreglado y 1 roto; plazo 1 roto |
 
-- **Causa:** con 46 % de positivos el modelo pasó de «siempre `false`» a decir `true` seguido, sin aprender la
+- **Causa:** con 47,7 % de positivos (302/633) el modelo pasó de «siempre `false`» a decir `true` seguido, sin aprender la
   condición (edad **y** sin acompañante). La caída de 26 a 23 es casi toda del aviso (6 arreglados, 12 rotos).
-- **Por qué cuesta:** el aviso es **un token** entre los ~360 supervisados de cada conversación. La pérdida media lo
+- **Por qué cuesta:** el aviso es **un token** entre los ~350 supervisados de cada conversación (1.015.072 / 2.900). La pérdida media lo
   diluye (v36 arrancó en 0,0069 y terminó en 0,0033: el adapter ya «sabía» todo lo demás), así que el gradiente
   sobre esa decisión es chico y cambiar la proporción de positivos mueve el sesgo, no la regla.
 - **Confirma en GPU** que `adapter_inicial` funciona: la pérdida del paso 1 fue 0,0069 (un LoRA nuevo arranca ~0,44).

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "nombre": "parte2-buscador-prefijos",
+  "descripcion": "Parte 2, pasada 1 (rehecha porque los artefactos de Kaggle v22 se perdieron): el agente sin entrenar con el buscador prefijos, 50 casos de práctica y normas originales. Es la misma configuración que la fila sin_entrenar de actual.json (v25), salvo el buscador, así que se compara contra evaluaciones/practica/v25-sin-entrenar/sin_entrenar-original. Solo para reportar: la elección del buscador no se hace con práctica.",
+  "cantidad": 50,
+  "versiones": ["original"],
+  "lote": 4,
+  "buscador": "prefijos",
+  "configuraciones": [
+    {
+      "etiqueta": "sin_entrenar_prefijos",
+      "descripcion": "Modelo base sin adapter, prompt baseline y buscador prefijos.",
+      "prompt": "configuraciones/prompts/baseline.json",
+      "prompt_sha256": "944ae7f6f52d2052b43be770f891593abfbefb86af088df672687590bfeaf474",
+      "adapter": null
+    }
+  ]
+}

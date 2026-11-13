@@ -1,0 +1,86 @@
+{
+  "modo": "nuevo",
+  "ejecucion": {
+    "precision": "fp16",
+    "dispositivos": "auto",
+    "guardar_cada": 2
+  },
+  "publicar": true,
+  "wandb": "online",
+  "hf_repo": "FranCalveyra/tp-admision",
+  "modelo": "google/gemma-4-E4B-it",
+  "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+  "semilla": 42,
+  "configuracion": {
+    "batch_size": 1,
+    "epochs": 2,
+    "gradient_accumulation_steps": 1,
+    "hf_repo": "FranCalveyra/tp-admision",
+    "learning_rate": 0.0002,
+    "max_seq_length": 8192,
+    "modelo": "google/gemma-4-E4B-it",
+    "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+    "semilla": 42,
+    "version": 1,
+    "wandb_entity": "francalveyra-ia-gen",
+    "wandb_project": "tp-admision"
+  },
+  "reanudacion": null,
+  "commit": "a828467f200f22bcef24bb3e276fd204b048154a",
+  "sucio": false,
+  "maquina": {
+    "commit": "a828467f200f22bcef24bb3e276fd204b048154a",
+    "sucio": false,
+    "gpus": [
+      "Tesla T4, 15360 MiB, 580.178.04",
+      "Tesla T4, 15360 MiB, 580.178.04"
+    ],
+    "torch": {
+      "torch": "2.15.0+cu132",
+      "cuda": "13.2",
+      "gpus": 2,
+      "bf16_nativo": false
+    },
+    "python": "3.13.16"
+  },
+  "estado": "terminada",
+  "inicio": "2026-11-05T11:15:41+0000",
+  "fin": "2026-11-05T11:17:00+0000",
+  "returncode": 0,
+  "log_final": "model.vision_tower.encoder.layers.{0...15}.self_attn.q_proj.linear.weight    | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_1.input_min        | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.mlp.up_proj.output_max            | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.mlp.up_proj.output_min            | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.self_attn.v_proj.output_max       | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.q_proj.input_max                 | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.output_min          | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_2.input_min        | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.input_max           | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.mlp.down_proj.output_max          | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.self_attn.k_proj.input_min        | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_2.output_max       | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_1.input_max        | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.output_max          | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.post.linear.weight               | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.relative_k_proj.weight           | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.mlp.up_proj.input_max             | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.lconv1d.linear_end.output_min              | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.self_attn.o_proj.output_max       | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.mlp.up_proj.linear.weight         | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.post_feedforward_layernorm.weight | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.lconv1d.linear_start.input_max             | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.self_attn.q_proj.input_min        | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.lconv1d.linear_end.linear.weight           | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.norm_pre_attn.weight                       | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.mlp.down_proj.input_min           | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.lconv1d.linear_end.input_max               | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.input_min           | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_2.input_max        | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.self_attn.o_proj.input_max        | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.mlp.up_proj.input_min             | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.post.output_min                  | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward2.pre_layer_norm.weight        | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.mlp.down_proj.input_max           | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.self_attn.o_proj.input_min        | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.post.output_max                  | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.q_proj.output_min                | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.self_attn.q_norm.weight           | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_2.linear.weight    | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.post.input_min                   | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_1.linear.weight    | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.self_attn.v_proj.output_min       | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.k_proj.output_min                | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.mlp.down_proj.linear.weight       | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.k_proj.output_max                | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_1.output_max       | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_1.output_min       | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.norm_out.weight                            | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_2.output_max       | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_1.input_min        | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.mlp.gate_proj.linear.weight       | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.lconv1d.conv_norm.weight                   | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.self_attn.v_proj.input_max        | UNEXPECTED |  | \nmodel.audio_tower.subsample_conv_projection.input_proj_linear.weight         | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.self_attn.o_proj.output_min       | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_2.output_min       | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward1.pre_layer_norm.weight        | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.v_proj.linear.weight             | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.per_dim_scale                    | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward2.post_layer_norm.weight       | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.post.input_max                   | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.lconv1d.linear_start.output_max            | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.k_proj.input_min                 | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.self_attn.q_proj.input_max        | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.k_proj.input_max                 | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_1.input_max        | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward2.ffw_layer_2.input_min        | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.self_attn.v_proj.input_min                 | UNEXPECTED |  | \nmodel.audio_tower.layers.{0...11}.feed_forward1.ffw_layer_1.output_max       | UNEXPECTED |  | \nmodel.vision_tower.encoder.layers.{0...15}.input_layernorm.weight            | UNEXPECTED |  | \nmodel.embed_vision.embedding_projection.weight                               | UNEXPECTED |  | \nmodel.vision_tower.patch_embedder.input_proj.weight                          | UNEXPECTED |  | \nmodel.audio_tower.output_proj.weight                                         | UNEXPECTED |  | \nmodel.audio_tower.output_proj.bias                                           | UNEXPECTED |  | \nmodel.vision_tower.patch_embedder.position_embedding_table                   | UNEXPECTED |  | \nmodel.audio_tower.subsample_conv_projection.layer1.conv.weight               | UNEXPECTED |  | \nmodel.audio_tower.subsample_conv_projection.layer0.norm.weight               | UNEXPECTED |  | \nmodel.audio_tower.subsample_conv_projection.layer0.conv.weight               | UNEXPECTED |  | \nmodel.embed_audio.embedding_projection.weight                                | UNEXPECTED |  | \n\nNotes:\n- UNEXPECTED:\tcan be ignored when loading from different task/architecture; not ok if you expect identical arch.\n\n  0%|          | 0/8 [00:00<?, ?it/s]\n 12%|█▎        | 1/8 [00:02<00:14,  2.04s/it]\n                                             \n\n 12%|█▎        | 1/8 [00:02<00:14,  2.04s/it]\n 25%|██▌       | 2/8 [00:02<00:07,  1.28s/it]\n                                             \n\n 25%|██▌       | 2/8 [00:02<00:07,  1.28s/it]\n 38%|███▊      | 3/8 [00:13<00:28,  5.70s/it]\n                                             \n\n 38%|███▊      | 3/8 [00:13<00:28,  5.70s/it]\n 50%|█████     | 4/8 [00:14<00:14,  3.68s/it]\n                                             \n\n 50%|█████     | 4/8 [00:14<00:14,  3.68s/it]\n 62%|██████▎   | 5/8 [00:18<00:11,  3.81s/it]\n                                             \n\n 62%|██████▎   | 5/8 [00:18<00:11,  3.81s/it]\n 75%|███████▌  | 6/8 [00:19<00:05,  2.73s/it]\n                                             \n\n 75%|███████▌  | 6/8 [00:19<00:05,  2.73s/it]\n 88%|████████▊ | 7/8 [00:22<00:02,  2.93s/it]\n                                             \n\n 88%|████████▊ | 7/8 [00:22<00:02,  2.93s/it]\n100%|██████████| 8/8 [00:22<00:00,  2.19s/it]\n                                             \n\n100%|██████████| 8/8 [00:22<00:00,  2.19s/it]\n                                             \n\n100%|██████████| 8/8 [00:26<00:00,  2.19s/it]\n100%|██████████| 8/8 [00:26<00:00,  3.34s/it]\nwandb: updating run metadata\nwandb: uploading history steps 5-13, summary, console lines 121-121\nwandb: \nwandb: Run history:\nwandb:                    epoch ▁▂▃▄▅▆▇██\nwandb:                grad_norm ▁▁▄▅▇▇▇█\nwandb:            learning_rate █▇▆▅▄▃▂▁\nwandb:                     loss █▇▆▄▃▂▂▁\nwandb:               total_flos ▁\nwandb:               train_loss ▁\nwandb:            train_runtime ▁\nwandb: train_samples_per_second ▁\nwandb:   train_steps_per_second ▁\nwandb:             trainer_step ▁▂▃▄▅▆▇██\nwandb:                       +2 ...\nwandb: \nwandb: Run summary:\nwandb:    checkpoint final\nwandb:         epoch 2\nwandb:     grad_norm 1.74471\nwandb:       hf_repo FranCalveyra/tp-admi...\nwandb:   hf_revision 69570fc94e663bf68b70...\nwandb: learning_rate 3e-05\nwandb:          loss 2.17775\nwandb:    total_flos 32631902355456.0\nwandb:    train_loss 2.40318\nwandb: train_runtime 26.6961\nwandb:            +6 ...\nwandb: \nwandb: 🚀 View run c2b7df5c7f3b4b12 at: https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/c2b7df5c7f3b4b12\nwandb: ⭐️ View project at: https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision\nwandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)\nwandb: Find logs at: /kaggle/working/corridas/humo-solo-texto/entrenamiento/wandb/run-20261105_111557-c2b7df5c7f3b4b12/logs\n{'loss': '2.679', 'grad_norm': '1.084', 'learning_rate': '0.0002', 'epoch': '0.25'}\n{'loss': '2.598', 'grad_norm': '1.081', 'learning_rate': '0.000175', 'epoch': '0.5'}\n{'loss': '2.519', 'grad_norm': '1.327', 'learning_rate': '0.00015', 'epoch': '0.75'}\n{'loss': '2.418', 'grad_norm': '1.464', 'learning_rate': '0.000125', 'epoch': '1'}\n{'loss': '2.347', 'grad_norm': '1.614', 'learning_rate': '0.0001', 'epoch': '1.25'}\n{'loss': '2.269', 'grad_norm': '1.65', 'learning_rate': '7.5e-05', 'epoch': '1.5'}\n{'loss': '2.218', 'grad_norm': '1.694', 'learning_rate': '5e-05', 'epoch': '1.75'}\n{'loss': '2.178', 'grad_norm': '1.745', 'learning_rate': '2.5e-05', 'epoch': '2'}\n{'train_runtime': '26.7', 'train_samples_per_second': '0.3', 'train_steps_per_second': '0.3', 'train_loss': '2.403', 'epoch': '2'}\n{\n  \"estado\": \"finalizada\",\n  \"run_id\": \"c2b7df5c7f3b4b12\",\n  \"wandb_url\": \"https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/c2b7df5c7f3b4b12\",\n  \"publicaciones\": [\n    {\n      \"checkpoint\": \"checkpoint-2\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"ff99d513ed3df1df6adde41517cc1086fad8d679\"\n    },\n    {\n      \"checkpoint\": \"checkpoint-4\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"0e9453360ac56f230971ca189c30d445fbed0ac5\"\n    },\n    {\n      \"checkpoint\": \"checkpoint-6\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"45515598c59d9bd630666dfa1d79a446b437cf4b\"\n    },\n    {\n      \"checkpoint\": \"checkpoint-8\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"8af6b4a343e1c25ae3568e54919039ed05abf9ce\"\n    },\n    {\n      \"checkpoint\": \"final\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"69570fc94e663bf68b70765f431e1b99f93e7774\"\n    }\n  ],\n  \"vram_pico_gb\": 15.675,\n  \"vram_reservada_gb\": 15.818,\n  \"vram_pico_por_gpu_gb\": [\n    9.545,\n    6.13\n  ]\n}\n",
+  "publicaciones": [
+    {
+      "checkpoint": "checkpoint-2",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "ff99d513ed3df1df6adde41517cc1086fad8d679"
+    },
+    {
+      "checkpoint": "checkpoint-4",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "0e9453360ac56f230971ca189c30d445fbed0ac5"
+    },
+    {
+      "checkpoint": "checkpoint-6",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "45515598c59d9bd630666dfa1d79a446b437cf4b"
+    },
+    {
+      "checkpoint": "checkpoint-8",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "8af6b4a343e1c25ae3568e54919039ed05abf9ce"
+    },
+    {
+      "checkpoint": "final",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "69570fc94e663bf68b70765f431e1b99f93e7774"
+    }
+  ],
+  "vram": {
+    "vram_pico_gb": 15.675,
+    "vram_reservada_gb": 15.818,
+    "vram_pico_por_gpu_gb": [
+      9.545,
+      6.13
+    ]
+  }
+}

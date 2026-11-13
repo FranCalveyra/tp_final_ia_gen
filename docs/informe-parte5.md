@@ -1,22 +1,22 @@
-# INFORME, Parte 5: recursos y proyección a producción (BORRADOR)
+# INFORME, Parte 5: recursos y proyección a producción (anexo detallado)
 
-> **Estado: borrador del issue #5. No es el informe final.** Actualizado el 2026-11-13 (adapter v39 de la entrega; práctica de Kaggle v40) con el entrenamiento real
-> (Kaggle v32+v33) y la evaluación del modelo final (v34). Todo salió de **Kaggle 2x T4 con fp16**.
+> **Estado: anexo detallado de la Parte 5 de [`INFORME.md`](../INFORME.md)** (issue #5), actualizado el 2026-11-13
+> al adapter v39 de la entrega y a su práctica (Kaggle v40). Incluye el entrenamiento real (Kaggle v32+v33) y, como
+> historial, la evaluación del adapter anterior (v34). Todo salió de **Kaggle 2x T4 con fp16**.
 > **Nada se midió en A100-40GB.** Esos números figuran como **PENDIENTE**. Los números de T4 no se pueden
-> transferir a A100 y acá no inventamos factores.
-> Para pegar en `INFORME.md` cuando el equipo lo cree; la bitácora vive en [progreso.md](progreso.md).
+> transferir a A100 y acá no inventamos factores. La bitácora vive en [progreso.md](progreso.md).
 
 ## Resumen (lo que ya se puede afirmar)
 
 | Pregunta de la consigna | Respuesta hoy | Estado |
 |---|---|---|
-| Tiempo por caso (inferencia) | Sin entrenar: 33,3 s (lote 1) y 15,6 s (lote 4). **Entrega (adapter + prompt): 24,7–24,9 s (lote 4)** | validado en GPU (T4) |
+| Tiempo por caso (inferencia) | Sin entrenar: 33,3 s (lote 1) y 15,4–16,1 s (lote 4, v25). **Entrega (adapter v39 + prompt): 27,8–28,8 s (lote 4, v40)**; con el adapter anterior `dc41674a`, 24,7–24,9 s (v34, histórico) | validado en GPU (T4) |
 | VRAM de inferencia | 16,7 GB (lote 1), 19,1 GB (lote 4 con torres), 18,1 GB (lote 4 solo texto), suma de 2 T4 | validado en GPU (T4) |
 | Casos a la vez al evaluar | 1/4 válidos; 8/16 fallan sin bloqueo; 8 válido con `CUDA_LAUNCH_BLOCKING=1`, más lento que 4 | T4; causa definitiva pendiente |
 | Casos a la vez al entrenar | 1 conversación por pasada (`batch_size=1`), 8 por paso de optimización (acumulación 8) | validado en GPU (T4) |
 | Tiempo y VRAM de entrenamiento | **SFT real: 363 pasos, ~80–85 s/paso, ~8,1 h de cómputo (≈9,5 h de sesión en 2 tandas); 19,97 GB pico** | validado en GPU (T4) |
 | Costo | Kaggle: 0 USD (~13,5 h de cuota en la semana del SFT). A100: fórmula, sin medición | PENDIENTE (A100) |
-| Simultáneos en producción | ~145 casos/h por proceso con la entrega en T4 (lote 4); proyección en sección 5 | hipótesis, A100: PENDIENTE |
+| Simultáneos en producción | ~125–129 casos/h por proceso con la entrega v39 en T4 (lote 4; ~145 con el adapter anterior `dc41674a`); proyección en sección 5 | hipótesis, A100: PENDIENTE |
 | Adapter de la entrega | **v39 (`770c9fac`), desde 2026-11-13**: continuación del adapter `dc41674a` (v32+v33) sobre `v6-aviso-datos`, 142 pasos, 11.735 s (3,26 h), 20,36 GB pico, 31/40 en el dev contra 26/40 | validado en GPU (T4), solo dev |
 | Antes/después con el modelo final | 27/150 → **100/150** resueltos con el adapter v39 de la entrega (Kaggle v40; 92/150 con el anterior, `dc41674a`); 15,4–16,1 → 27,8–28,8 s/caso (~+80 %) en T4, lote 4; en la versión b perdió un caso (29 → 28) (sección 3.2) | validado en GPU (T4) |
 
@@ -44,7 +44,7 @@ Puntuado con `admision.correr puntuar`. **Una sola corrida por configuración.**
 | b | 10/50 | 0,820 | 15,8 | 47,2 s | 64 | 17,2 |
 | c | 7/50 | 0,816 | 16,1 | 34,1 s | 64 | 16,8 |
 
-Fuentes: `corridas/kaggle/base-{original,b,c}-l4/{puntuacion.json,salida/tiempos.json,metricas.jsonl}`.
+Fuentes: `evaluaciones/recursos/base-{original,b,c}-l4/{puntuacion.json,salida/tiempos.json,metricas.jsonl}`.
 Tokens/s = tokens generados sobre segundos de `generate`, sumados sobre los micro-lotes
 (cálculo propio). Los resueltos no son comparables con la referencia de la cátedra (12, 15, 12,
 medida en otra GPU y otra precisión); acá importan los recursos.
@@ -79,10 +79,15 @@ Cada caso es una conversación de 3 a 8 llamadas al modelo. Mínimo / mediana / 
 
 ### 1.3 Tiempo de carga
 
-`construir_agente` varía según corrida y caché: 145,6 s en `base-original-l4`, 156,0 s en
-`lote-original-l1` y 125,7 s en `solo-texto-l4`; las variantes b/c previas registraron 47,2/34,1 s
-(`salida/tiempos.json`). No separa descarga de carga. Es un costo fijo por proceso: pesa en
-producción si las instancias se levantan seguido (sección 5).
+`construir_agente` varía según corrida y caché, y no separa descarga de carga.
+
+- **Corridas versionadas** (`evaluaciones/practica/*/salida/tiempos.json`): modelo base 20,5–21,6 s (v25) y
+  39,4–43,2 s (v27, normas b y c); base + adapter 22,6–48,8 s (v34 con `dc41674a` y v40 con el v39). La primera
+  corrida de algunas sesiones tardó mucho más: 147,9 s (v27, base) y 141,8–155,0 s (v34 y v40, con adapter).
+- **Corridas históricas** (`evaluaciones/recursos/`, base sin entrenar): 145,6 s en `base-original-l4`,
+  156,0 s en `lote-original-l1`, 125,7 s en `solo-texto-l4` y 47,2/34,1 s en `base-b-l4`/`base-c-l4`.
+
+Es un costo fijo por proceso: pesa en producción si las instancias se levantan seguido (sección 5).
 
 ---
 
@@ -98,7 +103,7 @@ y 16; el lote 4 viene de otra sesión de Kaggle (commit `a89f5b9`), con posible 
 | 8 | **cayó** (28 micro-lotes) | inválido | 20,2 GB (11,5 + 8,7) | 30,3 GB | 25,3 | 28 | 13,5 |
 | 16 | **cayó** (10 micro-lotes) | inválido | 22,7 GB (12,8 + 9,8) | 28,0 GB | 34,5 | 10 | 15,1 |
 
-Fuentes: `corridas/kaggle/{lote-original-l1,base-original-l4,lote-original-l8,lote-original-l16}/{salida/tiempos.json,metricas.jsonl,runner.json}`.
+Fuentes: `evaluaciones/recursos/{lote-original-l1,base-original-l4,lote-original-l8,lote-original-l16}/{salida/tiempos.json,metricas.jsonl,runner.json}`.
 VRAM = máximo por GPU sobre los micro-lotes, sumado (cálculo propio). Es **cota superior**, porque los
 picos por GPU pueden no coincidir. Reservada incluye memoria asignada más caché: **no sumar ambas columnas**
 ni confundirlas con memoria física disponible. Los s/caso de 8/16 originales son de corridas cortadas: no sirven para comparar.
@@ -121,8 +126,9 @@ ni confundirlas con memoria física disponible. Los s/caso de 8/16 originales so
   El pico asignado fue 11,5+8,7 GB; la suma reservada no prueba el estado instantáneo ni memoria libre de
   cada GPU. No hay diagnóstico de OOM ni de ausencia de presión de memoria a partir de esos agregados.
 
-**Al evaluar en la A100-40GB:** lote por defecto 1, sin medir. **PENDIENTE** repetir 1/4/8/16 en
-A100-40GB y fijar el lote de la entrega con evidencia (el default del código no cambió).
+**Al evaluar en la A100-40GB:** la entrega usa lote 4 por defecto (`LOTE_ENTREGA = 4` en
+`admision_tp/configuracion.py`; `MODELO_LOTE` lo cambia), sin medir en A100. **PENDIENTE** repetir 1/4/8/16 en
+A100-40GB y confirmar el lote de la entrega con evidencia.
 
 ---
 
@@ -171,18 +177,22 @@ conjunto de desarrollo (31/40 contra 26/40; [pasada 10](analisis-errores.md)). R
 
 | Configuración | Resueltos original / b / c | s/caso | Tokens de entrada por caso | Tokens generados por caso | VRAM pico | Ancho máx. |
 |---|---|---:|---:|---:|---:|---:|
-| `sin_entrenar` (baseline) | 10 / 10 / 7 | 15,6–16,1 | ~5.750 | ~271 | 19,08 GB con torres; 18,12 GB solo texto | 3.072 |
+| `sin_entrenar` (baseline, v25) | 10 / 10 / 7 | 15,4–16,1 | ~5.690–5.750 | ~270–271 | 18,12 GB solo texto (19,08 GB con torres en `base-*-l4`, histórico) | 3.072 |
 | `solo_prompt` (procedimiento-v1) | 14 / 16 / 12 | 24,4–26,6 | ~13.650–14.640 | ~322–332 | 19,25–19,64 GB | 4.436 |
-| `solo_entrenamiento` (adapter v39 + baseline) | 17 / 14 / 20 | 27,7–30,2 | sin recalcular | sin recalcular | sin recalcular | sin recalcular |
-| **`ambos` (la entrega, adapter v39)** | **36 / 28 / 36** | **27,8–28,8** | sin recalcular | sin recalcular | sin recalcular | sin recalcular |
+| `solo_entrenamiento` (adapter v39 + baseline) | 17 / 14 / 20 | 27,7–30,2 | ~12.150–14.200 | ~333–338 | 20,25–21,71 GB | 7.636 |
+| **`ambos` (la entrega, adapter v39)** | **36 / 28 / 36** | **27,8–28,8** | **~14.100–14.200** | **~353–355** | **19,94 GB** | **4.395** |
 | `solo_entrenamiento` con el adapter anterior `dc41674a` (v34, historial) | 11 / 13 / 12 | 18,7–19,7 | ~7.860–8.430 | ~286–293 | 18,69–18,91 GB | 4.476 |
 | `ambos` con el adapter anterior `dc41674a` (v34, historial) | 30 / 29 / 33 | 24,7–24,9 | ~13.840 | ~336 | 19,56 GB | 4.160 |
 
 Resultados y s/caso de las filas v39: `evaluaciones/practica/tabla-v39/tabla.md` (`segundos/caso` = `jugar_lote / casos`). Tokens, VRAM
-y ancho de las filas v39 no se recalcularon: las celdas con números son del adapter `dc41674a`, de v22 y de v27.
-Fuentes de las filas anteriores: `corridas/kaggle/{base-*-l4,v27/…/solo_prompt-*,v34/…/{solo_entrenamiento,ambos}-*}/{salida/tiempos.json,metricas.jsonl}`
+y ancho de las filas v39: cálculo propio sobre `evaluaciones/practica/v40-entrenado-v39/*/metricas.jsonl` (suma sobre micro-lotes / 50;
+VRAM = máximo por GPU sumado; ancho = máximo de `ancho_entrada`). El mismo cálculo reproduce las filas del adapter `dc41674a` desde
+`evaluaciones/practica/v34-entrenado/`.
+Fuentes de las filas anteriores: `evaluaciones/recursos/base-*-l4`, `evaluaciones/practica/v27-solo-prompt/solo_prompt-*` y `evaluaciones/practica/v34-entrenado/{solo_entrenamiento,ambos}-*`, cada una con `{salida/tiempos.json,metricas.jsonl}`
 (sumas y máximos propios sobre `metricas.jsonl`; VRAM = máximo por GPU sumado, cota superior). La fila
-`sin_entrenar` es la de v22, que v25 reprodujo exacto. Carga del modelo (`construir_agente`): 23–148 s según caché.
+`sin_entrenar` sale de la corrida versionada v25 (`evaluaciones/practica/v25-sin-entrenar/`), que reprodujo los
+resueltos 10/10/7 de `base-*-l4` (sección 1.1); los 15,6–16,1 s/caso y 19,08 GB con torres de `evaluaciones/recursos/base-*-l4`
+(commit `a89f5b9`) quedan como historial. Carga del modelo (`construir_agente`): sección 1.3.
 
 - **El costo lo pone el prompt, no el adapter:** el adapter se fusiona al cargar, así que no agrega capas. Las
   filas con adapter y las demás cargan solo texto; la VRAM pasa de 18,12 GB (base solo texto, `solo-texto-l4`) a
@@ -196,7 +206,8 @@ Fuentes de las filas anteriores: `corridas/kaggle/{base-*-l4,v27/…/solo_prompt
   0,72 / 0,72 / 0,72: mejora en dos versiones y baja en b. Una sola corrida por versión; no hay intervalos.
 - **Referencia de la cátedra:** SFT con datos perfectos da 25/24/25. `solo_entrenamiento` con v39 dio 17/14/20 (51/150)
   y tiene 3/3/1 casos sin decisión.
-- **Contexto:** la entrada más ancha fue 4.476 tokens, lejos de los 8.192 del tope. No hubo recortes.
+- **Contexto:** la entrada más ancha fue 7.636 tokens (`solo_entrenamiento` v39, normas b), debajo de los 8.192 del
+  tope; la entrega (`ambos` v39) llegó a 4.395. No hubo recortes.
 
 ### 3.3 Humo de entrenamiento (2026-11-05, histórico)
 
@@ -209,7 +220,7 @@ del modelo de lenguaje (r=8, alpha 16), `corrida.json`.
 | v6 (`humo-entrena-1-v6`) | desde cero, 8 pasos, checkpoint cada 2 | 163 s | 17,4 s (2,18 s/paso) | 2,679 a 2,178 |
 | v7 (`humo-entrena-2-v7`) | reanuda desde `checkpoint-2` bajado de HF | 177 s | 15,8 s (pasos 3 a 8) | pasos 3 a 8 cercanos a v6, no idénticos |
 
-Fuentes: `corridas/kaggle/humo-entrena-{1-v6,2-v7}/{runner.json,runner.log,entrenamiento/checkpoint-*/trainer_state.json}`.
+Fuentes: `evaluaciones/recursos/humo-entrena-{1-v6,2-v7}/{runner.json,runner.log,entrenamiento/checkpoint-*/trainer_state.json}`.
 El tiempo del runner excluye la instalación de dependencias; la carga de pesos tardó ~43 s
 (`runner.log`). La bitácora reporta 7 y 9 min de sesión completa.
 
@@ -217,7 +228,7 @@ El tiempo del runner excluye la instalación de dependencias; la carga de pesos 
   `max_seq_length=8192` (`entrenamiento/corrida.json`). O sea, **1 conversación por paso**. Es la
   configuración del humo, no una decisión de la corrida final.
 - **VRAM de entrenamiento (humo, solo texto): 15,7 GB pico** (9,5 + 6,1 por GPU; 15,8 GB reservada),
-  de `corridas/kaggle/humo-solo-texto/runner.json` (`vram`). Son 4 conversaciones sintéticas cortas con
+  de `evaluaciones/recursos/humo-solo-texto/runner.json` (`vram`). Son 4 conversaciones sintéticas cortas con
   batch 1: **no representa** la corrida real. **PENDIENTE:** el valor con secuencias reales, que el
   entrenador ya registra en W&B, `estado.json` y `runner.json`.
 - **Checkpoints y publicación:** cada checkpoint se sube a HF con revisión, y la reanudación
@@ -280,9 +291,11 @@ la fórmula aplicada a tiempos **de T4**, solo como referencia de orden y no com
 | 15,6 s (lote 4 en T4) | 0,0091 USD | 0,46 USD |
 | 33,3 s (lote 1 en T4) | 0,0194 USD | 0,97 USD |
 
-Cargar el modelo (34 a 156 s en T4) equivale a 0,02 a 0,09 USD por arranque a 2,10 USD/h.
+Cargar el modelo (20,5 a 155,0 s en T4, corridas versionadas, sección 1.3) equivale a 0,01 a 0,09 USD por
+arranque a 2,10 USD/h.
 Aplicada al entrenamiento real como orden de magnitud (no predicción): si una A100 tardara lo mismo que las 2 T4,
-~9,5 h × 2,10 = ~20 USD por época; con la entrega a 24,9 s/caso, 0,0145 USD por caso y 0,73 USD por 50 casos.
+~9,5 h × 2,10 = ~20 USD por época; con la entrega v39 a 28,8 s/caso, 0,0168 USD por caso y 0,84 USD por 50 casos
+(histórico, con el adapter anterior `dc41674a`: 24,9 s/caso, 0,0145 USD y 0,73 USD).
 **PENDIENTE (A100):** s/caso, carga, costo por caso, costo del entrenamiento real y costo total de
 desarrollo. **Mantenimiento:** hoy no hay datos; se reportará como costo por caso x volumen
 esperado cuando exista el s/caso en A100.
@@ -310,8 +323,9 @@ Los 50 casos entran juntos; `MODELO_LOTE=4` controla micro-lotes de inferencia, 
 en vuelo**. La espera entre micro-lotes sí afecta ese tiempo de finalización. La antigua aproximación
 “5 llamadas × duración micro-lote” la omitía y se retiró. No son latencias de servicio interactivo/SLO medidos.
 
-**Con la entrega (adapter + `procedimiento-v1`, lote 4):** 24,9 s/caso → **~145 casos/h por proceso** en 2 T4,
-19,56 GB de VRAM pico. Es ~37 % menos rendimiento que sin entrenar, por el contexto más largo (sección 3.2).
+**Con la entrega (adapter v39 + `procedimiento-v1`, lote 4):** 27,8–28,8 s/caso → **~125–129 casos/h por proceso** en
+2 T4, 19,94 GB de VRAM pico (con el adapter anterior `dc41674a`: 24,9 s/caso, ~145 casos/h, 19,56 GB). Es ~45 % menos
+rendimiento que sin entrenar, por el contexto más largo (sección 3.2).
 
 **Lectura.** Cada llamada por micro-lote tarda más con 4, pero el lote de 50 termina antes; no extrapolar
 que eso empeora la latencia de cada caso ni recomendar un lote para tráfico interactivo sin medirlo.
@@ -321,11 +335,11 @@ que eso empeora la latencia de cada caso ni recomendar un lote para tráfico int
   sin extrapolar más allá). 22,7 GB es menos que los 40 GB de la A100, lo que *sugiere* margen para
   lotes grandes, pero las dos GPU no son comparables (las corridas reportan 15.360 MiB por T4 y el modelo se reparte;
   la A100 tiene una sola GPU de 40 GB). En **lote 8** no reapareció el fallo con `CUDA_LAUNCH_BLOCKING=1`
-  (`corridas/kaggle/diag-l8`); no se probó lote 16 con ese flag. Sugiere concurrencia/asincronía del modelo
+  (`evaluaciones/recursos/diag-l8`); no se probó lote 16 con ese flag. Sugiere concurrencia/asincronía del modelo
   repartido en 2 GPU, pero no identifica la causa ni descarta todas las formas de presión de memoria.
   En A100 cambia la topología: sigue siendo necesario medirlo.
 - Desde 2026-11-05 el modelo se carga **sin las torres de visión y audio**: con el mismo lote 4, la VRAM pico
-  bajó de 19,1 a 18,1 GB con trazas idénticas en los 50 casos (`corridas/kaggle/solo-texto-l4`). Las cifras
+  bajó de 19,1 a 18,1 GB con trazas idénticas en los 50 casos (`evaluaciones/recursos/solo-texto-l4`). Las cifras
   anteriores de esta sección incluyen las torres.
 - No medimos KV cache por conversación ni el techo de lote antes de quedarse sin memoria.
 - **PENDIENTE (A100-40GB):** repetir el barrido 1/4/8/16/32 con `MODELO_METRICAS`, registrar el
@@ -334,7 +348,7 @@ que eso empeora la latencia de cada caso ni recomendar un lote para tráfico int
 **Cómo escalaría si sube la demanda** (diseño, no implementado ni validado):
 1. **Réplicas:** más procesos/contenedores con una A100-40GB cada uno en la plataforma futura, con el modelo y el adapter
    cargados una vez por contenedor. El costo crece lineal con la cantidad de réplicas activas.
-   Cuidar el arranque en frío (34 a 156 s de carga en T4): contenedores tibios si hay picos.
+   Cuidar el arranque en frío (20,5 a 155,0 s de carga en T4, sección 1.3): contenedores tibios si hay picos.
 2. **Servidor con batching continuo (vLLM):** admite casos que entran y salen del lote en cada
    paso, sin esperar la tanda. Es la mejora más grande esperable en rendimiento, **no probada**:
    queda como trabajo futuro (verificar soporte de Gemma 4 y de adapters LoRA).
@@ -381,8 +395,8 @@ utilización, latencia y costos adicionales futuros no están medidos: **no se p
 
 ## 8. De dónde sale cada número
 
-Artefactos locales en `corridas/kaggle/` (no versionados, regenerables solo volviendo a correr en
-Kaggle; la bitácora [progreso.md](progreso.md) los resume con commit y fecha).
+Las corridas de recursos están versionadas tal cual las dejó Kaggle en `evaluaciones/recursos/`, y las de
+práctica en `evaluaciones/practica/`. La bitácora [progreso.md](progreso.md) las resume con commit y fecha.
 
 | Número | Artefacto o cálculo |
 |---|---|

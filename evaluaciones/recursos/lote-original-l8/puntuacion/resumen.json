@@ -1,0 +1,27 @@
+{
+  "casos": 50,
+  "resueltos": 1,
+  "parcial_medio": 0.247,
+  "por_control": {
+    "registro": 0.26,
+    "numero_documento": 0.32,
+    "box_antes_del_registro": 0.16,
+    "circuito": 0.32,
+    "plazo_circuito_min": 0.28,
+    "cobertura": 0.24,
+    "entidad_a_notificar": 0.24,
+    "aviso_al_voluntariado": 0.2,
+    "verificacion": 0.2
+  },
+  "sin_decision": 34,
+  "llamadas_medio": 3.9,
+  "busquedas_por_caso": 1.06,
+  "caracteres_de_contexto_por_caso": 0,
+  "segundos": {
+    "construir_buscador": 0.012,
+    "construir_agente": 49.585,
+    "jugar_lote": 379.527,
+    "jugar_lote_por_caso": 7.591
+  },
+  "error": "AcceleratorError: CUDA error: unspecified launch failure\nSearch for `cudaErrorLaunchFailure' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\nThe CUDA driver logged these messages, which may provide useful details:\nReturning 719 (CUDA_ERROR_LAUNCH_FAILED) from cuMemFree_v2\n\n"
+}

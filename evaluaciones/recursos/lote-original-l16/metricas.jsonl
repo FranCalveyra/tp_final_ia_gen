@@ -1,0 +1,10 @@
+{"conversaciones": 16, "ancho_entrada": 651, "tokens_entrada": 10416, "tokens_generados": 480, "segundos": 10.0288, "vram_pico_gb": 18.77, "vram_reservada_gb": 19.518, "vram_pico_por_gpu_gb": [10.723, 8.047]}
+{"conversaciones": 16, "ancho_entrada": 651, "tokens_entrada": 10416, "tokens_generados": 480, "segundos": 9.6453, "vram_pico_gb": 18.77, "vram_reservada_gb": 19.518, "vram_pico_por_gpu_gb": [10.723, 8.047]}
+{"conversaciones": 16, "ancho_entrada": 651, "tokens_entrada": 10416, "tokens_generados": 480, "segundos": 9.9132, "vram_pico_gb": 18.77, "vram_reservada_gb": 19.518, "vram_pico_por_gpu_gb": [10.723, 8.047]}
+{"conversaciones": 2, "ancho_entrada": 651, "tokens_entrada": 1302, "tokens_generados": 60, "segundos": 4.3484, "vram_pico_gb": 16.245, "vram_reservada_gb": 19.562, "vram_pico_por_gpu_gb": [9.38, 6.865]}
+{"conversaciones": 16, "ancho_entrada": 882, "tokens_entrada": 13845, "tokens_generados": 666, "segundos": 17.1868, "vram_pico_gb": 19.811, "vram_reservada_gb": 22.24, "vram_pico_por_gpu_gb": [11.288, 8.523]}
+{"conversaciones": 16, "ancho_entrada": 862, "tokens_entrada": 13614, "tokens_generados": 749, "segundos": 16.3068, "vram_pico_gb": 19.719, "vram_reservada_gb": 22.24, "vram_pico_por_gpu_gb": [11.238, 8.481]}
+{"conversaciones": 16, "ancho_entrada": 914, "tokens_entrada": 13962, "tokens_generados": 619, "segundos": 16.9845, "vram_pico_gb": 19.954, "vram_reservada_gb": 24.398, "vram_pico_por_gpu_gb": [11.365, 8.589]}
+{"conversaciones": 2, "ancho_entrada": 909, "tokens_entrada": 1793, "tokens_generados": 74, "segundos": 6.3184, "vram_pico_gb": 16.391, "vram_reservada_gb": 24.4, "vram_pico_por_gpu_gb": [9.459, 6.932]}
+{"conversaciones": 16, "ancho_entrada": 1522, "tokens_entrada": 17020, "tokens_generados": 953, "segundos": 42.3159, "vram_pico_gb": 22.689, "vram_reservada_gb": 27.995, "vram_pico_por_gpu_gb": [12.842, 9.847]}
+{"conversaciones": 16, "ancho_entrada": 961, "tokens_entrada": 14998, "tokens_generados": 662, "segundos": 18.3213, "vram_pico_gb": 20.163, "vram_reservada_gb": 27.995, "vram_pico_por_gpu_gb": [11.477, 8.686]}
