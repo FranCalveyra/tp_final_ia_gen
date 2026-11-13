@@ -760,9 +760,10 @@ producción**.
    contenedores tibios por el arranque en frío de 20,5–155,0 s medido en T4 (sección 5.2).
 2. **Servidor con batching continuo (vLLM):** es la mayor ganancia esperable, pero no se probó. Falta verificar
    el soporte de Gemma 4 y de LoRA.
-3. **Menos tokens por caso:** el mensaje de sistema es ~35 % de la conversación mediana con el prompt de la cátedra.
-   Recortarlo baja el cómputo y la VRAM. Ese 35 % cuenta caracteres en nuestras corridas (2.232 de 6.409); la
-   «quinta parte» de la consigna se refiere a la referencia de la cátedra.
+3. **Menos tokens por caso:** en nuestras corridas con el prompt `baseline` de la cátedra, el mensaje de sistema
+   ocupa ~35 % de los caracteres de la conversación mediana (2.232 de 6.409). Como se repite en cada llamada,
+   recortarlo baja el cómputo y la VRAM. La consigna habla de «la quinta parte» porque mide sobre las
+   conversaciones de referencia de la cátedra, no sobre las nuestras.
 
 ---
 
@@ -791,6 +792,6 @@ producción**.
 | Barrido de hiperparámetros (lr, r, épocas, módulos LoRA) | Más casos resueltos y menos fallas fuera del aviso | Sin probar |
 | Servidor con batching continuo (vLLM) | Más rendimiento y mejor latencia en producción | Sin probar |
 | Corregir el fallo CUDA en lotes ≥ 8 | Más casos a la vez | Lote 8 con bloqueo completa, pero más lento; causa pendiente |
-| Recortar el mensaje de sistema y el contexto de búsquedas | Menos cómputo y VRAM por llamada | El sistema es ~35 % de la conversación mediana (prompt de la cátedra) |
+| Recortar el mensaje de sistema y el contexto de búsquedas | Menos cómputo y VRAM por llamada | Sin probar; en nuestras corridas con el prompt `baseline`, el mensaje de sistema es ~35 % de los caracteres de la conversación mediana |
 | Sinónimos en el buscador | Resolver d030 y d023 | Sin probar |
 | Repetir mediciones | Intervalos en vez de una sola corrida | Sin hacer |
