@@ -127,6 +127,27 @@ W&B `6d8edb168beb4e9b`, `final` `22ee5596c8d3014bd86caaca6a87034d06e1d4e8`. En e
 23 resueltos: aprendió a decir `true` sin la condición ([pasada 8](analisis-errores.md)). Validó en GPU que
 `adapter_inicial` carga el adapter publicado (pérdida inicial 0,0069, no ~0,44).
 
+### 6. Peso en el token del aviso (`peso_aviso`)
+
+Con `peso_aviso` (> 1) en la configuración, la pérdida multiplica por ese valor la del token del valor
+(`true`/`false`) de `aviso_al_voluntariado` que registra el asistente; el resto pesa 1 y se normaliza igual que
+sin pesos. `pesos_del_aviso` ubica ese token decodificando el contexto anterior (`"aviso_al_voluntariado":`), sin
+suponer cómo tokeniza la clave, y **falla antes de cargar los pesos** si no lo encuentra exactamente una vez en una
+conversación. Motivo ([pasada 8](analisis-errores.md)): el aviso es un token entre ~360 supervisados y se diluye en
+la pérdida media; subir la proporción de positivos (v36) movió el sesgo sin enseñar la regla.
+
+`configuraciones/sft-aviso-peso.json`: parte del adapter de la entrega, `peso_aviso` 20, lr 1e-4, 1 época sobre
+`datos/conversaciones/v5-aviso-peso` (1.133: 302 con aviso, 231 mayores con acompañante, 600 del resto; 27 % de
+positivos contra 46 % de v4-aviso). **Probado con dobles** (ubicación del token, alineación con los objetivos,
+padding); la suma ponderada en torch se valida en GPU.
+
+**Resultado (Kaggle v38, 2026-11-12/13): no se adoptó.** 142 pasos, ~83 s/paso (11.750 s), 20,29 GB de VRAM pico,
+W&B `f9326b10342b4be4`, `final` `17e9fe3d8a422284d6337a9372f697377d43319e`. En el conjunto de desarrollo dio 26
+resueltos, igual que v35, con aviso 30/40 (v35: 32), 1/8 positivos atrapados y 3 falsos `true`, más fallas en
+cobertura, registro y orden del box ([pasada 9](analisis-errores.md)). Validó en GPU que la pérdida ponderada
+entrena sin errores (la pérdida se reporta con el peso: no es comparable con la de v36). Recibos en
+`evaluaciones/entrenamiento/v38-peso`.
+
 ## Estado de cierre de infraestructura y límites restantes
 
 Los cuatro criterios técnicos del pipeline genérico están respaldados: conversaciones/config/semilla,

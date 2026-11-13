@@ -222,6 +222,7 @@ instalación del entorno):
 | Evaluación práctica: `solo_prompt` (v27) y `solo_entrenamiento` + `ambos` (v34) | ~1 h + ~2 h de sesión | bitácora |
 | Verificación en el conjunto de desarrollo (v35, 40 casos) | ~0,7 h de sesión | bitácora |
 | Refuerzo del aviso (v36: 80 pasos + dev), no adoptado | 2 h de runner + ~0,4 h de dev | `evaluaciones/entrenamiento/v36-aviso/runner.json` |
+| Peso en el token del aviso (v38: 142 pasos + dev), no adoptado | 3,3 h de runner + dev | `evaluaciones/entrenamiento/v38-peso/runner.json` |
 
 Según la API de Kaggle (`get_accelerator_quota`, 2026-11-12), la semana del SFT llevaba **48.546 s (13,5 h)
 de 30 h**, incluidos los intentos fallidos v28–v31; la cuota se renueva los sábados 00:00 UTC.
@@ -347,7 +348,7 @@ utilización, latencia y costos adicionales futuros no están medidos: **no se p
 | Medir en A100-40GB | todos los números finales | vía alternativa a determinar; Modal descartado |
 | Reducir el mensaje de sistema y el contexto de búsquedas | menos cómputo y VRAM por llamada y por entrenamiento | sistema = 2.232 caracteres (~35 % de la conversación mediana); búsqueda: la consigna dice que es más de la mitad en la referencia |
 | Repetir cada medición varias veces | intervalos en vez de una sola corrida | hoy una sola por configuración |
-| Enseñar el aviso al voluntariado (peso en su token, o DPO) | +8 casos en el dev si se acierta (26 → hasta 34/40) | el refuerzo por proporción (v36) sobrecorrigió: 23/40 ([pasada 8](analisis-errores.md)) |
+| Enseñar el aviso al voluntariado (peso en su token, o DPO) | +8 casos en el dev si se acierta (26 → hasta 34/40) | probado: el refuerzo por proporción (v36) sobrecorrigió (23/40, [pasada 8](analisis-errores.md)) y el peso 20 (v38) empató en 26/40 con más controles rotos ([pasada 9](analisis-errores.md)); DPO sin probar |
 
 ---
 

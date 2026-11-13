@@ -1,0 +1,58 @@
+{
+  "estado": "finalizada",
+  "publicaciones": [
+    {
+      "checkpoint": "checkpoint-20",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "113207d6b208b0e18341da6229800996e25755fc"
+    },
+    {
+      "checkpoint": "checkpoint-40",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "028a3447f7b3c18c8fc35e9b36eb5a307399d9e5"
+    },
+    {
+      "checkpoint": "checkpoint-60",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "318f2e64ba50c6d7609a47d40fbe03bd13535839"
+    },
+    {
+      "checkpoint": "checkpoint-80",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "017ed7294957103e898e29318302687c29a119e7"
+    },
+    {
+      "checkpoint": "checkpoint-100",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "f9f9c23587d6f588b2376725efa78cce3d49acce"
+    },
+    {
+      "checkpoint": "checkpoint-120",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "736ae535fa2337be54e6a246504eaa10a5795210"
+    },
+    {
+      "checkpoint": "checkpoint-140",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "22a240e7dd0f6233b88f5aba9738673f0a25f1d8"
+    },
+    {
+      "checkpoint": "checkpoint-142",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "3706c6d35a2081221b771c60a8481403ddd18158"
+    },
+    {
+      "checkpoint": "final",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "17e9fe3d8a422284d6337a9372f697377d43319e"
+    }
+  ],
+  "run_id": "f9326b10342b4be4",
+  "vram_pico_gb": 20.289,
+  "vram_pico_por_gpu_gb": [
+    12.304,
+    7.985
+  ],
+  "vram_reservada_gb": 20.898,
+  "wandb_url": "https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/f9326b10342b4be4"
+}

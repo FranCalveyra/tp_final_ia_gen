@@ -106,3 +106,12 @@ class PreparacionTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PesoAvisoConfigTest(unittest.TestCase):
+    def test_peso_aviso_opcional_mayor_que_uno(self):
+        config = json.loads((RAIZ / "configuraciones/sft-ejemplo.json").read_text())
+        validar_configuracion({**config, "peso_aviso": 20})
+        for malo in (1, 0.5, -3, float("nan"), True, "20"):
+            with self.subTest(peso=malo), self.assertRaises(ValueError):
+                validar_configuracion({**config, "peso_aviso": malo})

@@ -370,3 +370,42 @@ class AdapterInicialTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "otra base"):
             aplicar_lora(peft, "modelo", config)
         self.assertEqual(llamadas, [])
+
+
+class PesoAvisoTest(unittest.TestCase):
+    """#15: peso extra en el token del valor de `aviso_al_voluntariado` de la ficha (pasada 8)."""
+
+    VOCAB = {1: "<sistema aviso_al_voluntariado>", 2: '{"box": ', 3: "true", 4: ', "', 5: "aviso_al_voluntariado",
+             6: '": ', 7: "false", 8: "}", 9: " true", 10: " false,", 0: "<pad>"}
+
+    def decodificar(self, ids):
+        return "".join(self.VOCAB[i] for i in ids)
+
+    def test_pesa_solo_el_valor_del_aviso_supervisado(self):
+        from admision_tp.entrenamiento import pesos_del_aviso
+        # El sistema menciona la clave (contexto, -100); el box también vale true/false (no se pesa).
+        ids = [1, 2, 3, 4, 5, 6, 7, 8]
+        labels = [-100, 2, 3, 4, 5, 6, 7, 8]
+        self.assertEqual(pesos_del_aviso(ids, labels, self.decodificar, 20),
+                         [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 20.0, 1.0])
+
+    def test_valor_con_espacio_y_falla_si_no_esta_o_se_repite(self):
+        from admision_tp.entrenamiento import pesos_del_aviso
+        for valor in (9, 10):  # " true" y " false," (pegado a la coma)
+            ids = [4, 5, 6, valor, 8]
+            self.assertEqual(pesos_del_aviso(ids, ids, self.decodificar, 3)[3], 3.0)
+        for ids, labels in (([2, 3, 8], [2, 3, 8]),                       # sin aviso
+                            ([4, 5, 6, 7, 4, 5, 6, 3], [4, 5, 6, 7, 4, 5, 6, 3]),  # dos avisos
+                            ([4, 5, 6, 7], [-100, -100, -100, -100])):    # solo en contexto
+            with self.subTest(ids=ids), self.assertRaisesRegex(ValueError, "aviso"):
+                pesos_del_aviso(ids, labels, self.decodificar, 3)
+
+    def test_pesos_alineados_con_los_objetivos_y_padding_neutro(self):
+        from admision_tp.entrenamiento import pesos_de_objetivos
+        posiciones, _ = posiciones_supervisadas([[-100, 7, 8, -100], [-100, -100, 9, -100]])
+        self.assertEqual(pesos_de_objetivos(posiciones, [[1.0, 1.0, 5.0, 1.0], [1.0, 1.0, 1.0, 1.0]]),
+                         [[1.0, 5.0], [1.0, 1.0]])
+        lote = formar_lote([{"input_ids": [1, 2], "attention_mask": [1, 1], "labels": [-100, 2], "pesos": [1.0, 4.0]},
+                            {"input_ids": [3], "attention_mask": [1], "labels": [3], "pesos": [1.0]}], 0)
+        self.assertEqual(lote["pesos"], [[1.0, 4.0], [1.0, 1.0]])
+        self.assertNotIn("pesos", formar_lote([{"input_ids": [1], "attention_mask": [1], "labels": [1]}], 0))

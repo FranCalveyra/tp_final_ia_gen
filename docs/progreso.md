@@ -1136,3 +1136,14 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   crédito exige cargar una tarjeta de crédito y decidimos no hacerlo.
 - **`.env.example` corregido (Fran):** `ADAPTER_*` comentadas (exportarlo ya no apaga el adapter), comentario de
   `PROMPT_SPEC` al día y `MODELO_LOTE=4`. Cierra el hueco 5 de la auditoría.
+- **#14 cerrado.** **#15, peso en el token del aviso (rama `feat/15-peso-aviso`, CPU):** `peso_aviso` en la
+  configuración del SFT; `pesos_del_aviso` ubica el valor del aviso y falla si no está una vez; datos
+  `v5-aviso-peso` (27 % positivos) y `sft-aviso-peso.json` (peso 20, lr 1e-4). Probado con dobles (293 tests).
+  Siguiente: entrenar y medir en el dev; se adopta solo si supera 26/40 sin romper el resto.
+- **v38 (peso 20 en el token del aviso) NO adoptada (solo con el dev):** Kaggle v38 entrenó 142 pasos (11.750 s,
+  20,29 GB pico, W&B `f9326b10342b4be4`, `final` `17e9fe3d`, commit `984fc18`) y dio 26/40, igual que v35 (aviso
+  30/40 contra 32, 1/8 positivos, 3 falsos `true`, y cobertura 3, registro 1 y `box_antes_del_registro` 1 rotos;
+  ganó `pd-n2-002`, `pd-n1-008`, `pd-n1-012` y perdió `pd-n2-006`, `pd-n2-009`, `pd-n2-017`). La regla pedía superar
+  26: la entrega sigue con `dc41674a` y la práctica de la v38 no se corrió ([pasada 9](analisis-errores.md)).
+  Corridas en `evaluaciones/dev/v38-peso`, recibos en `evaluaciones/entrenamiento/v38-peso`; guía en
+  [entrenamiento](entrenamiento-sft.md). Sin probar: DPO con pares que difieran solo en el aviso.
