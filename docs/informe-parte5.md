@@ -1,6 +1,6 @@
 # INFORME, Parte 5: recursos y proyección a producción (BORRADOR)
 
-> **Estado: borrador del issue #5. No es el informe final.** Actualizado el 2026-11-12 con el entrenamiento real
+> **Estado: borrador del issue #5. No es el informe final.** Actualizado el 2026-11-13 (adapter v39 de la entrega; práctica de Kaggle v40) con el entrenamiento real
 > (Kaggle v32+v33) y la evaluación del modelo final (v34). Todo salió de **Kaggle 2x T4 con fp16**.
 > **Nada se midió en A100-40GB.** Esos números figuran como **PENDIENTE**. Los números de T4 no se pueden
 > transferir a A100 y acá no inventamos factores.
@@ -17,7 +17,8 @@
 | Tiempo y VRAM de entrenamiento | **SFT real: 363 pasos, ~80–85 s/paso, ~8,1 h de cómputo (≈9,5 h de sesión en 2 tandas); 19,97 GB pico** | validado en GPU (T4) |
 | Costo | Kaggle: 0 USD (~13,5 h de cuota en la semana del SFT). A100: fórmula, sin medición | PENDIENTE (A100) |
 | Simultáneos en producción | ~145 casos/h por proceso con la entrega en T4 (lote 4); proyección en sección 5 | hipótesis, A100: PENDIENTE |
-| Antes/después con el modelo final | 27/150 → **92/150** resueltos; +59 % s/caso, +2,4× tokens de entrada, VRAM ~igual (sección 3.2) | validado en GPU (T4) |
+| Adapter de la entrega | **v39 (`770c9fac`), desde 2026-11-13**: continuación del adapter `dc41674a` (v32+v33) sobre `v6-aviso-datos`, 142 pasos, 11.735 s (3,26 h), 20,36 GB pico, 31/40 en el dev contra 26/40 | validado en GPU (T4), solo dev |
+| Antes/después con el modelo final | 27/150 → **100/150** resueltos con el adapter v39 de la entrega (Kaggle v40; 92/150 con el anterior, `dc41674a`); 15,4–16,1 → 27,8–28,8 s/caso (~+80 %) en T4, lote 4; en la versión b perdió un caso (29 → 28) (sección 3.2) | validado en GPU (T4) |
 
 **Leyenda de validación.** *implementado*: existe el código. *probado con dobles*: tests sin GPU.
 *validado en GPU (T4)*: corrió en Kaggle. *validado en A100*: **ninguno todavía**.
@@ -143,7 +144,7 @@ en 2 T4, commit `6169241`, W&B `3add2742ddfd4b42`.
 | Reloj de pared | v32: cortada por el límite de 8 h de Kaggle en el paso 315; v33: 1 h 31 min (5.445 s de runner) reanudando de checkpoint-300 | `runner.json` |
 | VRAM pico (suma de 2 T4) | **19,97 GB** (12,1 + 7,87); reservada 20,58 GB | `entrenamiento/estado.json` de v33 |
 | Pérdida (supervisada) | 0,44 (paso 1) → ~0,03 (paso 100) → ~0,005 (paso 268) → 0,0044 media final | `runner.log` |
-| Checkpoints | cada 50 pasos, subidos a HF con revisión; `final` = `dc41674a` | `publicaciones` en `estado.json` |
+| Checkpoints | cada 50 pasos, subidos a HF con revisión; `final` = `dc41674a` (adapter de v32+v33; el de la entrega desde 2026-11-13 es el v39, 3.1b) | `publicaciones` en `estado.json` |
 
 - **Casos a la vez al entrenar:** 1 conversación por pasada hacia adelante; 8 por paso de optimización. Con
   ~3.445 tokens por conversación, la VRAM entra en 2 T4 gracias a calcular logits solo en posiciones supervisadas
@@ -154,23 +155,47 @@ en 2 T4, commit `6169241`, W&B `3add2742ddfd4b42`.
   voluntariado ([análisis de errores](analisis-errores.md), pasada 7). Hay un segundo entrenamiento corto en
   curso para eso (v36, 633 conversaciones).
 
-### 3.2 Antes y después (práctica, 50 casos × 3 versiones, T4, lote 4)
+### 3.1b Adapter de la entrega desde 2026-11-13 (Kaggle v39)
+
+Continuación del adapter `dc41674a` (v32+v33) 1 época sobre `datos/conversaciones/v6-aviso-datos` (1.133 conversaciones con
+`Edad: N años. Acompañante: X.` antes de la decisión), `peso_aviso` 20, lr 1e-4, commit `5a36ecf`, W&B
+`41ec01f292e64306`. **142 pasos, 11.735 s (~83 s/paso), 20,36 GB de VRAM pico en 2 T4** (12,37 + 7,99; reservada
+20,96 GB), pérdida final ponderada 0,038. `final` = `770c9fac84d5718b0b2cf4c40c3451cad322ac9e`. Medido solo en el
+conjunto de desarrollo (31/40 contra 26/40; [pasada 10](analisis-errores.md)). Recibos en
+`evaluaciones/entrenamiento/v39-datos/`.
+
+**Antes/después con este adapter:** la práctica de la v39 (Kaggle v40, T4, lote 4) está en 3.2 y en
+`evaluaciones/practica/tabla-v39`. Se corrió después de adoptar el adapter con el dev: no se usó para elegir.
+
+### 3.2 Antes y después (práctica, 50 casos × 3 versiones, T4, lote 4; adapter v39, Kaggle v40)
 
 | Configuración | Resueltos original / b / c | s/caso | Tokens de entrada por caso | Tokens generados por caso | VRAM pico | Ancho máx. |
 |---|---|---:|---:|---:|---:|---:|
 | `sin_entrenar` (baseline) | 10 / 10 / 7 | 15,6–16,1 | ~5.750 | ~271 | 19,08 GB con torres; 18,12 GB solo texto | 3.072 |
 | `solo_prompt` (procedimiento-v1) | 14 / 16 / 12 | 24,4–26,6 | ~13.650–14.640 | ~322–332 | 19,25–19,64 GB | 4.436 |
-| `solo_entrenamiento` (adapter + baseline) | 11 / 13 / 12 | 18,7–19,7 | ~7.860–8.430 | ~286–293 | 18,69–18,91 GB | 4.476 |
-| **`ambos` (la entrega)** | **30 / 29 / 33** | **24,7–24,9** | ~13.840 | ~336 | 19,56 GB | 4.160 |
+| `solo_entrenamiento` (adapter v39 + baseline) | 17 / 14 / 20 | 27,7–30,2 | sin recalcular | sin recalcular | sin recalcular | sin recalcular |
+| **`ambos` (la entrega, adapter v39)** | **36 / 28 / 36** | **27,8–28,8** | sin recalcular | sin recalcular | sin recalcular | sin recalcular |
+| `solo_entrenamiento` con el adapter anterior `dc41674a` (v34, historial) | 11 / 13 / 12 | 18,7–19,7 | ~7.860–8.430 | ~286–293 | 18,69–18,91 GB | 4.476 |
+| `ambos` con el adapter anterior `dc41674a` (v34, historial) | 30 / 29 / 33 | 24,7–24,9 | ~13.840 | ~336 | 19,56 GB | 4.160 |
 
-Fuentes: `corridas/kaggle/{base-*-l4,v27/…/solo_prompt-*,v34/…/{solo_entrenamiento,ambos}-*}/{salida/tiempos.json,metricas.jsonl}`
+Resultados y s/caso de las filas v39: `evaluaciones/practica/tabla-v39/tabla.md` (`segundos/caso` = `jugar_lote / casos`). Tokens, VRAM
+y ancho de las filas v39 no se recalcularon: las celdas con números son del adapter `dc41674a`, de v22 y de v27.
+Fuentes de las filas anteriores: `corridas/kaggle/{base-*-l4,v27/…/solo_prompt-*,v34/…/{solo_entrenamiento,ambos}-*}/{salida/tiempos.json,metricas.jsonl}`
 (sumas y máximos propios sobre `metricas.jsonl`; VRAM = máximo por GPU sumado, cota superior). La fila
 `sin_entrenar` es la de v22, que v25 reprodujo exacto. Carga del modelo (`construir_agente`): 23–148 s según caché.
 
 - **El costo lo pone el prompt, no el adapter:** el adapter se fusiona al cargar, así que no agrega capas. Las
   filas con adapter y las demás cargan solo texto; la VRAM pasa de 18,12 GB (base solo texto, `solo-texto-l4`) a
   18,7–19,6 GB, y lo más alto es con `procedimiento-v1`, que trae más contexto. `procedimiento-v1` hace ~3,5 búsquedas por caso contra ~1,3: 2,4× tokens de
-  entrada y ~+59 % de tiempo por caso. A cambio, la entrega resuelve 92/150 contra 27/150.
+  entrada y ~+59 % de tiempo por caso con el adapter `dc41674a`. Con el v39 el tiempo por caso subió más, a 27,8–28,8 s
+  (~+80 % sobre `sin_entrenar`; antes 24,7–24,9): el mensaje final lleva tokens extra (edad y acompañante) y hay
+  ~6,7 llamadas por caso. A cambio, la entrega resuelve 100/150 contra 27/150.
+- **Ganancias y pérdidas de la v39 en `ambos`, caso por caso:** ganó `pev-008`, `pev-025`, `pev-031`, `pev-042` y
+  `pev-043` en las tres versiones y perdió `pev-007`, `pev-021`, `pev-022` y `pev-045` en las tres. Neto: original
+  +6 (30 → 36), b −1 (29 → 28; ganó 7, perdió 8) y c +3 (33 → 36). El control de aviso fue 0,82 / 0,70 / 0,78 contra
+  0,72 / 0,72 / 0,72: mejora en dos versiones y baja en b. Una sola corrida por versión; no hay intervalos.
+- **Referencia de la cátedra:** SFT con datos perfectos da 25/24/25. `solo_entrenamiento` con v39 dio 17/14/20 (51/150)
+  y tiene 3/3/1 casos sin decisión.
 - **Contexto:** la entrada más ancha fue 4.476 tokens, lejos de los 8.192 del tope. No hubo recortes.
 
 ### 3.3 Humo de entrenamiento (2026-11-05, histórico)
@@ -220,9 +245,11 @@ instalación del entorno):
 | Humo de entrenamiento (v6 + v7) | 163 + 177 = 340 s (0,09 h) | `humo-entrena-{1-v6,2-v7}/runner.json` |
 | SFT real (v32 cortada a las 8 h de sesión + v33) | ~8 h de sesión + 5.445 s (1,5 h) | `v32`, `v33/…/runner.json` |
 | Evaluación práctica: `solo_prompt` (v27) y `solo_entrenamiento` + `ambos` (v34) | ~1 h + ~2 h de sesión | bitácora |
+| Evaluación práctica con el adapter v39 (v40: `solo_entrenamiento` + `ambos`, 6 corridas de ~24 a 28 min) | ~2,5 h de corridas (13:24 a 15:54 UTC) | `evaluaciones/practica/v40-entrenado-v39/` |
 | Verificación en el conjunto de desarrollo (v35, 40 casos) | ~0,7 h de sesión | bitácora |
 | Refuerzo del aviso (v36: 80 pasos + dev), no adoptado | 2 h de runner + ~0,4 h de dev | `evaluaciones/entrenamiento/v36-aviso/runner.json` |
 | Peso en el token del aviso (v38: 142 pasos + dev), no adoptado | 3,3 h de runner + dev | `evaluaciones/entrenamiento/v38-peso/runner.json` |
+| Edad y acompañante antes de la decisión (v39: 142 pasos, 11.735 s, 20,36 GB pico + dev), **adoptado** | 3,3 h de entrenamiento + ~0,4 h de dev (645 s + 722 s); práctica (v40): ver la fila de arriba | `evaluaciones/entrenamiento/v39-datos/`, `evaluaciones/dev/v39-datos/sesion.json` |
 
 Según la API de Kaggle (`get_accelerator_quota`, 2026-11-12), la semana del SFT llevaba **48.546 s (13,5 h)
 de 30 h**, incluidos los intentos fallidos v28–v31; la cuota se renueva los sábados 00:00 UTC.
@@ -331,7 +358,7 @@ utilización, latencia y costos adicionales futuros no están medidos: **no se p
 | Tiempo y costo del entrenamiento en A100-40GB | vía A100-40GB a determinar (en T4 ya medido, sección 3.1) | #3, #5 |
 | s/caso, carga y VRAM de inferencia en A100-40GB | vía A100-40GB disponible y autorizada | #4, #5 |
 | Lote máximo estable en A100-40GB | idem | #4 |
-| Antes/después en A100 | T4 ya medido (sección 3.2); si v36 cambia el adapter, repetir la fila `ambos` | #5 |
+| Antes/después en A100 | T4 ya medido (sección 3.2) con el adapter `dc41674a`; la práctica del adapter v39 (Kaggle v40) también es T4; repetir la fila `ambos` en A100 | #5 |
 | Causa del fallo CUDA en lotes 8 y 16 | lote 8 completa con bloqueo, más lento que 4; lote 16 con bloqueo no probado; causa definitiva pendiente | #4 |
 | Costo total de desarrollo y de mantenimiento | todo lo anterior | #5 |
 
@@ -348,7 +375,7 @@ utilización, latencia y costos adicionales futuros no están medidos: **no se p
 | Medir en A100-40GB | todos los números finales | vía alternativa a determinar; Modal descartado |
 | Reducir el mensaje de sistema y el contexto de búsquedas | menos cómputo y VRAM por llamada y por entrenamiento | sistema = 2.232 caracteres (~35 % de la conversación mediana); búsqueda: la consigna dice que es más de la mitad en la referencia |
 | Repetir cada medición varias veces | intervalos en vez de una sola corrida | hoy una sola por configuración |
-| Enseñar el aviso al voluntariado (peso en su token, o DPO) | +8 casos en el dev si se acierta (26 → hasta 34/40) | probado: el refuerzo por proporción (v36) sobrecorrigió (23/40, [pasada 8](analisis-errores.md)) y el peso 20 (v38) empató en 26/40 con más controles rotos ([pasada 9](analisis-errores.md)); DPO sin probar |
+| Enseñar el aviso al voluntariado (peso en su token, o DPO) | +8 casos en el dev si se acierta (26 → hasta 34/40) | probado: el refuerzo por proporción (v36) sobrecorrigió (23/40, [pasada 8](analisis-errores.md)) y el peso 20 (v38) empató en 26/40 con más controles rotos ([pasada 9](analisis-errores.md)); copiar edad y acompañante antes de la decisión (v39) llegó a 31/40 y 5/8 positivos ([pasada 10](analisis-errores.md)); DPO sin probar |
 
 ---
 

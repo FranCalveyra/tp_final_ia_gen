@@ -21,7 +21,7 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | #2 Infraestructura | **Cerrado (2026-11-04).** Lock, `uv sync` con inferencia, plantilla de variables, app A100-40GB (ahora legacy), W&B, repo HF privado | Invitar a la cátedra a HF y W&B pasó al #16 |
 | [#3 SFT](https://github.com/FranCalveyra/tp_final_ia_gen/issues/3) | Conversor, validación, snapshots/tokenización, Trainer LoRA y runner persistente; humo GPU T4 con HF/W&B y reanudación desde checkpoint HF | Cuatro criterios técnicos respaldados; aceptación/accesos y uso efectivo por Martu pendientes. KI-A100-001 mantiene deuda entrenamiento/evaluación/recursos |
 | [#4 Lotes](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4) | **Cerrado completed (2026-11-05), alcance funcional T4.** Carga única, lote activo, conversación completa; 1→4 baja 33,3→15,6 s/caso, mismos 10/50 | Deuda A100-40GB continúa en KI-A100-001; adapter final pendiente y causa CUDA T4 de lotes grandes no identificada |
-| #5 Recursos | Métricas y borrador Parte 5 con inferencia T4 y humo de entrenamiento solo texto: 15,675 GB pico | Recursos/costos A100 y antes/después con adapter final; integrar `INFORME.md` |
+| [#5 Recursos](https://github.com/FranCalveyra/tp_final_ia_gen/issues/5) | **Cerrado (2026-11-13), alcance T4.** SFT real (363 pasos, 19,97 GB pico), lote, costo Kaggle, proyección y antes/después 27/150 → 100/150 (adapter v39) en [Parte 5](informe-parte5.md) | A100 como limitación conocida (KI-A100-001); integrar `INFORME.md` (#16) |
 | [#6 Buscador](https://github.com/FranCalveyra/tp_final_ia_gen/issues/6) | **Implementado y comparado con el agente (2026-11-10).** `evaluar_rag`: `baseline` 48/60, `prefijos` 55/60 (referencia 51/60). Agente sin entrenar en Kaggle T4: `baseline` 10/50, `prefijos` 6/50; default `baseline` | Revisión del equipo de la Parte 2 del informe; opcional: repetir con el modelo entrenado |
 | [#7 Ciclo del agente](https://github.com/FranCalveyra/tp_final_ia_gen/issues/7) | **Implementado y validado en GPU T4 (2026-11-10).** `entrega.py` usa `AgentePrompt` + `PromptSpec`; tope de 40 llamadas del kit; guarda de contexto por caso; medición offline del contexto. Kaggle v23 (`AgentePrompt`, 50 casos) y v24 (entrega nueva, 10 casos): conversaciones idénticas a `AgenteJSON` (v22) | Enviar a Martu la nota de formato (#13); validación A100 sigue en KI-A100-001 |
 | [#9 Evaluación completa](https://github.com/FranCalveyra/tp_final_ia_gen/issues/9) | **Cerrado; filas medidas en GPU T4 (2026-11-11).** `sin_entrenar` (v25) 10/10/7 y `solo_prompt` (v27, `procedimiento-v1`) 14/16/12 en práctica original/b/c | Filas `solo_entrenamiento` y `ambos` cuando haya adapter publicado (#15); A100 en KI-A100-001 |
@@ -1147,3 +1147,45 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   26: la entrega sigue con `dc41674a` y la práctica de la v38 no se corrió ([pasada 9](analisis-errores.md)).
   Corridas en `evaluaciones/dev/v38-peso`, recibos en `evaluaciones/entrenamiento/v38-peso`; guía en
   [entrenamiento](entrenamiento-sft.md). Sin probar: DPO con pares que difieran solo en el aviso.
+- **#15, datos v6 con la edad y el acompañante antes de la ficha (rama `feat/15-aviso-datos`, CPU):** hipótesis:
+  el adapter no aprende el aviso como un solo token, pero sí puede copiar los dos hechos de la nota y decidir
+  después. El último mensaje (`registrar_decision`) pasa a `Edad: N años. Acompañante: X.` + salto de línea + JSON;
+  el validador acepta ese prefijo solo ahí y `extraer_json` de la cátedra ya lo lee. El umbral no se escribe: los
+  valores se copian de la nota. Datos `v6-aviso-datos` (1.133 registros válidos, 0 errores, manifiesto con
+  `dirty=false`) con `scripts.anteponer_datos_aviso` sobre `v5-aviso-peso`; `sft-aviso-datos.json` es copia exacta
+  de `sft-aviso-peso.json` (v39 difiere de v38 solo en el prefijo). Probado con dobles; sin tokenizar con el modelo
+  real.
+- **v39 (edad y acompañante antes de la decisión) ADOPTADA como adapter de la entrega (2026-11-13, solo con el dev):**
+  Kaggle v39 continuó `dc41674a` 142 pasos sobre `v6-aviso-datos` (11.735 s, 20,36 GB pico, W&B `41ec01f292e64306`,
+  código `5a36ecf`, `final` `770c9fac84d5718b0b2cf4c40c3451cad322ac9e`) y dio **31/40 en el dev contra 26/40 de v35**
+  (5/8 positivos atrapados contra 0/8, 2 falsos `true`; ganó 7 casos y perdió `pd-n1-010` y `pd-n2-013`). Superó la barra
+  acordada antes (≥30/40, con ganancias en los 75+ sin acompañante). El prefijo apareció en 38 de 40 mensajes finales y
+  `extraer_json` de la cátedra lo lee. Quedan fallas de aviso (6), cobertura (4) y `box_antes_del_registro` (3)
+  ([pasada 10](analisis-errores.md)). `ADAPTER_ENTREGA` apunta a `770c9fac` (commit `1405aab`) y el plan
+  `configuraciones/evaluacion/entrenado-v39.json` fija las filas con adapter. Corridas en `evaluaciones/dev/v39-datos`,
+  recibos en `evaluaciones/entrenamiento/v39-datos`; guía en [entrenamiento](entrenamiento-sft.md).
+  Práctica con el adapter v39: ver la entrada de Kaggle v40 más abajo. Probado con dobles el prefijo; validado en GPU
+  (T4) el entrenamiento, el dev y la práctica; A100 sigue sin validar.
+- **Práctica con el adapter v39 (Kaggle v40, 2026-11-13, solo para reportar):** plan
+  `configuraciones/evaluacion/entrenado-v39.json`, `FranCalveyra/tp-admision@770c9fac/final`, T4 x2, lote 4; salidas en
+  `evaluaciones/practica/v40-entrenado-v39/` (escaneadas: sin secretos) y tabla vigente en
+  `evaluaciones/practica/tabla-v39` (`sucio=False`; la del adapter `dc41674a` queda en `practica/tabla`).
+  - Resueltos original / b / c: `sin_entrenar` 10/10/7, `solo_prompt` 14/16/12, `solo_entrenamiento` 17/14/20 (51/150;
+    antes 36/150), **`ambos` 36/28/36 = 100/150** (antes 92/150). Referencia de la cátedra: SFT perfecto 25/24/25.
+  - Honesto sobre b: `ambos` perdió un caso (29 → 28). Ganó `pev-008`, `pev-025`, `pev-031`, `pev-042` y `pev-043` en
+    las tres versiones y perdió `pev-007`, `pev-021`, `pev-022` y `pev-045` en las tres. Control de aviso 0,82 / 0,70 / 0,78
+    contra 0,72 / 0,72 / 0,72.
+  - Costo: `ambos` pasó de ~19-25 a 27,8–28,8 s/caso en T4 (lote 4) por los tokens extra y ~6,7 llamadas por caso.
+    `solo_entrenamiento` tiene 3/3/1 casos sin decisión.
+  - No se usó para elegir: el adapter ya estaba adoptado con el dev. Nota en [análisis de errores](analisis-errores.md)
+    (pasada 10). Tokens y VRAM de las filas v39 no se recalcularon. Validado en GPU (T4); A100 sigue sin validar.
+- **#5 cerrado (2026-11-13), alcance T4:** lo medible está en el [borrador de la Parte 5](informe-parte5.md):
+  - SFT real: tiempo, VRAM y costo en Kaggle.
+  - Casos a la vez al entrenar y al evaluar.
+  - Proyección a producción, como hipótesis.
+  - Antes/después: de 27/150 a 100/150 en práctica con el adapter v39 (92/150 con el anterior).
+  - Trabajos futuros.
+
+  La A100-40GB queda como **limitación conocida**, no como tarea: no hay vía de acceso y Modal se descartó
+  ([KI-A100-001](../README.md#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb)). En #16
+  quedó anotada así, para mencionarla en el mail y en el informe; la integración al `INFORME.md` sigue en #16.

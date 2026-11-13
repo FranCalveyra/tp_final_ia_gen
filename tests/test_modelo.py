@@ -130,7 +130,7 @@ class ModeloTest(unittest.TestCase):
         with patch.dict("os.environ", {}, clear=True):
             config = Configuracion.desde_entorno()
         self.assertEqual((config.adapter_repo, config.adapter_revision, config.adapter_subcarpeta),
-                         ("FranCalveyra/tp-admision", "dc41674a8a2561a724884be2170ff6808efa6e96", "final"))
+                         ("FranCalveyra/tp-admision", "770c9fac84d5718b0b2cf4c40c3451cad322ac9e", "final"))
 
     def test_entorno_sin_lote_usa_el_de_los_numeros_reportados(self):
         # Todas las evaluaciones reportadas (evaluaciones/) corrieron con lote 4.

@@ -324,6 +324,39 @@ la práctica de la v38 no se corrió.
 - Corridas en `evaluaciones/dev/v38-peso`; recibos del entrenamiento en `evaluaciones/entrenamiento/v38-peso`
   (checkpoints 20 a 140, 142 y `final` en HF).
 
+### 2026-11-13 · Pasada 10: edad y acompañante antes de la decisión (v39) contra el adapter de la entrega (v35), conjunto de desarrollo
+
+**Se adopta: 31/40 contra 26/40, por encima de la barra acordada antes (≥30/40, con las ganancias en los casos de 75+
+sin acompañante).** La v39 siguió entrenando `dc41674a` 1 época (142 pasos) sobre `datos/conversaciones/v6-aviso-datos`
+(1.133 conversaciones; el último mensaje lleva `Edad: N años. Acompañante: X.` antes del JSON), `peso_aviso` 20,
+lr 1e-4. Se midió en el dev con la misma configuración que v35, v36 y v38 (`procedimiento-v1`, n1 + n2). Comando y
+datos: `datos/prompt-dev/v1`, 40 casos, `evaluaciones/dev/v39-datos`. La práctica de la v39 se corrió después
+(Kaggle v40) solo para reportar; ver la nota al final de esta pasada.
+
+| Dev, 40 casos | v35 (`dc41674a`) | v38 (`17e9fe3d`) | v39 (`770c9fac`) |
+|---|---:|---:|---:|
+| Resueltos | 26 | 26 | **31** |
+| 75+ sin acompañante (aviso `true`) | 0/8 | 1/8 | **5/8** |
+| Falsos `true` (aviso `false` esperado) | 0 | 3 | 2 |
+
+- **Controles que fallan en v39:** aviso 6, cobertura 4, `box_antes_del_registro` 3, registro 2, y 1 cada uno
+  `numero_documento`, circuito, `plazo_circuito_min`, `entidad_a_notificar` y verificación. En el aviso, 1 caso
+  negativo quedó sin decisión. El prefijo apareció en 38 de 40 mensajes finales.
+- **Contra v35, caso por caso:** ganó `pd-n1-001`, `pd-n1-002`, `pd-n1-008`, `pd-n1-012`, `pd-n2-001`, `pd-n2-002` y
+  `pd-n2-003`; perdió `pd-n1-010` (registro provisorio en vez de definitivo y box `true`; no es del aviso) y
+  `pd-n2-013` (sin decisión: terminó en plena búsqueda tras 13 llamadas).
+- **Lectura:** copiar los dos hechos antes de decidir sí movió la decisión (de 0/8 y 1/8 a 5/8 positivos), a diferencia
+  de la proporción de positivos (v36) y del peso (v38). Quedan 3 positivos sin atrapar, 2 falsos `true` y fallas fuera
+  del aviso (cobertura, orden del box). Una sola corrida de 40 casos: 5 casos de diferencia no prueban generalización.
+- **Compatibilidad:** `admision_tp/agente_prompt.py` parsea con `extraer_json` de `admision/ejemplo.py`, que acepta
+  texto previo sin llaves; el dev usa ese mismo camino.
+- **Entrenamiento:** 11.735 s, 20,36 GB de VRAM pico, pérdida final ponderada 0,038, W&B `41ec01f292e64306`.
+- Corridas en `evaluaciones/dev/v39-datos`; recibos en `evaluaciones/entrenamiento/v39-datos` (checkpoints 20 a 140,
+  142 y `final` en HF).
+- **Práctica (Kaggle v40), reportada y no usada para elegir:** la v39 ya estaba adoptada con el dev. `ambos` dio
+  36/28/36 = 100/150 contra 30/29/33 = 92/150 del adapter anterior; el aviso pasó de 0,72 a 0,82/0,70/0,78. En la
+  versión b perdió un caso neto (29 a 28). Tabla en `evaluaciones/practica/tabla-v39`.
+
 ## Uso para #13 y #15
 
 - **Qué conclusiones se usaron para diseñar candidatos de #13** (solo patrones genéricos, sin contenido de casos

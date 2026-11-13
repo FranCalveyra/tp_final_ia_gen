@@ -25,10 +25,10 @@ Loom quedan fuera de este alcance (los arma el equipo). Estado: ✅ cumple · �
 | Modelo ≤ 8B, sin servicios externos en operación | ✅ | Gemma 4 E4B; el modelo se baja de HF al construir el agente |
 | Tope de 40 llamadas, 5 herramientas, 8 campos | ✅ | `AgentePrompt`; tests |
 | Prompt optimizado antes de entrenar, sin usar práctica para elegir | ✅ | [optimización de prompt](optimizacion-prompt.md), conjunto `datos/prompt-dev/v1` |
-| Práctica solo para reportar | ⚠️ acotado | La falla del aviso se **vio** en el análisis de errores de práctica (pasada 7). Lo que se eligió después (hipótesis, remedio `v4-aviso`, y si la v36 reemplaza al adapter) se decide **solo con el conjunto de desarrollo** (v35, v36); la práctica de la v36 se corre después, solo para reportar, y no cambia la decisión. Queda declarado como límite en el [análisis de errores](analisis-errores.md). |
-| Entrenamiento con el prompt optimizado | ✅ | `v3-procedimiento`; adapter `dc41674a` |
+| Práctica solo para reportar | ⚠️ acotado | La falla del aviso se **vio** en el análisis de errores de práctica (pasada 7). Lo que se eligió después (hipótesis, remedio `v4-aviso`, y si la v36 reemplaza al adapter) se decide **solo con el conjunto de desarrollo** (v35, v36, v38, v39: la v39 se adoptó con 31/40 en el dev); la práctica de la v39 (Kaggle v40) se corrió después de adoptarla, es solo para reportar y no cambió la decisión. Queda declarado como límite en el [análisis de errores](analisis-errores.md). |
+| Entrenamiento con el prompt optimizado | ✅ | `v3-procedimiento` (`dc41674a`) + continuación `v6-aviso-datos`; adapter de la entrega `770c9fac` (v39) |
 | Cada entrenamiento: conversaciones, config, semilla, W&B, checkpoints HF con revisión | ✅ | `runner.json`, `estado.json`, `publicaciones`; W&B `3add2742ddfd4b42` |
-| Tabla de la Parte 4 (4 filas × 3 versiones + referencia de la cátedra) | ✅ | [`evaluaciones/practica/tabla`](../evaluaciones/practica/tabla/tabla.md), regenerada desde las corridas versionadas (`sucio=False`) |
+| Tabla de la Parte 4 (4 filas × 3 versiones + referencia de la cátedra) | ✅ | [`evaluaciones/practica/tabla-v39`](../evaluaciones/practica/tabla-v39/tabla.md) (adapter v39, Kaggle v40), regenerada desde las corridas versionadas (`sucio=False`); la tabla del adapter `dc41674a` queda como historial en `practica/tabla` |
 | README con los 6 puntos | ✅ | `README.md` (2026-11-12), salvo el aviso de `.env.example` |
 | Todo archivo generado sale de un script | ✅ | Tabla del punto 5 del README |
 | Formato de los mensajes optimizado sin entrenar (:135) | ✅ | Tamaño (fase 2) y conducta (fase 3, v37: 10/40 contra 9/40, dentro del ruido; no adoptado) en [optimización de prompt](optimizacion-prompt.md) |

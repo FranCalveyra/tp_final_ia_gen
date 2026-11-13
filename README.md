@@ -13,7 +13,7 @@ Qué se usa en la entrega (`entrega.py`, sin variables de entorno):
 | Pieza | Valor | Dónde se fija |
 |---|---|---|
 | Modelo base | `google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2` | `admision_tp/configuracion.py` |
-| Adapter LoRA | `FranCalveyra/tp-admision@dc41674a8a2561a724884be2170ff6808efa6e96`, carpeta `final` (repo HF **privado**) | `ADAPTER_ENTREGA` en `admision_tp/configuracion.py` |
+| Adapter LoRA | `FranCalveyra/tp-admision@770c9fac84d5718b0b2cf4c40c3451cad322ac9e`, carpeta `final` (repo HF **privado**; v39, desde 2026-11-13: antes de la decisión escribe `Edad: N años. Acompañante: X.`) | `ADAPTER_ENTREGA` en `admision_tp/configuracion.py` |
 | Prompt | `configuraciones/prompts/procedimiento-v1.json` (sha256 verificado al cargar) | `RUTA_ENTREGA` en `admision_tp/prompts.py` |
 | Buscador | BM25, una sección de las normas por fragmento, armado con la carpeta que recibe | `admision_tp/buscador.py` |
 | Lote | 4 casos por micro-lote (el de todos los números reportados; `MODELO_LOTE` lo cambia) | `LOTE_ENTREGA` en `admision_tp/configuracion.py` |
@@ -93,10 +93,12 @@ eligieron en un conjunto de desarrollo aparte ([`datos/prompt-dev/v1`](docs/opti
 | `datos/conversaciones/v2-baseline/` (mismas conversaciones con el prompt baseline) | `python -m scripts.generar_conversaciones --prompt configuraciones/prompts/baseline.json --semilla 12012 --candidatos 5000` | `manifiesto.json` |
 | `datos/conversaciones/v4-aviso/` (633 de v3: refuerzo del aviso al voluntariado; experimento v36, no adoptado) | `python -m scripts.subconjunto_aviso --datos datos/conversaciones/v3-procedimiento/conversaciones.jsonl --salida datos/conversaciones/v4-aviso --otros 100 --semilla 15` | `configuraciones/sft-aviso.json` |
 | `datos/conversaciones/v5-aviso-peso/` (1.133 de v3: aviso con peso en la pérdida) | `python -m scripts.subconjunto_aviso --datos datos/conversaciones/v3-procedimiento/conversaciones.jsonl --salida datos/conversaciones/v5-aviso-peso --otros 600 --semilla 15` | `configuraciones/sft-aviso-peso.json` |
+| `datos/conversaciones/v6-aviso-datos/` (1.133 de v5: edad y acompañante copiados antes de la ficha) | `python -m scripts.anteponer_datos_aviso --datos datos/conversaciones/v5-aviso-peso/conversaciones.jsonl --salida datos/conversaciones/v6-aviso-datos` | `configuraciones/sft-aviso-datos.json` |
 | `datos/entrenamiento/` (primera versión, #12; no la usa el adapter) | `scripts.seleccionar_entrenamiento`, `scripts.generar_sinteticos_entrenamiento` | `datos/entrenamiento/manifiesto.json` (semilla 12012) |
 | `datos/prompt-dev/v1/` (conjunto de desarrollo, 40 casos) | `python -m scripts.generar_prompt_dev --semilla 20261110 --carpetas 2 --casos-por-carpeta 20 --candidatos 4000` | Excluye los casos de práctica |
 | `configuraciones/prompts/procedimiento-v1.json` (prompt elegido) | Escrito a mano; elegido con `scripts.evaluar_prompts` + `scripts.rankear_prompts` en el conjunto de desarrollo | [Optimización de prompt](docs/optimizacion-prompt.md) |
 | Adapter `final` en `FranCalveyra/tp-admision` | `scripts.preparar_entrenamiento` → `scripts.tokenizar_entrenamiento` → `scripts.entrenar --online --publicar` | `configuraciones/sft-ejemplo.json` (semilla 42, lr 2e-4, 1 época, LoRA r=8); corrida W&B `3add2742ddfd4b42`; cada checkpoint con su revisión HF |
+| Adapter de la entrega (v39): continuación del anterior (`dc41674a`) sobre `datos/conversaciones/v6-aviso-datos/` | `scripts.entrenar --online --publicar` con `configuraciones/sft-aviso-datos.json` (semilla 42, lr 1e-4, 1 época, `peso_aviso` 20; 142 pasos) | corrida W&B `41ec01f292e64306`, código `5a36ecf`; `final` = `770c9fac`; recibos en `evaluaciones/entrenamiento/v39-datos/` |
 
 Volver a entrenar ([entrenamiento SFT](docs/entrenamiento-sft.md)), con las mismas entradas y en una A100:
 
@@ -213,6 +215,9 @@ def construir_agente():                # carga el modelo una sola vez
   `admision/ejemplo.py`). `registrar_decision` acepta además `fundamentos`, la lista de secciones de las normas que
   justifican la ficha: es optativo y no se corrige.
 - **Libres:** el mensaje de sistema, el formato de los mensajes al modelo, la cantidad de búsquedas y la estrategia.
+- **Formato del último mensaje:** el adapter v39 escribe `Edad: N años. Acompañante: X.`, un salto de línea y el JSON de
+  `registrar_decision`. El texto previo no tiene llaves, así que `extraer_json` de la cátedra (`admision/ejemplo.py`) lo
+  lee igual. La práctica con este adapter (Kaggle v40, solo para reportar) dio 36/28/36 en la fila `ambos`; ver [`evaluaciones/practica/tabla-v39`](evaluaciones/practica/tabla-v39/tabla.md).
 - En operación, el agente no llama a ningún servicio externo.
 
 `admision/ejemplo.py` es el agente de la referencia de la cátedra, con su mensaje de sistema. Pueden usarlo o

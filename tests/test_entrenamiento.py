@@ -400,6 +400,13 @@ class PesoAvisoTest(unittest.TestCase):
             with self.subTest(ids=ids), self.assertRaisesRegex(ValueError, "aviso"):
                 pesos_del_aviso(ids, labels, self.decodificar, 3)
 
+    def test_con_prefijo_de_hechos_sigue_pesando_un_solo_valor(self):
+        from admision_tp.entrenamiento import pesos_del_aviso
+        vocab = {**self.VOCAB, 11: "Edad: 88 años. Acompañante: ninguno.\n"}
+        decodificar = lambda ids: "".join(vocab[i] for i in ids)
+        ids = [11, 2, 4, 5, 6, 3, 8]
+        self.assertEqual(pesos_del_aviso(ids, ids, decodificar, 20), [1.0, 1.0, 1.0, 1.0, 1.0, 20.0, 1.0])
+
     def test_pesos_alineados_con_los_objetivos_y_padding_neutro(self):
         from admision_tp.entrenamiento import pesos_de_objetivos
         posiciones, _ = posiciones_supervisadas([[-100, 7, 8, -100], [-100, -100, 9, -100]])

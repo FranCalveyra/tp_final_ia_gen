@@ -27,7 +27,7 @@ Presentación en Loom:    <link>
 estar activos y accesibles al momento de la corrección.»
 
 - [ ] **Revisión del adapter:** la misma que `ADAPTER_ENTREGA` en `admision_tp/configuracion.py` del commit
-      entregado (hoy `dc41674a8a2561a724884be2170ff6808efa6e96`).
+      entregado (hoy `770c9fac84d5718b0b2cf4c40c3451cad322ac9e`, la v39).
 - [ ] **Commit entregado:** en `main`, con PR mergeados; conviene un tag (p. ej. `entrega-final`) para que no se mueva.
 - [ ] **Acceso de la cátedra:** invitados al repo de GitHub, al repo HF privado y al proyecto W&B (#16). Probar
       que su `HF_TOKEN` baje el adapter: sin eso, `construir_agente()` falla con 401.

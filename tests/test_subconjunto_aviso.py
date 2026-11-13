@@ -44,6 +44,12 @@ class SubconjuntoAvisoTest(unittest.TestCase):
         orden = {r["id"]: i for i, r in enumerate(datos())}
         self.assertEqual(ids, sorted(ids, key=orden.get))
 
+    def test_lee_el_aviso_aunque_la_decision_lleve_prefijo_de_hechos(self):
+        registro = conversacion(1, 80, "ninguno", True)
+        registro["messages"][-1]["content"] = "Edad: 80 años. Acompañante: ninguno.\n" + registro["messages"][-1]["content"]
+        elegidos, resumen = armar_subconjunto([registro], otros=0, semilla=1)
+        self.assertEqual(resumen["grupos"]["positivos"], 1)
+
     def test_falla_si_no_hay_positivos_o_falta_el_triage(self):
         with self.assertRaisesRegex(ValueError, "positivos"):
             armar_subconjunto([conversacion(1, 40, "ninguno", False)], otros=0, semilla=1)

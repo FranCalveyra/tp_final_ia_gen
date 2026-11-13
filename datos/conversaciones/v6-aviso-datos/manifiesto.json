@@ -1,0 +1,18 @@
+{
+  "archivos_sha256": {
+    "conversaciones.jsonl": "ab94784428b905471de132021ba97aba9ae6cad5cb8d94a8bfff8a4dade0c3b4"
+  },
+  "comando": "python -m scripts.anteponer_datos_aviso --datos datos/conversaciones/v5-aviso-peso/conversaciones.jsonl --salida datos/conversaciones/v6-aviso-datos",
+  "git": {
+    "commit": "e75132e3b67c403c737edb292cf071ceff43d247",
+    "dirty": false
+  },
+  "origen": {
+    "registros": 1133,
+    "ruta": "datos/conversaciones/v5-aviso-peso/conversaciones.jsonl",
+    "sha256": "0260053e373f5778e6b60168bed473bf34eb3d04bf8c4d6c6fc6876f370efa76"
+  },
+  "proposito": "antepone edad y acompañante a la decisión final para el aviso (#15)",
+  "registros": 1133,
+  "version": 1
+}

@@ -1,0 +1,20 @@
+{
+  "commit": "5a36ecf720080d2061d69a4af86273104ec4bc82",
+  "adapter": {
+    "repo": "FranCalveyra/tp-admision",
+    "revision": "770c9fac84d5718b0b2cf4c40c3451cad322ac9e",
+    "subcarpeta": "final"
+  },
+  "corridas": [
+    {
+      "corrida": "procedimiento-v1-datos-n1",
+      "returncode": 0,
+      "segundos": 645
+    },
+    {
+      "corrida": "procedimiento-v1-datos-n2",
+      "returncode": 0,
+      "segundos": 722
+    }
+  ]
+}
