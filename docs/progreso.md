@@ -1209,4 +1209,10 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   a `evaluaciones/recursos/` sin editar. El escaneo de secretos dio limpio: solo aparece el aviso de W&B que nombra la
   variable, sin ningún valor, y no hay pesos. Sigue sin evidencia la comparación de buscadores con el agente de la Parte 2
   (`corridas/kaggle/v22` y `corridas/rag-*-20261110` no existen ni en local).
+- **Parte 2 rehecha con evidencia (Kaggle v41, commit `6f6a4f5`, ~30 min de T4):** el agente sin entrenar con `prefijos`
+  da 6/50 en normas originales, contra 10/50 con `baseline` (v25). Reproduce v22 exacto en controles, contexto,
+  llamadas, búsquedas y casos ganados y perdidos (gana 3 y pierde 7). Salidas en `evaluaciones/practica/v41-buscador-prefijos/`
+  y tabla en `evaluaciones/practica/tabla-buscador-prefijos/`. Las salidas de `evaluar_rag`, `comparar_buscadores` y
+  `explorar_buscadores` se regeneraron en CPU con las mismas métricas y están en `evaluaciones/rag/`. Ya no queda
+  ningún número del informe sin evidencia versionada.
 

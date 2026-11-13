@@ -94,7 +94,7 @@ python -m unittest discover -s tests -v
 La salida debe ser nueva: el script no pisa resultados. El JSON contiene todas
 las consultas, normas traídas, evidencia recuperada/faltante, ganancias y pérdidas,
 configuración exacta y hashes SHA256 de los datos. La corrida registrada está en
-`corridas/rag-variantes-20261101/comparacion.json` (artefacto local regenerable).
+`evaluaciones/rag/comparar-variantes-20261101.json` (versionada).
 No hubo barrido de parámetros ni reglas por consulta. Los resultados se usaron
 para desarrollo: **no son evaluación independiente ni resolución de pacientes**.
 
@@ -122,9 +122,9 @@ Comandos (tests: 121, 120 OK y 1 omitido opcional):
 BUSCADOR_VARIANTE=prefijos uv run --locked --no-sync python -m admision.evaluar_rag \
   --entrega entrega.py --normas normas/original --consultas rag/consultas_dev.jsonl
 uv run --locked --no-sync python -m scripts.comparar_buscadores \
-  --salida corridas/rag-prefijos-20261110/original.json
+  --salida evaluaciones/rag/comparar-original.json
 uv run --locked --no-sync python -m scripts.comparar_buscadores --normas normas/b \
-  --evidencia-ajustada --salida corridas/rag-prefijos-20261110/b-evidencia-ajustada.json
+  --evidencia-ajustada --salida evaluaciones/rag/comparar-b-evidencia-ajustada.json
 ```
 
 | Variante | k | Completas | Recall | Precisión | Tokens/consulta | Estado |
@@ -155,8 +155,9 @@ el ranking es el mismo. Con la evidencia del dataset tal cual, las 12 consultas 
 citan los valores originales y fallan para todas las variantes (`prefijos` 44/60, recall 0,750, contra
 `baseline` 38/60, 0,650). Con `--evidencia-ajustada` (reemplaza `P-XXX-N = valor` por el valor
 de la carpeta recibida) b y c dan exactamente lo mismo que original para todas las variantes:
-los valores llegan correctos al texto. Artefactos locales en `corridas/rag-prefijos-20261110/`
-(`original.json`, `{b,c}-evidencia-{ajustada,original}.json`).
+los valores llegan correctos al texto. Salidas versionadas (regeneradas en CPU el 2026-11-13, idénticas en
+métricas) en `evaluaciones/rag/`: `comparar-original.json`, `comparar-b-evidencia-ajustada.json` y
+`evaluar_rag-{baseline,sin_comunes,prefijos}-original.txt`.
 
 **Modo presupuesto** (evaluar_rag, `prefijos` / `baseline`): 256 tokens 35/33 completas,
 512 tokens 44/39, 1024 tokens 54/50 usando 536 contra 1020 tokens, porque el umbral corta antes.
@@ -172,7 +173,7 @@ Todas las filas con k=2 salvo indicación.
 
 ```bash
 uv run --locked --no-sync python -m scripts.explorar_buscadores \
-  --salida corridas/rag-exploracion-20261110/original.json
+  --salida evaluaciones/rag/exploracion-original.json
 ```
 
 La salida debe ser nueva (el script no pisa archivos). La corrida registrada reprodujo

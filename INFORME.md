@@ -294,7 +294,7 @@ Detalle y reproducción en la [guía del buscador](docs/buscador-baseline.md).
 ### Evaluación por separado (`admision.evaluar_rag`)
 
 Corre sobre las 60 consultas de desarrollo y normas originales, con el código de `4e3613a` (repetido sin cambios
-sobre `d37f492`):
+sobre `d37f492` y regenerado en CPU el 2026-11-13 con las mismas métricas; salidas en `evaluaciones/rag/`):
 
 ```text
 BUSCADOR_VARIANTE=<variante> uv run --locked --no-sync python -m admision.evaluar_rag --entrega entrega.py --normas normas/original --consultas rag/consultas_dev.jsonl
@@ -344,14 +344,22 @@ BUSCADOR_VARIANTE=<variante> uv run --locked --no-sync python -m admision.evalua
 
 ### Cuánto rinde el agente con el buscador
 
-**Pasada 1: elegir la variante con el modelo sin entrenar (Kaggle v22).**
+**Pasada 1: elegir la variante con el modelo sin entrenar (Kaggle v22, rehecha en v25 y v41).**
 
-- Configuración: 50 casos de práctica, normas originales, Kaggle T4 x2, commit `4e3613a`.
-- Modelo: Gemma 4 E4B sin entrenar, fp16, `MODELO_LOTE=4`, prompt `baseline` de `AgenteJSON`.
+- Configuración: 50 casos de práctica, normas originales, Kaggle T4 x2.
+- Modelo: Gemma 4 E4B sin entrenar, fp16, `MODELO_LOTE=4`, prompt `baseline`.
+- **Evidencia versionada:** la corrida original (v22, commit `4e3613a`) se perdió, así que se rehizo.
+  - `baseline` es la fila `sin_entrenar` de v25 (`evaluaciones/practica/v25-sin-entrenar/sin_entrenar-original`).
+  - `prefijos` se corrió de nuevo en v41 (`evaluaciones/practica/v41-buscador-prefijos`, commit `6f6a4f5`, plan
+    `configuraciones/evaluacion/buscador-prefijos.json`).
+  - Las dos reproducen v22 exacto en casos resueltos, controles, contexto, llamadas y búsquedas, y en los casos
+    ganados y perdidos. Solo cambian los segundos por caso, porque es otra sesión de T4.
+  - Tabla comparativa: [`evaluaciones/practica/tabla-buscador-prefijos`](evaluaciones/practica/tabla-buscador-prefijos/tabla.md).
 
 ```text
-BUSCADOR_VARIANTE=<variante> MODELO_LOTE=4 python infra/kaggle_baseline.py --variante original --cantidad 50 --salida <carpeta nueva>
-python -m admision.correr puntuar --esperadas practica/esperadas-original.jsonl ...
+python infra/kaggle_evaluacion.py --plan configuraciones/evaluacion/buscador-prefijos.json --salida <carpeta nueva>
+python -m scripts.tabla_evaluacion --corrida sin_entrenar=evaluaciones/practica/v25-sin-entrenar/sin_entrenar-original \
+    --corrida sin_entrenar_prefijos=evaluaciones/practica/v41-buscador-prefijos/sin_entrenar_prefijos-original --salida <carpeta nueva>
 ```
 
 | Métrica | `baseline` | `prefijos` |
@@ -362,9 +370,10 @@ python -m admision.correr puntuar --esperadas practica/esperadas-original.jsonl 
 | cobertura / entidad / aviso / verificación | 0,80 / 0,82 / 0,72 / 0,76 | 0,78 / 0,82 / 0,72 / 0,76 |
 | Llamadas / búsquedas por caso | 4,9 / 1,34 | 5,0 / 1,40 |
 | Caracteres de contexto por caso | 19.954 | 20.689 |
-| Segundos por caso (T4, lote 4) | 15,2 | 15,7 |
+| Segundos por caso (T4, lote 4; v25 / v41) | 16,07 | 16,09 |
 
-- **No es concluyente:** `prefijos` gana 3 casos y pierde 7; con 10 casos discordantes, la prueba de signos da
+- **No es concluyente:** `prefijos` gana 3 casos (pev-005, pev-019, pev-037) y pierde 7 (pev-010, 012, 017,
+  021, 024, 049 y 050); con 10 casos discordantes, la prueba de signos da
   p≈0,34. Tampoco hay señal de mejora.
 - **Por qué el mejor recall no ayudó.** `baseline` devuelve siempre 2 secciones. `prefijos` devolvió 1 sección en 30
   búsquedas, 3 en 26 y 2 en 14.
@@ -395,7 +404,9 @@ contra 9/40 con `baseline` (Parte 3).
 
 - La comparación entre variantes no se repitió con el modelo entrenado.
 - Hubo una sola corrida por variante, todo en T4.
-- Los artefactos de la pasada 1 (`corridas/kaggle/v22/`, `corridas/rag-*-20261110/`) no están versionados.
+- La pasada 1 se rehízo en Kaggle (v25 y v41) porque los artefactos de v22 se perdieron. Las salidas de
+  `evaluar_rag`, `comparar_buscadores` y `explorar_buscadores` se regeneraron en CPU con las mismas métricas y están en
+  `evaluaciones/rag/`.
 
 ---
 

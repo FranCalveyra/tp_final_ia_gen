@@ -15,6 +15,8 @@ del modelo, cada llamada a herramienta con su observación y la ficha), tiempos,
 | `practica/v40-entrenado-v39/` | v40 | `configuraciones/evaluacion/entrenado-v39.json` | `solo_entrenamiento`, `ambos` con el adapter de la entrega v39 (`770c9fac`) |
 | `practica/tabla-v39/` | — | — | **Tabla vigente** de la Parte 4 (v25 + v27 + v40) con la procedencia de cada celda y `resultados.jsonl` por corrida |
 | `practica/tabla/` | — | — | Tabla histórica (v25 + v27 + v34, adapter `dc41674a`); se conserva como historial |
+| `practica/v41-buscador-prefijos/` | v41 | `configuraciones/evaluacion/buscador-prefijos.json` | Parte 2: sin entrenar con el buscador `prefijos`, solo normas originales (6/50). Rehace v22, que se perdió |
+| `practica/tabla-buscador-prefijos/` | — | — | Parte 2: `baseline` (v25) contra `prefijos` (v41) con el agente sin entrenar |
 
 La tabla se regenera, sin GPU, con:
 
@@ -64,3 +66,15 @@ las secciones 5.1–5.3 del informe y del [anexo de la Parte 5](../docs/informe-
 | `recursos/diag-l8/` | `522d540` | Lote 8 con `CUDA_LAUNCH_BLOCKING=1`: completa, pero es más lento que el lote 4 |
 | `recursos/solo-texto-l4/` | `a828467` | Lote 4 sin las torres de visión y audio: la VRAM baja de 19,1 a 18,1 GB, con las mismas trazas |
 | `recursos/humo-solo-texto/`, `humo-entrena-1-v6/`, `humo-entrena-2-v7/` | `a828467`, `acc95b2` | Humos de entrenamiento: pipeline, checkpoints y reanudación. Los checkpoints traen solo `trainer_state.json`, sin pesos |
+
+## Buscador por separado (Parte 2, CPU)
+
+Salidas de `evaluaciones/rag/`, regeneradas en CPU el 2026-11-13 con las mismas métricas que el informe:
+
+| Archivo | Comando |
+|---|---|
+| `rag/evaluar_rag-{baseline,sin_comunes,prefijos}-original.txt` | `BUSCADOR_VARIANTE=<variante> python -m admision.evaluar_rag --entrega entrega.py --normas normas/original --consultas rag/consultas_dev.jsonl` |
+| `rag/comparar-original.json` | `python -m scripts.comparar_buscadores --salida <archivo nuevo>` |
+| `rag/comparar-b-evidencia-ajustada.json` | `python -m scripts.comparar_buscadores --normas normas/b --evidencia-ajustada --salida <archivo nuevo>` |
+| `rag/exploracion-original.json` | `python -m scripts.explorar_buscadores --salida <archivo nuevo>`: las 68 configuraciones |
+| `rag/comparar-variantes-20261101.json` | Primera comparación de variantes (2026-11-01), copiada sin editar |
