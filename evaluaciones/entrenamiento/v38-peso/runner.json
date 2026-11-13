@@ -1,0 +1,112 @@
+{
+  "modo": "nuevo",
+  "ejecucion": {
+    "precision": "fp16",
+    "dispositivos": "auto",
+    "guardar_cada": 20
+  },
+  "publicar": true,
+  "wandb": "online",
+  "hf_repo": "FranCalveyra/tp-admision",
+  "modelo": "google/gemma-4-E4B-it",
+  "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+  "semilla": 42,
+  "configuracion": {
+    "adapter_inicial": {
+      "repo": "FranCalveyra/tp-admision",
+      "revision": "dc41674a8a2561a724884be2170ff6808efa6e96",
+      "subcarpeta": "final"
+    },
+    "batch_size": 1,
+    "epochs": 1,
+    "gradient_accumulation_steps": 8,
+    "hf_repo": "FranCalveyra/tp-admision",
+    "learning_rate": 0.0001,
+    "max_seq_length": 8192,
+    "modelo": "google/gemma-4-E4B-it",
+    "peso_aviso": 20,
+    "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2",
+    "semilla": 42,
+    "version": 1,
+    "wandb_entity": "francalveyra-ia-gen",
+    "wandb_project": "tp-admision"
+  },
+  "reanudacion": null,
+  "commit": "984fc182afb35dd9aeb9bb5d51b799eaac838468",
+  "sucio": false,
+  "maquina": {
+    "commit": "984fc182afb35dd9aeb9bb5d51b799eaac838468",
+    "sucio": false,
+    "gpus": [
+      "Tesla T4, 15360 MiB, 580.178.04",
+      "Tesla T4, 15360 MiB, 580.178.04"
+    ],
+    "torch": {
+      "torch": "2.15.0+cu132",
+      "cuda": "13.2",
+      "gpus": 2,
+      "bf16_nativo": false
+    },
+    "python": "3.13.16"
+  },
+  "estado": "terminada",
+  "inicio": "2026-11-12T21:35:09+0000",
+  "fin": "2026-11-13T00:54:55+0000",
+  "returncode": 0,
+  "log_final": "                                                   \n\n 92%|█████████▏| 130/142 [3:00:08<16:25, 82.15s/it]\n 92%|█████████▏| 131/142 [3:01:23<14:37, 79.80s/it]\n                                                   \n\n 92%|█████████▏| 131/142 [3:01:23<14:37, 79.80s/it]\n 93%|█████████▎| 132/142 [3:02:39<13:08, 78.83s/it]\n                                                   \n\n 93%|█████████▎| 132/142 [3:02:39<13:08, 78.83s/it]\n 94%|█████████▎| 133/142 [3:03:56<11:44, 78.26s/it]\n                                                   \n\n 94%|█████████▎| 133/142 [3:03:56<11:44, 78.26s/it]\n 94%|█████████▍| 134/142 [3:05:28<10:59, 82.38s/it]\n                                                   \n\n 94%|█████████▍| 134/142 [3:05:28<10:59, 82.38s/it]\n 95%|█████████▌| 135/142 [3:06:44<09:23, 80.55s/it]\n                                                   \n\n 95%|█████████▌| 135/142 [3:06:44<09:23, 80.55s/it]\n 96%|█████████▌| 136/142 [3:08:01<07:55, 79.25s/it]\n                                                   \n\n 96%|█████████▌| 136/142 [3:08:01<07:55, 79.25s/it]\n 96%|█████████▋| 137/142 [3:09:07<06:17, 75.52s/it]\n                                                   \n\n 96%|█████████▋| 137/142 [3:09:07<06:17, 75.52s/it]\n 97%|█████████▋| 138/142 [3:10:36<05:18, 79.57s/it]\n                                                   \n\n 97%|█████████▋| 138/142 [3:10:36<05:18, 79.57s/it]\n 98%|█████████▊| 139/142 [3:11:56<03:58, 79.61s/it]\n                                                   \n\n 98%|█████████▊| 139/142 [3:11:56<03:58, 79.61s/it]\n 99%|█████████▊| 140/142 [3:13:25<02:44, 82.45s/it]\n                                                   \n\n 99%|█████████▊| 140/142 [3:13:25<02:44, 82.45s/it]\n 99%|█████████▉| 141/142 [3:14:57<01:25, 85.22s/it]\n                                                   \n\n 99%|█████████▉| 141/142 [3:14:57<01:25, 85.22s/it]\n100%|██████████| 142/142 [3:15:47<00:00, 74.59s/it]\n                                                   \n\n100%|██████████| 142/142 [3:15:47<00:00, 74.59s/it]\n                                                   \n\n100%|██████████| 142/142 [3:15:50<00:00, 74.59s/it]\n100%|██████████| 142/142 [3:15:50<00:00, 82.75s/it]\nwandb: updating run metadata\nwandb: uploading history steps 148-151, summary, console lines 265-266\nwandb: \nwandb: Run history:\nwandb:                    epoch ▁▁▁▁▂▂▂▂▃▃▃▃▃▄▄▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▆▆▇▇▇████\nwandb:                grad_norm ▆▅▂▃▂▂▂▂▂▂▁▁▂▂▂▃▂▁▇▂▂▃▂▃▅█▆▃▂▆▂▃▅▃▂▃▂▂▂▁\nwandb:            learning_rate ██▇▇▇▇▇▇▇▇▇▆▆▆▆▆▆▅▅▅▅▅▅▄▄▄▄▄▃▃▃▃▃▂▂▂▂▂▂▁\nwandb:                     loss ▅▅▄▃▄▆▇▄▆▆▇▃▅▆▄▆▅▄▅▅▄▁▃▃▃▁▁▄▄▄▆▄▄▄▃▅▃▃█▅\nwandb:               total_flos ▁\nwandb:               train_loss ▁\nwandb:            train_runtime ▁\nwandb: train_samples_per_second ▁\nwandb:   train_steps_per_second ▁\nwandb:             trainer_step ▁▁▁▁▁▂▂▂▂▃▃▃▃▄▄▄▄▄▄▄▅▅▅▅▅▆▆▆▆▆▆▇▇▇▇▇▇███\nwandb:                       +2 ...\nwandb: \nwandb: Run summary:\nwandb:    checkpoint final\nwandb:         epoch 1\nwandb:     grad_norm 0.49754\nwandb:       hf_repo FranCalveyra/tp-admi...\nwandb:   hf_revision 17e9fe3d8a422284d633...\nwandb: learning_rate 0.0\nwandb:          loss 0.04268\nwandb:    total_flos 9.390748271379456e+16\nwandb:    train_loss 0.03002\nwandb: train_runtime 11750.0218\nwandb:            +6 ...\nwandb: \nwandb: 🚀 View run f9326b10342b4be4 at: https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/f9326b10342b4be4\nwandb: ⭐️ View project at: https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision\nwandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)\nwandb: Find logs at: /kaggle/working/corridas/sft-peso/entrenamiento/wandb/run-20261112_213653-f9326b10342b4be4/logs\n\n{'loss': '0.02689', 'grad_norm': '0.5818', 'learning_rate': '3.662e-05', 'epoch': '0.6425'}\n{'loss': '0.0115', 'grad_norm': '0.3633', 'learning_rate': '3.592e-05', 'epoch': '0.6496'}\n{'loss': '0.02487', 'grad_norm': '0.5338', 'learning_rate': '3.521e-05', 'epoch': '0.6567'}\n{'loss': '0.0142', 'grad_norm': '0.3593', 'learning_rate': '3.451e-05', 'epoch': '0.6637'}\n{'loss': '0.02962', 'grad_norm': '0.502', 'learning_rate': '3.38e-05', 'epoch': '0.6708'}\n{'loss': '0.05346', 'grad_norm': '1.118', 'learning_rate': '3.31e-05', 'epoch': '0.6778'}\n{'loss': '0.04907', 'grad_norm': '0.9192', 'learning_rate': '3.239e-05', 'epoch': '0.6849'}\n{'loss': '0.02554', 'grad_norm': '0.6013', 'learning_rate': '3.169e-05', 'epoch': '0.692'}\n{'loss': '0.03624', 'grad_norm': '0.581', 'learning_rate': '3.099e-05', 'epoch': '0.699'}\n{'loss': '0.02637', 'grad_norm': '0.4973', 'learning_rate': '3.028e-05', 'epoch': '0.7061'}\n{'loss': '0.02132', 'grad_norm': '0.4102', 'learning_rate': '2.958e-05', 'epoch': '0.7132'}\n{'loss': '0.01186', 'grad_norm': '0.2565', 'learning_rate': '2.887e-05', 'epoch': '0.7202'}\n{'loss': '0.02121', 'grad_norm': '0.2862', 'learning_rate': '2.817e-05', 'epoch': '0.7273'}\n{'loss': '0.01502', 'grad_norm': '0.4286', 'learning_rate': '2.746e-05', 'epoch': '0.7343'}\n{'loss': '0.0285', 'grad_norm': '0.5757', 'learning_rate': '2.676e-05', 'epoch': '0.7414'}\n{'loss': '0.02157', 'grad_norm': '0.2351', 'learning_rate': '2.606e-05', 'epoch': '0.7485'}\n{'loss': '0.03645', 'grad_norm': '0.9079', 'learning_rate': '2.535e-05', 'epoch': '0.7555'}\n{'loss': '0.03916', 'grad_norm': '0.9935', 'learning_rate': '2.465e-05', 'epoch': '0.7626'}\n{'loss': '0.0341', 'grad_norm': '0.6254', 'learning_rate': '2.394e-05', 'epoch': '0.7696'}\n{'loss': '0.0306', 'grad_norm': '0.4177', 'learning_rate': '2.324e-05', 'epoch': '0.7767'}\n{'loss': '0.02321', 'grad_norm': '0.4416', 'learning_rate': '2.254e-05', 'epoch': '0.7838'}\n{'loss': '0.01832', 'grad_norm': '0.4251', 'learning_rate': '2.183e-05', 'epoch': '0.7908'}\n{'loss': '0.03015', 'grad_norm': '0.4459', 'learning_rate': '2.113e-05', 'epoch': '0.7979'}\n{'loss': '0.02999', 'grad_norm': '0.3529', 'learning_rate': '2.042e-05', 'epoch': '0.8049'}\n{'loss': '0.02972', 'grad_norm': '0.6511', 'learning_rate': '1.972e-05', 'epoch': '0.812'}\n{'loss': '0.02092', 'grad_norm': '0.5051', 'learning_rate': '1.901e-05', 'epoch': '0.8191'}\n{'loss': '0.02906', 'grad_norm': '0.2768', 'learning_rate': '1.831e-05', 'epoch': '0.8261'}\n{'loss': '0.01165', 'grad_norm': '0.3387', 'learning_rate': '1.761e-05', 'epoch': '0.8332'}\n{'loss': '0.02921', 'grad_norm': '0.4879', 'learning_rate': '1.69e-05', 'epoch': '0.8402'}\n{'loss': '0.0278', 'grad_norm': '0.6874', 'learning_rate': '1.62e-05', 'epoch': '0.8473'}\n{'loss': '0.01982', 'grad_norm': '0.5044', 'learning_rate': '1.549e-05', 'epoch': '0.8544'}\n{'loss': '0.02439', 'grad_norm': '0.52', 'learning_rate': '1.479e-05', 'epoch': '0.8614'}\n{'loss': '0.01275', 'grad_norm': '0.2026', 'learning_rate': '1.408e-05', 'epoch': '0.8685'}\n{'loss': '0.0346', 'grad_norm': '0.2744', 'learning_rate': '1.338e-05', 'epoch': '0.8756'}\n{'loss': '0.02267', 'grad_norm': '0.3502', 'learning_rate': '1.268e-05', 'epoch': '0.8826'}\n{'loss': '0.02001', 'grad_norm': '0.5754', 'learning_rate': '1.197e-05', 'epoch': '0.8897'}\n{'loss': '0.02598', 'grad_norm': '0.4006', 'learning_rate': '1.127e-05', 'epoch': '0.8967'}\n{'loss': '0.01684', 'grad_norm': '0.344', 'learning_rate': '1.056e-05', 'epoch': '0.9038'}\n{'loss': '0.02154', 'grad_norm': '0.5335', 'learning_rate': '9.859e-06', 'epoch': '0.9109'}\n{'loss': '0.0385', 'grad_norm': '0.4959', 'learning_rate': '9.155e-06', 'epoch': '0.9179'}\n{'loss': '0.02674', 'grad_norm': '0.277', 'learning_rate': '8.451e-06', 'epoch': '0.925'}\n{'loss': '0.02127', 'grad_norm': '0.2447', 'learning_rate': '7.746e-06', 'epoch': '0.932'}\n{'loss': '0.02283', 'grad_norm': '0.3313', 'learning_rate': '7.042e-06', 'epoch': '0.9391'}\n{'loss': '0.01824', 'grad_norm': '0.3997', 'learning_rate': '6.338e-06', 'epoch': '0.9462'}\n{'loss': '0.05013', 'grad_norm': '0.4495', 'learning_rate': '5.634e-06', 'epoch': '0.9532'}\n{'loss': '0.03946', 'grad_norm': '0.6299', 'learning_rate': '4.93e-06', 'epoch': '0.9603'}\n{'loss': '0.02684', 'grad_norm': '0.2295', 'learning_rate': '4.225e-06', 'epoch': '0.9673'}\n{'loss': '0.01539', 'grad_norm': '0.3194', 'learning_rate': '3.521e-06', 'epoch': '0.9744'}\n{'loss': '0.04398', 'grad_norm': '0.4758', 'learning_rate': '2.817e-06', 'epoch': '0.9815'}\n{'loss': '0.03083', 'grad_norm': '0.5761', 'learning_rate': '2.113e-06', 'epoch': '0.9885'}\n{'loss': '0.03408', 'grad_norm': '0.444', 'learning_rate': '1.408e-06', 'epoch': '0.9956'}\n{'loss': '0.04268', 'grad_norm': '0.4975', 'learning_rate': '7.042e-07', 'epoch': '1'}\n{'train_runtime': '1.175e+04', 'train_samples_per_second': '0.096', 'train_steps_per_second': '0.012', 'train_loss': '0.03002', 'epoch': '1'}\n{\n  \"estado\": \"finalizada\",\n  \"run_id\": \"f9326b10342b4be4\",\n  \"wandb_url\": \"https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/f9326b10342b4be4\",\n  \"publicaciones\": [\n    {\n      \"checkpoint\": \"checkpoint-20\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"113207d6b208b0e18341da6229800996e25755fc\"\n    },\n    {\n      \"checkpoint\": \"checkpoint-40\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"028a3447f7b3c18c8fc35e9b36eb5a307399d9e5\"\n    },\n    {\n      \"checkpoint\": \"checkpoint-60\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"318f2e64ba50c6d7609a47d40fbe03bd13535839\"\n    },\n    {\n      \"checkpoint\": \"checkpoint-80\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"017ed7294957103e898e29318302687c29a119e7\"\n    },\n    {\n      \"checkpoint\": \"checkpoint-100\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"f9f9c23587d6f588b2376725efa78cce3d49acce\"\n    },\n    {\n      \"checkpoint\": \"checkpoint-120\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"736ae535fa2337be54e6a246504eaa10a5795210\"\n    },\n    {\n      \"checkpoint\": \"checkpoint-140\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"22a240e7dd0f6233b88f5aba9738673f0a25f1d8\"\n    },\n    {\n      \"checkpoint\": \"checkpoint-142\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"3706c6d35a2081221b771c60a8481403ddd18158\"\n    },\n    {\n      \"checkpoint\": \"final\",\n      \"hf_repo\": \"FranCalveyra/tp-admision\",\n      \"hf_revision\": \"17e9fe3d8a422284d6337a9372f697377d43319e\"\n    }\n  ],\n  \"vram_pico_gb\": 20.289,\n  \"vram_reservada_gb\": 20.898,\n  \"vram_pico_por_gpu_gb\": [\n    12.304,\n    7.985\n  ]\n}\n",
+  "publicaciones": [
+    {
+      "checkpoint": "checkpoint-20",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "113207d6b208b0e18341da6229800996e25755fc"
+    },
+    {
+      "checkpoint": "checkpoint-40",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "028a3447f7b3c18c8fc35e9b36eb5a307399d9e5"
+    },
+    {
+      "checkpoint": "checkpoint-60",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "318f2e64ba50c6d7609a47d40fbe03bd13535839"
+    },
+    {
+      "checkpoint": "checkpoint-80",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "017ed7294957103e898e29318302687c29a119e7"
+    },
+    {
+      "checkpoint": "checkpoint-100",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "f9f9c23587d6f588b2376725efa78cce3d49acce"
+    },
+    {
+      "checkpoint": "checkpoint-120",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "736ae535fa2337be54e6a246504eaa10a5795210"
+    },
+    {
+      "checkpoint": "checkpoint-140",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "22a240e7dd0f6233b88f5aba9738673f0a25f1d8"
+    },
+    {
+      "checkpoint": "checkpoint-142",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "3706c6d35a2081221b771c60a8481403ddd18158"
+    },
+    {
+      "checkpoint": "final",
+      "hf_repo": "FranCalveyra/tp-admision",
+      "hf_revision": "17e9fe3d8a422284d6337a9372f697377d43319e"
+    }
+  ],
+  "vram": {
+    "vram_pico_gb": 20.289,
+    "vram_reservada_gb": 20.898,
+    "vram_pico_por_gpu_gb": [
+      12.304,
+      7.985
+    ]
+  }
+}
