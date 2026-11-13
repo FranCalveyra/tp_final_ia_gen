@@ -36,7 +36,26 @@ def _cadena(valor):
     return isinstance(valor, str) and bool(valor.strip())
 
 
-def _accion(texto):
+def _sin_prefijo(texto):
+    """Separa el prefijo de hechos que antecede al JSON de la decisión final: texto sin llaves que termina en salto de línea."""
+    corte = texto.find("{")
+    prefijo = texto[:corte] if corte >= 0 else ""
+    if not prefijo.strip() or not prefijo.endswith("\n") or "}" in prefijo:
+        raise ValueError("prefijo inválido")
+    return texto[corte:]
+
+
+def _accion(texto, admite_prefijo=False):
+    """Acción del mensaje. `admite_prefijo` permite texto antes del JSON, solo si la acción es `registrar_decision`."""
+    if admite_prefijo and not texto.startswith("{"):
+        accion = _json(_sin_prefijo(texto))
+        if not isinstance(accion, dict) or accion.get("herramienta") != "registrar_decision":
+            raise ValueError("solo registrar_decision admite prefijo")
+        texto = texto[texto.find("{"):]
+    return _accion_estricta(texto)
+
+
+def _accion_estricta(texto):
     accion = _json(texto)
     if not isinstance(accion, dict) or set(accion) != {"herramienta", "argumentos"}:
         raise ValueError("acción requiere herramienta y argumentos")
@@ -111,7 +130,7 @@ def validar_registro(registro, formato_observacion=FORMATO_OBSERVACION):
             raise ValueError(f"mensaje {i}: rol, campos o contenido inválidos")
         if rol == "assistant":
             try:
-                anterior = _accion(mensaje["content"])
+                anterior = _accion(mensaje["content"], admite_prefijo=i == len(mensajes) - 1)
             except (ValueError, TypeError) as e:
                 raise ValueError(f"mensaje {i}: acción JSON inválida") from e
             if (anterior == "registrar_decision") != (i == len(mensajes) - 1):

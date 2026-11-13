@@ -33,7 +33,8 @@ def _edad(registro: dict) -> int:
 
 
 def _aviso(registro: dict) -> bool:
-    accion = json.loads(registro["messages"][-1]["content"])
+    contenido = registro["messages"][-1]["content"]
+    accion = json.loads(contenido[contenido.find("{"):])  # v6 antepone una línea de hechos sin llaves
     if accion.get("herramienta") != "registrar_decision":
         raise ValueError(f"{registro['id']}: no termina en registrar_decision")
     return accion["argumentos"]["aviso_al_voluntariado"] is True

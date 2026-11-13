@@ -68,6 +68,20 @@ class ConversacionesTest(unittest.TestCase):
                 dato["messages"][2]["content"] = accion
                 validar_registro(dato)
 
+    def test_prefijo_opcional_solo_en_la_decision_final(self):
+        dato = registro()
+        dato["messages"][-1]["content"] = "Edad: 88 años. Acompañante: ninguno.\n" + dato["messages"][-1]["content"]
+        validar_registro(dato)
+        for prefijo in ("  \n", "Edad: 88 años.", "Edad {88}.\n", "Edad: 88 }\n"):
+            with self.subTest(prefijo=prefijo), self.assertRaises(ValueError):
+                malo = registro()
+                malo["messages"][-1]["content"] = prefijo + malo["messages"][-1]["content"]
+                validar_registro(malo)
+        intermedio = registro()
+        intermedio["messages"][2]["content"] = "Nota.\n" + intermedio["messages"][2]["content"]
+        with self.assertRaises(ValueError):
+            validar_registro(intermedio)
+
     def test_tipos_ficha(self):
         for clave, valor in [("aviso_al_voluntariado", "false"), ("plazo_circuito_min", True),
                              ("numero_documento", 123), ("circuito", []), ("fundamentos", "NOR-ADM-01")]:
