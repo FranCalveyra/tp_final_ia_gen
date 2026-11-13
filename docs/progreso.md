@@ -1216,3 +1216,12 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   `explorar_buscadores` se regeneraron en CPU con las mismas métricas y están en `evaluaciones/rag/`. Ya no queda
   ningún número del informe sin evidencia versionada.
 
+### 2026-11-13: guion del Loom y README de la evaluación completa (CPU, rama `docs/guion-loom`)
+
+- **Guion del Loom:** [guion-loom.md](guion-loom.md) tiene 6 bloques en el orden de la consigna (~19 min), con un
+  responsable propuesto por bloque. La demo usa normas c con pev-017 (Código ACV de 15 min; 76 años y acompañada, así
+  que no hay aviso) y pev-042 (85 años y sola: aviso por costumbre). Los dos dan 9/9 en v40. El plan B sin GPU
+  (trazas versionadas con `ver_caso`) se probó en CPU.
+- **Fix del README:** el paso 4 (evaluación completa) usaba el plan `entrenado` (adapter `dc41674a`) y reproducía la
+  tabla vieja. Ahora usa `entrenado-v39` (`770c9fac`), que es el de la entrega y el de `tabla-v39`.
+
