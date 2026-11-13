@@ -1147,3 +1147,11 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   26: la entrega sigue con `dc41674a` y la práctica de la v38 no se corrió ([pasada 9](analisis-errores.md)).
   Corridas en `evaluaciones/dev/v38-peso`, recibos en `evaluaciones/entrenamiento/v38-peso`; guía en
   [entrenamiento](entrenamiento-sft.md). Sin probar: DPO con pares que difieran solo en el aviso.
+- **#15, datos v6 con la edad y el acompañante antes de la ficha (rama `feat/15-aviso-datos`, CPU):** hipótesis:
+  el adapter no aprende el aviso como un solo token, pero sí puede copiar los dos hechos de la nota y decidir
+  después. El último mensaje (`registrar_decision`) pasa a `Edad: N años. Acompañante: X.` + salto de línea + JSON;
+  el validador acepta ese prefijo solo ahí y `extraer_json` de la cátedra ya lo lee. El umbral no se escribe: los
+  valores se copian de la nota. Datos `v6-aviso-datos` (1.133 registros válidos, 0 errores, manifiesto con
+  `dirty=false`) con `scripts.anteponer_datos_aviso` sobre `v5-aviso-peso`; `sft-aviso-datos.json` es copia exacta
+  de `sft-aviso-peso.json` (v39 difiere de v38 solo en el prefijo). Probado con dobles; sin tokenizar con el modelo
+  real. **Pendiente: Kaggle v39** (entrenar y medir en el dev; se adopta solo si supera 26/40 sin romper el resto).
