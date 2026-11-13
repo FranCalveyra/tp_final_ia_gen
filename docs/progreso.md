@@ -1154,7 +1154,19 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   valores se copian de la nota. Datos `v6-aviso-datos` (1.133 registros válidos, 0 errores, manifiesto con
   `dirty=false`) con `scripts.anteponer_datos_aviso` sobre `v5-aviso-peso`; `sft-aviso-datos.json` es copia exacta
   de `sft-aviso-peso.json` (v39 difiere de v38 solo en el prefijo). Probado con dobles; sin tokenizar con el modelo
-  real. **Pendiente: Kaggle v39** (entrenar y medir en el dev; se adopta solo si supera 26/40 sin romper el resto).
+  real.
+- **v39 (edad y acompañante antes de la decisión) ADOPTADA como adapter de la entrega (2026-11-13, solo con el dev):**
+  Kaggle v39 continuó `dc41674a` 142 pasos sobre `v6-aviso-datos` (11.735 s, 20,36 GB pico, W&B `41ec01f292e64306`,
+  código `5a36ecf`, `final` `770c9fac84d5718b0b2cf4c40c3451cad322ac9e`) y dio **31/40 en el dev contra 26/40 de v35**
+  (5/8 positivos atrapados contra 0/8, 2 falsos `true`; ganó 7 casos y perdió `pd-n1-010` y `pd-n2-013`). Superó la barra
+  acordada antes (≥30/40, con ganancias en los 75+ sin acompañante). El prefijo apareció en 38 de 40 mensajes finales y
+  `extraer_json` de la cátedra lo lee. Quedan fallas de aviso (6), cobertura (4) y `box_antes_del_registro` (3)
+  ([pasada 10](analisis-errores.md)). `ADAPTER_ENTREGA` apunta a `770c9fac` (commit `1405aab`) y el plan
+  `configuraciones/evaluacion/entrenado-v39.json` fija las filas con adapter. Corridas en `evaluaciones/dev/v39-datos`,
+  recibos en `evaluaciones/entrenamiento/v39-datos`; guía en [entrenamiento](entrenamiento-sft.md).
+  **Práctica con el adapter v39: pendiente (Kaggle v40, solo para reportar).** Hasta entonces el 92/150 del informe es
+  del adapter `dc41674a`. Probado con dobles el prefijo y validado en GPU el entrenamiento y el dev; la práctica y A100
+  siguen sin validar.
 - **#5 cerrado (2026-11-13), alcance T4:** lo medible está en el [borrador de la Parte 5](informe-parte5.md):
   - SFT real: tiempo, VRAM y costo en Kaggle.
   - Casos a la vez al entrenar y al evaluar.

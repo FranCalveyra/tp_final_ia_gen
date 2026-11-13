@@ -31,6 +31,7 @@ uv run python -m scripts.tabla_evaluacion --evaluacion evaluaciones/practica/v25
 | `dev/v37-formato/` | v37 | Fase 3, formato de los mensajes sin adapter: `procedimiento-formato-v1` 10/40 contra 9/40 de B (v25); no adoptado |
 | `dev/v36-aviso/` | v36 | Adapter reforzado en el aviso (`22ee5596`) + `procedimiento-v1`: 23/40, no adoptado (configuración usada en `evaluacion-prompt-aviso.json`) |
 | `dev/v38-peso/` | v38 | Adapter con peso 20 en el aviso (`17e9fe3d`) + `procedimiento-v1`: 26/40, igual que v35 y con 3 controles rotos; no adoptado |
+| `dev/v39-datos/` | v39 | Adapter con edad y acompañante antes de la decisión (`770c9fac`) + `procedimiento-v1`: **31/40** contra 26/40 de v35; **adoptado como adapter de la entrega** |
 
 Cada corrida del conjunto de desarrollo tiene `manifiesto.json` (snapshots y hashes de prompt, configuración,
 casos y esperadas; métricas) y `entradas/`. Detalle e interpretación en [optimización de prompt](../docs/optimizacion-prompt.md),
@@ -47,3 +48,4 @@ revisión), `runner.log` (pérdida por paso), `estado.json` (VRAM, run de W&B).
 | `entrenamiento/v32-v33-sft-v3/` | v32 + v33 | SFT de la entrega sobre `v3-procedimiento` (v32 cortada a las 8 h en el paso 315; v33 reanuda desde checkpoint-300). `manifiesto-tokens.json`: 2.900 conversaciones, ~10 M tokens |
 | `entrenamiento/v36-aviso/` | v36 | Continuación sobre `v4-aviso` (no adoptada) |
 | `entrenamiento/v38-peso/` | v38 | Continuación sobre `v5-aviso-peso` con `peso_aviso` 20 (no adoptada) |
+| `entrenamiento/v39-datos/` | v39 | Continuación sobre `v6-aviso-datos` (edad y acompañante antes de la decisión): adapter de la entrega, 20,36 GB de VRAM pico, W&B `41ec01f292e64306` |

@@ -148,6 +148,20 @@ cobertura, registro y orden del box ([pasada 9](analisis-errores.md)). Validó e
 entrena sin errores (la pérdida se reporta con el peso: no es comparable con la de v36). Recibos en
 `evaluaciones/entrenamiento/v38-peso`.
 
+### 7. Hechos antes de la decisión (datos `v6-aviso-datos`)
+
+`scripts.anteponer_datos_aviso` antepone a la decisión final `Edad: N años. Acompañante: X.` y un salto de línea;
+los valores se copian de la nota, el umbral no se escribe. El validador acepta ese prefijo solo en el último mensaje
+(`registrar_decision`) y `extraer_json` de la cátedra lo lee. `configuraciones/sft-aviso-datos.json` es copia exacta
+de `sft-aviso-peso.json` (adapter inicial `dc41674a`, lr 1e-4, `peso_aviso` 20, 1 época sobre 1.133 conversaciones).
+
+**Resultado (Kaggle v39, 2026-11-13 09:00 a 12:20 UTC): se adoptó.** 142 pasos, 11.735 s de `train_runtime`
+(3 h 15 min 35 s, ~83 s/paso en 2 T4), **20,36 GB de VRAM pico** (12,37 + 7,99 GB; reservada 20,96 GB), pérdida final
+ponderada 0,038 y media 0,0398, W&B `41ec01f292e64306`, código `5a36ecf`, `final`
+`770c9fac84d5718b0b2cf4c40c3451cad322ac9e`. En el dev dio 31/40 contra 26/40 de v35 ([pasada 10](analisis-errores.md)).
+La pérdida es ponderada: no es comparable con v36. Recibos en `evaluaciones/entrenamiento/v39-datos`; práctica
+pendiente (Kaggle v40).
+
 ## Estado de cierre de infraestructura y límites restantes
 
 Los cuatro criterios técnicos del pipeline genérico están respaldados: conversaciones/config/semilla,
