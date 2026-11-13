@@ -133,12 +133,12 @@ Con `peso_aviso` (> 1) en la configuración, la pérdida multiplica por ese valo
 (`true`/`false`) de `aviso_al_voluntariado` que registra el asistente; el resto pesa 1 y se normaliza igual que
 sin pesos. `pesos_del_aviso` ubica ese token decodificando el contexto anterior (`"aviso_al_voluntariado":`), sin
 suponer cómo tokeniza la clave, y **falla antes de cargar los pesos** si no lo encuentra exactamente una vez en una
-conversación. Motivo ([pasada 8](analisis-errores.md)): el aviso es un token entre ~360 supervisados y se diluye en
+conversación. Motivo ([pasada 8](analisis-errores.md)): el aviso es un token entre ~350 supervisados (1.015.072 / 2.900 en la tokenización de `v3-procedimiento`) y se diluye en
 la pérdida media; subir la proporción de positivos (v36) movió el sesgo sin enseñar la regla.
 
 `configuraciones/sft-aviso-peso.json`: parte del adapter de la entrega, `peso_aviso` 20, lr 1e-4, 1 época sobre
 `datos/conversaciones/v5-aviso-peso` (1.133: 302 con aviso, 231 mayores con acompañante, 600 del resto; 27 % de
-positivos contra 46 % de v4-aviso). **Probado con dobles** (ubicación del token, alineación con los objetivos,
+positivos contra 47,7 % de v4-aviso (302/633)). **Probado con dobles** (ubicación del token, alineación con los objetivos,
 padding); la suma ponderada en torch se valida en GPU.
 
 **Resultado (Kaggle v38, 2026-11-12/13): no se adoptó.** 142 pasos, ~83 s/paso (11.750 s), 20,29 GB de VRAM pico,

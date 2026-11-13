@@ -1189,3 +1189,18 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   La A100-40GB queda como **limitación conocida**, no como tarea: no hay vía de acceso y Modal se descartó
   ([KI-A100-001](../README.md#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb)). En #16
   quedó anotada así, para mencionarla en el mail y en el informe; la integración al `INFORME.md` sigue en #16.
+
+### 2026-11-13: `INFORME.md` completo (issue #16, CPU, rama `docs/informe-completo`)
+
+- **Estado:** `INFORME.md` reorganizado en resumen + Partes 1 a 5 + limitaciones y trabajos futuros, con cada pasada
+  (incluidas las fallidas: v28–v31, v36, v37, v38, `prefijos`, prompts A/C/D) y la procedencia de cada número. La
+  Parte 5 integra [informe-parte5.md](informe-parte5.md), que queda como detalle.
+- **Celdas «sin recalcular» de la Parte 5 completadas** con un cálculo propio sobre
+  `evaluaciones/practica/v40-entrenado-v39/*/metricas.jsonl` (el mismo cálculo reproduce las filas de v34): `ambos` v39
+  14.101–14.196 tokens de entrada y 353–355 generados por caso, 19,94 GB pico, ancho 4.395; `solo_entrenamiento` v39
+  12.146–14.204 / 333–338, 20,25–21,71 GB, ancho 7.636 (debajo del tope de 8.192). Rendimiento de la entrega:
+  ~125–129 casos/h por proceso en T4 (antes ~145 con `dc41674a`).
+- **Pendiente declarado:** todo lo de A100-40GB (KI-A100-001); sin GPU, build ni commit en esta unidad.
+- **Correcciones de la auditoría aplicadas:** `v4-aviso` es 302/633 = 47,7 % positivos; ~350 supervisados por
+  conversación; carga del modelo 20,5–155,0 s según las corridas versionadas; fila de párrafos del buscador separada;
+  origen (comando, configuración y checkpoint) en 5.1, 5.3 y la fase 1 de la Parte 3; anexo de la Parte 5 al día con v39/v40.
