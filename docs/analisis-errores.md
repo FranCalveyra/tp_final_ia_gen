@@ -296,6 +296,34 @@ Decisión tomada solo con el dev; la práctica de la v36 no se corrió.
 - Corridas en `evaluaciones/dev/v36-aviso`; recibos del entrenamiento en `evaluaciones/entrenamiento/v36-aviso`
   (W&B `6d8edb168beb4e9b`, checkpoints 20/40/60/80 y `final` en HF).
 
+### 2026-11-13 · Pasada 9: peso 20 en el token del aviso (v38) contra el adapter de la entrega (v35), conjunto de desarrollo
+
+**No se adopta: empata en resueltos y rompe más controles; el adapter de la entrega sigue siendo `dc41674a`.**
+La v38 siguió entrenando ese adapter 1 época (142 pasos) sobre `datos/conversaciones/v5-aviso-peso` (1.133
+conversaciones, 27 % con aviso `true`) con `peso_aviso` 20 y lr 1e-4, y se midió en el dev con la misma
+configuración que v35 y v36 (`procedimiento-v1`, n1 + n2). La regla era adoptar solo si superaba 26/40;
+la práctica de la v38 no se corrió.
+
+| Dev, 40 casos | v35 (`dc41674a`) | v36 (`22ee5596`) | v38 (`17e9fe3d`) |
+|---|---:|---:|---:|
+| Resueltos | 26 | 23 | 26 (ganados 3, perdidos 3 contra v35) |
+| Aviso correcto | **32** | 26 | 30 |
+| 75+ sin acompañante (aviso `true`) | 0/8 | **6/8** | 1/8 |
+| Falsos `true` (aviso `false` esperado) | 0 | 12 | 3 |
+| Otros controles que fallan | — | — | cobertura 3, registro 1, `box_antes_del_registro` 1 |
+
+- **Casos:** ganó `pd-n2-002`, `pd-n1-008` y `pd-n1-012`; perdió `pd-n2-006`, `pd-n2-009` y `pd-n2-017`.
+  Sumar y restar tres casos queda dentro del ruido de una sola corrida de 40 casos.
+- **Lectura:** el peso movió el sesgo menos que la proporción de positivos (v36: 6/8 y 12 falsos `true`; v38: 1/8 y
+  3 falsos `true`) y tampoco enseñó la regla (edad **y** sin acompañante). El aviso empeora de 32 a 30 y aparecen
+  fallas fuera del aviso (cobertura, registro, orden del box), que v35 no tenía.
+- **Entrenamiento:** 11.750 s (~83 s/paso en T4 x2), 20,29 GB de VRAM pico, pérdida final ponderada 0,043 y media
+  0,030 (no comparable con v36: el peso 20 cambia la escala de la pérdida). W&B `f9326b10342b4be4`.
+- **Qué quedaría sin probar** (no se hizo): DPO con pares que difieran solo en el aviso, o un peso mucho más
+  alto con la proporción real de positivos. Ya van dos intentos de ~3 h de T4 sin ganarle al adapter actual.
+- Corridas en `evaluaciones/dev/v38-peso`; recibos del entrenamiento en `evaluaciones/entrenamiento/v38-peso`
+  (checkpoints 20 a 140, 142 y `final` en HF).
+
 ## Uso para #13 y #15
 
 - **Qué conclusiones se usaron para diseñar candidatos de #13** (solo patrones genéricos, sin contenido de casos

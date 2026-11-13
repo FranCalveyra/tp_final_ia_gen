@@ -141,6 +141,13 @@ la pérdida media; subir la proporción de positivos (v36) movió el sesgo sin e
 positivos contra 46 % de v4-aviso). **Probado con dobles** (ubicación del token, alineación con los objetivos,
 padding); la suma ponderada en torch se valida en GPU.
 
+**Resultado (Kaggle v38, 2026-11-12/13): no se adoptó.** 142 pasos, ~83 s/paso (11.750 s), 20,29 GB de VRAM pico,
+W&B `f9326b10342b4be4`, `final` `17e9fe3d8a422284d6337a9372f697377d43319e`. En el conjunto de desarrollo dio 26
+resueltos, igual que v35, con aviso 30/40 (v35: 32), 1/8 positivos atrapados y 3 falsos `true`, más fallas en
+cobertura, registro y orden del box ([pasada 9](analisis-errores.md)). Validó en GPU que la pérdida ponderada
+entrena sin errores (la pérdida se reporta con el peso: no es comparable con la de v36). Recibos en
+`evaluaciones/entrenamiento/v38-peso`.
+
 ## Estado de cierre de infraestructura y límites restantes
 
 Los cuatro criterios técnicos del pipeline genérico están respaldados: conversaciones/config/semilla,
