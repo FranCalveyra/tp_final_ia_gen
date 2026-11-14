@@ -20,6 +20,13 @@ prompt `procedimiento-v1` (sha256 `8c692c2c…1ecdd`), el buscador `baseline` (B
 - **Limitación principal:** **nada se validó en una A100 de 40 GB**; todo es Kaggle T4
   ([KI-A100-001](README.md#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb)).
 
+**Presentación.** Video en Loom en cinco partes, en orden:
+[1](https://www.loom.com/share/46e9c51266334bf7bb7795a12a683834) ·
+[2](https://www.loom.com/share/a04da84b31f54867aace1a759ec140a4) ·
+[3](https://www.loom.com/share/f6de8789e99a41d3b06ff9182a26d05d) ·
+[4](https://www.loom.com/share/29be9dfc81434863bc3dfb7085b52ab3) ·
+[5](https://www.loom.com/share/9ce936e889054230b452c37286599caa).
+
 **Cómo leer los números.** Cada tabla dice el comando, el punto de control y el prompt, o enlaza la procedencia
 generada por el script. Las evaluaciones están versionadas sin editar en [`evaluaciones/`](evaluaciones/README.md):
 conversaciones completas, tiempos, métricas por micro-lote y `runner.json` con commit, modelo, adapter, prompt y
