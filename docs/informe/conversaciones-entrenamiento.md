@@ -191,4 +191,4 @@ historial, 4,9 en sintéticas), cerca de las 3,5 que hace el modelo sin entrenar
 
 **Límites.** No se tokenizó (requiere descargar el tokenizador real): los largos son caracteres.
 La identidad de contaminación es exacta (triage/números), no detecta paráfrasis.
-Resultados de la versión generada: [bitácora](progreso.md) e [INFORME](../INFORME.md#parte-1-conversaciones).
+Resultados de la versión generada: [bitácora](../progreso.md) e [INFORME](../../INFORME.md#13-conversaciones-de-entrenamiento).

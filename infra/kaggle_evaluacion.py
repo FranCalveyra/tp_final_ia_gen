@@ -9,7 +9,7 @@ Valida el plan completo (prompts con su sha256, adapters con revisión inmutable
 **antes** de crear la salida o tocar la GPU. Cada (configuración × versión de normas) corre en su
 propia carpeta nueva, con su propio entorno; si una falla, se registra y siguen las demás.
 Puntuar y armar la tabla es una fase local separada: `python -m scripts.tabla_evaluacion`.
-Ver docs/evaluacion.md.
+Ver docs/informe/evaluacion.md.
 """
 
 import argparse

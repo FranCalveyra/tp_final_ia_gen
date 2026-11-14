@@ -6,6 +6,14 @@ Más abajo sigue, sin cambios, el [manual del kit de la cátedra](#manual-del-ki
 **Seguimiento:** [informe](INFORME.md) · [progreso y decisiones](docs/progreso.md) ·
 [estándares compartidos](AGENTS.md) · enunciado en [mission.md](mission.md).
 
+**Documentación (`docs/`):**
+
+- [`docs/progreso.md`](docs/progreso.md) es la bitácora de cada pasada, con sus decisiones y evidencia.
+- [`docs/informe/`](docs/informe/) tiene los anexos que respaldan cada parte de `INFORME.md`.
+- [`docs/guias/`](docs/guias/) explica cómo operar: entorno, Kaggle, W&B, integración sin GPU y el mail de entrega.
+- [`docs/historico/`](docs/historico/) guarda como registro lo que ya no aplica: Modal, borradores ya integrados y
+  auditorías viejas.
+
 ## Cómo correr la entrega
 
 Qué se usa en la entrega (`entrega.py`, sin variables de entorno):
@@ -81,8 +89,8 @@ uv run python -m scripts.tabla_evaluacion --evaluacion corridas/evaluacion-actua
 `tabla.json`) puntúa cada corrida con `admision.correr.puntuar` y trae la procedencia de cada celda.
 **Las corridas que reportamos están versionadas en [`evaluaciones/`](evaluaciones/README.md)** (conversaciones
 completas, resultados caso por caso, `runner.json` y la tabla): se auditan y la tabla se regenera sin GPU. Detalle y
-resultados en [evaluación](docs/evaluacion.md). La práctica solo se usa para reportar: prompt, datos y checkpoint se
-eligieron en un conjunto de desarrollo aparte ([`datos/prompt-dev/v1`](docs/optimizacion-prompt.md)).
+resultados en [evaluación](docs/informe/evaluacion.md). La práctica solo se usa para reportar: prompt, datos y checkpoint se
+eligieron en un conjunto de desarrollo aparte ([`datos/prompt-dev/v1`](docs/informe/optimizacion-prompt.md)).
 
 ### 5. De dónde sale cada archivo
 
@@ -96,11 +104,11 @@ eligieron en un conjunto de desarrollo aparte ([`datos/prompt-dev/v1`](docs/opti
 | `datos/conversaciones/v6-aviso-datos/` (1.133 de v5: edad y acompañante copiados antes de la ficha) | `python -m scripts.anteponer_datos_aviso --datos datos/conversaciones/v5-aviso-peso/conversaciones.jsonl --salida datos/conversaciones/v6-aviso-datos` | `configuraciones/sft-aviso-datos.json` |
 | `datos/entrenamiento/` (primera versión, #12; no la usa el adapter) | `scripts.seleccionar_entrenamiento`, `scripts.generar_sinteticos_entrenamiento` | `datos/entrenamiento/manifiesto.json` (semilla 12012) |
 | `datos/prompt-dev/v1/` (conjunto de desarrollo, 40 casos) | `python -m scripts.generar_prompt_dev --semilla 20261110 --carpetas 2 --casos-por-carpeta 20 --candidatos 4000` | Excluye los casos de práctica |
-| `configuraciones/prompts/procedimiento-v1.json` (prompt elegido) | Escrito a mano; elegido con `scripts.evaluar_prompts` + `scripts.rankear_prompts` en el conjunto de desarrollo | [Optimización de prompt](docs/optimizacion-prompt.md) |
+| `configuraciones/prompts/procedimiento-v1.json` (prompt elegido) | Escrito a mano; elegido con `scripts.evaluar_prompts` + `scripts.rankear_prompts` en el conjunto de desarrollo | [Optimización de prompt](docs/informe/optimizacion-prompt.md) |
 | Adapter `final` en `FranCalveyra/tp-admision` | `scripts.preparar_entrenamiento` → `scripts.tokenizar_entrenamiento` → `scripts.entrenar --online --publicar` | `configuraciones/sft-ejemplo.json` (semilla 42, lr 2e-4, 1 época, LoRA r=8); corrida W&B `3add2742ddfd4b42`; cada checkpoint con su revisión HF |
 | Adapter de la entrega (v39): continuación del anterior (`dc41674a`) sobre `datos/conversaciones/v6-aviso-datos/` | `scripts.entrenar --online --publicar` con `configuraciones/sft-aviso-datos.json` (semilla 42, lr 1e-4, 1 época, `peso_aviso` 20; 142 pasos) | corrida W&B `41ec01f292e64306`, código `5a36ecf`; `final` = `770c9fac`; recibos en `evaluaciones/entrenamiento/v39-datos/` |
 
-Volver a entrenar ([entrenamiento SFT](docs/entrenamiento-sft.md)), con las mismas entradas y en una A100:
+Volver a entrenar ([entrenamiento SFT](docs/informe/entrenamiento-sft.md)), con las mismas entradas y en una A100:
 
 ```bash
 uv sync --locked --group entrenamiento
@@ -112,7 +120,7 @@ uv run python -m scripts.entrenar --preparacion corridas/sft-preparada --tokens 
 ```
 
 No hace falta para verificar nada: la entrega carga el adapter publicado. Nuestro entrenamiento corrió en Kaggle
-(T4 x2, `infra/kaggle_entrenamiento.py` con `--precision fp16 --dispositivos auto`, ver [Kaggle](docs/kaggle.md)).
+(T4 x2, `infra/kaggle_entrenamiento.py` con `--precision fp16 --dispositivos auto`, ver [Kaggle](docs/guias/kaggle.md)).
 
 ### 6. Diagrama
 
@@ -160,7 +168,7 @@ y con qué argumentos. El entorno ejecuta la herramienta y devuelve la observaci
 
 # Manual del kit
 
-**Equipo:** para el entorno reproducible del proyecto (CPU, variables y Kaggle; Modal legacy), seguir [Preparar el entorno del equipo](docs/entorno-equipo.md).
+**Equipo:** para el entorno reproducible del proyecto (CPU, variables y Kaggle; Modal legacy), seguir [Preparar el entorno del equipo](docs/guias/entorno-equipo.md).
 
 El enunciado (qué hay que hacer, qué se entrega y cómo se corrige) está en [mission.md](mission.md), y el video que lo presenta en dos partes: [Parte 1](https://www.loom.com/share/2c56572757124aaf8e2a1e1398efe27d) y [Parte 2](https://www.loom.com/share/12f6cb81c76440cd8a86563dcc02b2f2). Esto explica qué trae el kit y cómo se usa.
 
@@ -312,7 +320,7 @@ normas.
 - `costumbres.md`, en texto libre: cada costumbre que descubrieron, explicada, con los ids de las filas que la
   respaldan.
 
-Instrumentación: [configurar W&B y probar sin conexión](docs/wandb.md).
+Instrumentación: [configurar W&B y probar sin conexión](docs/guias/wandb.md).
 
 
 ## Known Issues — añadido del equipo (no modifica la consigna)
@@ -324,7 +332,7 @@ todo se entrenó, evaluó y midió en **Kaggle T4 x2**, y los tiempos y la VRAM 
 
 - **Por qué:** fue una **decisión consciente** del equipo. Modal, la plataforma que sugiere la consigna para la
   A100, pide cargar una tarjeta de crédito para habilitar el crédito gratis, y decidimos no hacerlo (2026-11-05).
-  No había otra vía a una A100 de 40 GB: el notebook de Kaggle no la ofrece ([evidencia y alcance](docs/kaggle.md)).
+  No había otra vía a una A100 de 40 GB: el notebook de Kaggle no la ofrece ([evidencia y alcance](docs/guias/kaggle.md)).
 - **Qué implica:** la consigna pide A100 de 40 GB para entrenar y para correr
   ([mission.md](mission.md#modelo-y-cómputo)), y los recursos medidos en ese hardware ([Parte 5](mission.md#el-informe)).
   Eso no lo cumplimos. No hay una excepción acordada con la cátedra.

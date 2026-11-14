@@ -1,10 +1,10 @@
 # INFORME, Parte 5: recursos y proyección a producción (anexo detallado)
 
-> **Estado: anexo detallado de la Parte 5 de [`INFORME.md`](../INFORME.md)** (issue #5), actualizado el 2026-11-13
+> **Estado: anexo detallado de la Parte 5 de [`INFORME.md`](../../INFORME.md)** (issue #5), actualizado el 2026-11-13
 > al adapter v39 de la entrega y a su práctica (Kaggle v40). Incluye el entrenamiento real (Kaggle v32+v33) y, como
 > historial, la evaluación del adapter anterior (v34). Todo salió de **Kaggle 2x T4 con fp16**.
 > **Nada se midió en A100-40GB.** Esos números figuran como **PENDIENTE**. Los números de T4 no se pueden
-> transferir a A100 y acá no inventamos factores. La bitácora vive en [progreso.md](progreso.md).
+> transferir a A100 y acá no inventamos factores. La bitácora vive en [progreso.md](../progreso.md).
 
 ## Resumen (lo que ya se puede afirmar)
 
@@ -246,7 +246,7 @@ El tiempo del runner excluye la instalación de dependencias; la carga de pesos 
 ### 4.1 Lo medido: Kaggle (desarrollo)
 
 Kaggle es gratis; su cuota ronda las 30 h/semana de GPU, aproximada y fijada por Kaggle
-([kaggle.md](kaggle.md)). Uso, derivado de `runner.json` (inicio a fin del runner, sin
+([kaggle.md](../guias/kaggle.md)). Uso, derivado de `runner.json` (inicio a fin del runner, sin
 instalación del entorno):
 
 | Trabajo | Segundos de runner (reloj de pared) | Fuente |
@@ -396,7 +396,7 @@ utilización, latencia y costos adicionales futuros no están medidos: **no se p
 ## 8. De dónde sale cada número
 
 Las corridas de recursos están versionadas tal cual las dejó Kaggle en `evaluaciones/recursos/`, y las de
-práctica en `evaluaciones/practica/`. La bitácora [progreso.md](progreso.md) las resume con commit y fecha.
+práctica en `evaluaciones/practica/`. La bitácora [progreso.md](../progreso.md) las resume con commit y fecha.
 
 | Número | Artefacto o cálculo |
 |---|---|
@@ -410,7 +410,7 @@ práctica en `evaluaciones/practica/`. La bitácora [progreso.md](progreso.md) l
 | Antes/después (tokens, VRAM, s/caso, carga) | `v27/corridas/evaluacion-solo-prompt/*` y `v34/x/evaluacion-entrenado/*`: `salida/tiempos.json` y `metricas.jsonl`; resueltos de `corridas/tablas/20261112-entrenado` |
 | Cuota semanal de Kaggle usada | API de Kaggle (`get_accelerator_quota`), 2026-11-12 |
 | Tarifa Modal y crédito mensual | `mission.md` (línea de cómputo) |
-| Cuota Kaggle | [kaggle.md](kaggle.md) |
+| Cuota Kaggle | [kaggle.md](../guias/kaggle.md) |
 
 Limitaciones comunes: T4 fp16 (no comparable con A100), una corrida por configuración, el lote 4
 viene de otra sesión, y las corridas de lote 8 y 16 están incompletas.
@@ -424,4 +424,4 @@ viene de otra sesión, y las corridas de lote 8 y 16 están incompletas.
 | Producción/consumo/escalado | Rendimiento de la entrega en T4 y fórmulas con variables | SLO/demanda/tarifa/capacidad en A100 sin medir |
 | Trabajos futuros | **Redacción cubierta** en sección 7, con motivos/evidencia | Integrar al `INFORME.md` compartido; no implica mejoras ya ejecutadas |
 
-#5 continúa abierto. La deuda de hardware es [KI-A100-001](../README.md#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb).
+#5 continúa abierto. La deuda de hardware es [KI-A100-001](../../README.md#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb).

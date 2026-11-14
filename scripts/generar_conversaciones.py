@@ -166,7 +166,7 @@ def revalidar(fila, parametros, costumbres) -> None:
 
 
 def secciones_rectoras(fila, parametros) -> list[str]:
-    """Secciones cuyo contenido decide la ficha de este caso (ver docs/conversaciones-entrenamiento.md)."""
+    """Secciones cuyo contenido decide la ficha de este caso (ver docs/informe/conversaciones-entrenamiento.md)."""
     secciones = ["NOR-ADM-01"]
     if int(fila["edad"]) >= parametros["P-ADM-2"]:
         secciones.append("NOR-ADM-02")

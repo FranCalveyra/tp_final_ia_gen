@@ -29,7 +29,7 @@ reproduce exactamente al `AgenteJSON` del kit (50/50 conversaciones idénticas, 
 práctica original) y el runner corre de punta a punta con la config T4, `HF_TOKEN` desde
 Kaggle Secrets y `--solo-plomeria`. Largo medido con el tokenizer real: system prompt 615
 tokens, contexto inicial 650 (punto de partida de la optimización). Detalle en
-[progreso](progreso.md).
+[progreso](../progreso.md).
 
 ## Problema del agente de referencia
 
@@ -333,7 +333,7 @@ Reglas:
   prompt más largo reduce el margen de los casos largos.
 - Las configuraciones originales del runner fijan `max_turnos: 16`; la entrega ya no. Decisión de #13
   (2026-11-10): los candidatos se miden con `evaluacion-prompt-kaggle-t4-l4.json`, `max_turnos: 120`,
-  el mismo tope que deriva la entrega (ver [fase 1](#fase-1-2026-11-10-eze-conjunto-de-desarrollo-candidatos-y-evaluación-preparada)).
+  el mismo tope que deriva la entrega (ver [fase 1](#fase-1-2026-11-10-eze-conjunto-de-desarrollo-candidatos-y-evaluación)).
 
 **Dónde está el contexto.** `python -m scripts.medir_contexto --trazas <trazas.jsonl> --prompt <spec>`
 rejuega trazas ya jugadas con otro `PromptSpec` (mismas respuestas y observaciones) y reparte
@@ -490,7 +490,7 @@ Sin el campo, la configuración y su registro quedan como antes.
 ### Kaggle: celda de fase 1 (ejecutada en v25 con el commit `f4d7300`)
 
 Notebook con GPU T4 x2, Internet y Secrets `HF_TOKEN` (lectura) y `GITHUB_TOKEN` (como en
-[kaggle.md](kaggle.md)). Una sola celda, ejecutada una vez, sin tocar el notebook hasta que termine.
+[kaggle.md](../guias/kaggle.md)). Una sola celda, ejecutada una vez, sin tocar el notebook hasta que termine.
 Reemplazar `COMMIT` por el SHA completo pusheado de `feat/13-prompt-eze`. Escribe fuera del repo
 (si no, el runner registraría `dirty=true`) y falla si la carpeta de la sesión ya existe.
 
@@ -694,7 +694,7 @@ Con el criterio declarado antes de correr (más casos resueltos en el dev y, a i
 ~2,6× de contexto por caso. Qué cambia y qué queda para decidir en equipo:
 
 - **`entrega.py` usa B desde 2026-11-12**, junto con el adapter entrenado con B (ver
-  [bitácora](progreso.md)). Para la base con baseline: `PROMPT_SPEC=configuraciones/prompts/baseline.json`
+  [bitácora](../progreso.md)). Para la base con baseline: `PROMPT_SPEC=configuraciones/prompts/baseline.json`
   y `ADAPTER_REPO=` (vacío).
 - **Las conversaciones de #8 se regeneraron con B en una carpeta nueva**, `datos/conversaciones/v3-procedimiento`
   (la consigna pide entrenar con el prompt optimizado); `v2-baseline` queda igual. Solo cambia el mensaje de

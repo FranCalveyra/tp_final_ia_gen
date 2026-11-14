@@ -9,8 +9,8 @@ Esta auditoría no certifica decisiones, contaminación ausente, calidad del mod
 
 Auditoría local del 2026-11-05, importación upstream `876d889`. Solo Python stdlib y módulos CPU del repo;
 no se descargó tokenizador, no se cargaron pesos ni se ejecutó entrenamiento. Fuentes:
-[README original, trazas y conversión](referencias/kit-876d889/README.md),
-[consigna original](referencias/kit-876d889/mission.md),
+[README original, trazas y conversión](../referencias/kit-876d889/README.md),
+[consigna original](../referencias/kit-876d889/mission.md),
 [contrato v1 propuesto](conversaciones-entrenamiento.md),
 `admision_tp/{conversaciones,preparacion,tokenizacion}.py` y `admision/ejemplo.py`.
 

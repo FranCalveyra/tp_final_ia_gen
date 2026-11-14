@@ -1,6 +1,6 @@
 # Resumen de costumbres para compartir
 
-Actualizado el 2026-11-10 (corrección de #10-#12). Detalle e IDs en [`costumbres.md`](../costumbres.md) y [`historial_costumbres.json`](../historial_costumbres.json).
+Actualizado el 2026-11-10 (corrección de #10-#12). Detalle e IDs en [`costumbres.md`](../../costumbres.md) y [`historial_costumbres.json`](../../historial_costumbres.json).
 
 ## Costumbres confirmadas
 

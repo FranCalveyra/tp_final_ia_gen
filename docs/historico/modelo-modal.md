@@ -15,11 +15,11 @@ el acceso de HF todavía no están verificados.
   recorta contexto; al superar el presupuesto falla explícitamente.
 - Micro-lotes: `Configuracion()` usa 1; **la entrega (`desde_entorno`) usa 4** (`LOTE_ENTREGA`, desde
   2026-11-12), el lote de todas las evaluaciones reportadas. `MODELO_LOTE` lo cambia. En Kaggle T4 (fp16, no comparable con A100) lote 4 fue 2,1x más rápido que 1
-  sin cambiar resultados; 8 y 16 fallaron con error CUDA (ver [progreso](progreso.md), 2026-11-04). En A100 sin medir.
+  sin cambiar resultados; 8 y 16 fallaron con error CUDA (ver [progreso](../progreso.md), 2026-11-04). En A100 sin medir.
 - El coordinador corta tras 3 respuestas sin JSON seguidas o al llegar al tope de 40 llamadas del kit
   (ya no a los 16 turnos). Antes de cada llamada mide cada conversación con `ModeloLocal.medir_contexto`
   y termina sin decisión solo el caso que no entra; los demás siguen. Las herramientas no se ejecutan
-  dentro del adaptador. Ver [optimización de prompt](optimizacion-prompt.md#contrato-de-formato-7--13).
+  dentro del adaptador. Ver [optimización de prompt](../informe/optimizacion-prompt.md#contrato-de-formato-7--13).
 
 ## Adapter LoRA (probado con dobles)
 

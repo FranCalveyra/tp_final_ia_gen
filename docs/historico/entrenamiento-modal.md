@@ -2,7 +2,7 @@
 
 > **Decisión 2026-11-05:** Modal descartado definitivamente, sin tarjeta. Este documento conserva el diseño
 > histórico, no una ruta activa ni tareas de setup/validación pendientes. No ejecutar sus comandos ni crear Secrets.
-> Ruta operativa: [Kaggle](kaggle.md); A100-40GB final por vía alternativa a determinar. Código/dependencias conservados.
+> Ruta operativa: [Kaggle](../guias/kaggle.md); A100-40GB final por vía alternativa a determinar. Código/dependencias conservados.
 
 El runner conserva entradas, manifiestos, checkpoints y salida final en el Volume v2
 `tp-admision-entrenamiento`. Por defecto no publica en HF: usa solamente los secretos
@@ -76,7 +76,7 @@ no lo limpia. Los Dict de Modal tienen expiración propia de 7 días sin activid
 ## Qué está probado y qué falta
 
 El trainer compartido sí tiene humo y reanudación HF reales en Kaggle T4; ver la
-[matriz de evidencia y handoff](entrenamiento-sft.md). Esa prueba no valida el Volume, locks ni GPU A100 de Modal.
+[matriz de evidencia y handoff](../informe/entrenamiento-sft.md). Esa prueba no valida el Volume, locks ni GPU A100 de Modal.
 
 El entrypoint usa checkpoints cada 50 pasos: el humo habitual de 8 pasos no garantiza
 un checkpoint reanudable. Planificar suficientes pasos y verificar un checkpoint completo; `final/` no basta.

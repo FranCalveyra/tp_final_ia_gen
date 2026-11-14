@@ -1,7 +1,7 @@
 # Ruta operativa de desarrollo: Kaggle (T4 x2)
 
 Estado: **validado en GPU T4 x2 para baseline, lotes y humo SFT sintético**, además de tests con dobles.
-Evidencia fechada y limitaciones en [progreso.md](progreso.md) y [matriz SFT](entrenamiento-sft.md).
+Evidencia fechada y limitaciones en [progreso.md](../progreso.md) y [matriz SFT](../informe/entrenamiento-sft.md).
 No está validado en A100-40GB ni con entrenamiento de datos reales curados.
 **Decisión 2026-11-05:** Modal descartado definitivamente; Kaggle deja de ser fallback temporal.
 La vía alternativa para validar el hardware final A100-40GB todavía está por determinar.
@@ -88,16 +88,16 @@ Los dos tapan el token. Si una corrida quedó `en_curso` sin proceso vivo, se co
 ```
 
 Para analizar: `zip -qr` de las carpetas, descargar desde el panel de archivos (no ejecuta celdas) y
-puntuar local con `admision.correr puntuar` (ver [modelo-modal.md](modelo-modal.md)).
+puntuar local con `admision.correr puntuar` (ver [modelo-modal.md](../historico/modelo-modal.md)).
 Para la tabla de la Parte 4 (varias configuraciones × original/b/c) usar el plan de
-[evaluacion.md](evaluacion.md): `infra/kaggle_evaluacion.py` en Kaggle y `scripts.tabla_evaluacion` local.
+[evaluacion.md](../informe/evaluacion.md): `infra/kaggle_evaluacion.py` en Kaggle y `scripts.tabla_evaluacion` local.
 
 ## Entrenamiento SFT (humo) en Kaggle
 
 Estado: **humo validado en GPU T4**. v6 entrenó ocho pasos y publicó checkpoints 2/4/6/8/final;
 v7 retomó checkpoint-2 publicado y completó con el mismo run_id W&B. Artefactos versionados:
 `evaluaciones/recursos/humo-entrena-{1-v6,2-v7}`. La variante `humo-solo-texto` terminó y registró
-15,675 GB pico (suma de GPU) con conversaciones cortas. Ver [evidencia SFT](entrenamiento-sft.md).
+15,675 GB pico (suma de GPU) con conversaciones cortas. Ver [evidencia SFT](../informe/entrenamiento-sft.md).
 Sigue siendo una **prueba de pipeline sintética**, no calidad ni memoria de un entrenamiento real,
 y no valida A100 ni promete recuperar pasos posteriores al último checkpoint íntegro.
 La reanudación real desde HF sí valida el mecanismo genérico; no requiere una prueba adicional en Modal descartado.

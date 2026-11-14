@@ -96,7 +96,7 @@ Detalle, IDs de respaldo de cada lado y frecuencias:
 
 - [`costumbres.md`](costumbres.md)
 - [`historial_costumbres.json`](historial_costumbres.json)
-- [resumen para el equipo](docs/resumen-costumbres-issue-11.md)
+- [resumen para el equipo](docs/historico/resumen-costumbres-issue-11.md)
 
 **Cómo se encontraron.**
 
@@ -216,7 +216,7 @@ python -m scripts.validar_conversaciones datos/entrenamiento/conversaciones.json
 
 Validación: 2.900 registros válidos, 0 errores (SHA-256 `3e6b8897…d2ee`). Tres generaciones independientes dieron
 archivos idénticos byte a byte. Detalle en el
-[contrato de conversaciones](docs/conversaciones-entrenamiento.md#dataset-v2-scriptsgenerar_conversaciones-issue-8).
+[contrato de conversaciones](docs/informe/conversaciones-entrenamiento.md#dataset-v2-scriptsgenerar_conversaciones-issue-8).
 
 ```text
 uv run --locked --no-sync python -m scripts.generar_conversaciones
@@ -289,7 +289,7 @@ normas recibida.
 - No usa servicios externos, embeddings ni descargas.
 - Las variantes se eligen con `BUSCADOR_VARIANTE`; el default de la entrega es `baseline`.
 
-Detalle y reproducción en la [guía del buscador](docs/buscador-baseline.md).
+Detalle y reproducción en la [guía del buscador](docs/informe/buscador-baseline.md).
 
 ### Evaluación por separado (`admision.evaluar_rag`)
 
@@ -321,7 +321,7 @@ BUSCADOR_VARIANTE=<variante> uv run --locked --no-sync python -m admision.evalua
 **Pasadas que no se adoptaron.** El script de exploración mide 68 configuraciones (las entradas de `INTENTOS` en
 `scripts/explorar_buscadores.py`, incluidas `baseline` y `sin_comunes`). Se reproducen con
 `python -m scripts.explorar_buscadores --salida <carpeta nueva>`; la tabla completa está en
-[buscador baseline](docs/buscador-baseline.md#exploración-descartada).
+[buscador baseline](docs/informe/buscador-baseline.md#exploración-descartada).
 
 | Familia | Mejor resultado | Por qué se descartó |
 |---|---|---|
@@ -413,7 +413,7 @@ contra 9/40 con `baseline` (Parte 3).
 ## Parte 3: prompt
 
 Con Gemma 4 E4B **sin entrenar** se optimizaron el mensaje de sistema y, en una pasada aparte, el formato de los
-mensajes. Detalle, comandos y corridas en [optimización de prompt](docs/optimizacion-prompt.md).
+mensajes. Detalle, comandos y corridas en [optimización de prompt](docs/informe/optimizacion-prompt.md).
 
 **Cómo se eligió sin tocar práctica ni test.**
 
@@ -432,7 +432,7 @@ mensajes. Detalle, comandos y corridas en [optimización de prompt](docs/optimiz
 - Tokens medidos con el tokenizer real de Gemma, con plantilla de chat y sin razonamiento.
 
 Cada prompt corrió en Kaggle una vez por carpeta del dev (`n1`, `n2`; la celda completa está en
-[optimización de prompt](docs/optimizacion-prompt.md)):
+[optimización de prompt](docs/informe/optimizacion-prompt.md)):
 
 ```bash
 python -m scripts.evaluar_prompts --prompt configuraciones/prompts/<prompt>.json \
@@ -533,7 +533,7 @@ uv run --locked --no-sync python -m scripts.rankear_prompts \
    práctica se corrió una vez al final, para reportar.
 
 Los hiperparámetros son una configuración inicial, **no** el resultado de un barrido. No hubo DPO ni refuerzo
-(Limitaciones). Contratos y comandos en la [guía del entrenador](docs/entrenamiento-sft.md).
+(Limitaciones). Contratos y comandos en la [guía del entrenador](docs/informe/entrenamiento-sft.md).
 
 ### Tabla de la Parte 4 (práctica, 50 casos × normas original, b y c)
 
@@ -594,7 +594,7 @@ Todas corrieron en Kaggle 2× T4 fp16. Los recibos están en [`evaluaciones/entr
 | **v39** | Continuación sobre `v6-aviso-datos` (prefijo `Edad: N años. Acompañante: X.`, `peso_aviso` 20), `5a36ecf`, W&B `41ec01f292e64306`, `final` **`770c9fac`** | **31/40**: 5/8 positivos, 2 falsos `true`; ganó 7 casos y perdió 2 | **Adoptada** (barra ≥30/40) |
 | v40 | Práctica de `770c9fac` (plan `entrenado-v39.json`, `1405aab`) | solo entrenamiento 17/14/20; ambos 36/28/36 | Solo reporte; no cambió la decisión |
 
-El análisis de cada pasada está en el [análisis de errores](docs/analisis-errores.md), pasadas 7 a 10.
+El análisis de cada pasada está en el [análisis de errores](docs/informe/analisis-errores.md), pasadas 7 a 10.
 
 **Por qué funcionó v39 y no v36 ni v38.**
 
@@ -621,7 +621,7 @@ Todo se midió en **Kaggle 2× T4 (15.360 MiB cada una), fp16, `device_map=auto`
 - **No hay mediciones en A100-40GB.** Los tiempos de T4 no se transfieren a A100 y acá no se inventan factores.
 - La VRAM es el máximo por GPU sumado entre las dos GPU. Es una cota superior, en GB decimales.
 
-El borrador completo, con el origen de cada número, está en la [Parte 5 detallada](docs/informe-parte5.md).
+El borrador completo, con el origen de cada número, está en la [Parte 5 detallada](docs/informe/informe-parte5.md).
 
 ### 5.1 Entrenamiento: tiempo, VRAM y casos a la vez
 
@@ -691,7 +691,7 @@ Práctica, 50 casos × 3 versiones, lote 4.
 ### 5.3 Casos que se procesan a la vez al evaluar
 
 El lote se barrió con el modelo sin entrenar, normas originales y 50 casos (sección 2 de la
-[Parte 5 detallada](docs/informe-parte5.md#2-casos-a-la-vez-al-evaluar-lote)).
+[Parte 5 detallada](docs/informe/informe-parte5.md#2-casos-a-la-vez-al-evaluar-lote)).
 
 | Lote | Estado | s/caso | VRAM pico |
 |---|---|---:|---:|

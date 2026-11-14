@@ -5,7 +5,7 @@ modelo), para decidir la pasada siguiente. Abajo está el registro de pasadas, i
 
 Analizar la práctica es **diagnóstico y reporte**: sus conclusiones solo sirven para formular candidatos genéricos.
 La selección de prompt (#13) se hace en el conjunto prompt-dev y la de checkpoint (#15) con datos permitidos;
-nunca con práctica ni test ([AGENTS.md](../AGENTS.md)).
+nunca con práctica ni test ([AGENTS.md](../../AGENTS.md)).
 
 ## Comandos
 
