@@ -6,6 +6,12 @@ Más abajo sigue, sin cambios, el [manual del kit de la cátedra](#manual-del-ki
 **Seguimiento:** [informe](INFORME.md) · [progreso y decisiones](docs/progreso.md) ·
 [estándares compartidos](AGENTS.md) · enunciado en [mission.md](mission.md).
 
+**Presentación en Loom (cinco partes, en orden):** [1](https://www.loom.com/share/46e9c51266334bf7bb7795a12a683834) ·
+[2](https://www.loom.com/share/a04da84b31f54867aace1a759ec140a4) ·
+[3](https://www.loom.com/share/f6de8789e99a41d3b06ff9182a26d05d) ·
+[4](https://www.loom.com/share/29be9dfc81434863bc3dfb7085b52ab3) ·
+[5](https://www.loom.com/share/9ce936e889054230b452c37286599caa). La versión entregada es el tag `entrega-final`.
+
 **Documentación (`docs/`):**
 
 - [`docs/progreso.md`](docs/progreso.md) es la bitácora de cada pasada, con sus decisiones y evidencia.

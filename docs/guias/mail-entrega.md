@@ -15,10 +15,14 @@ Integrantes:
 - <Nombre y apellido> — <mail> — <usuario de GitHub>
 
 Repositorio de GitHub:   https://github.com/FranCalveyra/tp_final_ia_gen
-Commit entregado:        <hash completo del commit o tag de entrega en main>
+Commit entregado:        tag entrega-final (<hash completo del commit>)
 Modelo en Hugging Face:  https://huggingface.co/FranCalveyra/tp-admision — versión del punto de control final: <revisión de 40 hex>, carpeta final
 Proyecto de W&B:         <link del proyecto francalveyra-ia-gen/tp-admision>
-Presentación en Loom:    <link>
+Presentación en Loom:    https://www.loom.com/share/46e9c51266334bf7bb7795a12a683834
+                         https://www.loom.com/share/a04da84b31f54867aace1a759ec140a4
+                         https://www.loom.com/share/f6de8789e99a41d3b06ff9182a26d05d
+                         https://www.loom.com/share/29be9dfc81434863bc3dfb7085b52ab3
+                         https://www.loom.com/share/9ce936e889054230b452c37286599caa
 ```
 
 ## Antes de mandarlo
