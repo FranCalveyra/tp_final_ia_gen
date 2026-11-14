@@ -1,7 +1,7 @@
 # Buscador inicial
 
 `entrega.py` permite evaluar el buscador sin cargar un modelo. La implementación
-del agente y su validación pendiente están en [modelo-modal.md](modelo-modal.md).
+del agente y su validación pendiente están en [modelo-modal.md](../historico/modelo-modal.md).
 
 Se indexa una sección completa por archivo `NOR-*.md`, sin excluir otras
 áreas. `admision.normas.cargar_normas` agrega los valores de `parametros.yaml`
@@ -252,7 +252,7 @@ modelo entrenado si alcanzan tiempo y cuota. El dataset de entrenamiento del #8 
 
 #### Reproducir la comparación
 
-En la celda de corrida de Kaggle (pasos previos en [kaggle.md](kaggle.md)), una sola celda con las
+En la celda de corrida de Kaggle (pasos previos en [kaggle.md](../guias/kaggle.md)), una sola celda con las
 dos variantes; la carpeta de salida debe ser nueva:
 
 ```

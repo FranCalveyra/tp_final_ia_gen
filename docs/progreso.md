@@ -21,14 +21,14 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | #2 Infraestructura | **Cerrado (2026-11-04).** Lock, `uv sync` con inferencia, plantilla de variables, app A100-40GB (ahora legacy), W&B, repo HF privado | Invitar a la cátedra a HF y W&B pasó al #16 |
 | [#3 SFT](https://github.com/FranCalveyra/tp_final_ia_gen/issues/3) | Conversor, validación, snapshots/tokenización, Trainer LoRA y runner persistente; humo GPU T4 con HF/W&B y reanudación desde checkpoint HF | Cuatro criterios técnicos respaldados; aceptación/accesos y uso efectivo por Martu pendientes. KI-A100-001 mantiene deuda entrenamiento/evaluación/recursos |
 | [#4 Lotes](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4) | **Cerrado completed (2026-11-05), alcance funcional T4.** Carga única, lote activo, conversación completa; 1→4 baja 33,3→15,6 s/caso, mismos 10/50 | Deuda A100-40GB continúa en KI-A100-001; adapter final pendiente y causa CUDA T4 de lotes grandes no identificada |
-| [#5 Recursos](https://github.com/FranCalveyra/tp_final_ia_gen/issues/5) | **Cerrado (2026-11-13), alcance T4.** SFT real (363 pasos, 19,97 GB pico), lote, costo Kaggle, proyección y antes/después 27/150 → 100/150 (adapter v39) en [Parte 5](informe-parte5.md) | A100 como limitación conocida (KI-A100-001); integrar `INFORME.md` (#16) |
+| [#5 Recursos](https://github.com/FranCalveyra/tp_final_ia_gen/issues/5) | **Cerrado (2026-11-13), alcance T4.** SFT real (363 pasos, 19,97 GB pico), lote, costo Kaggle, proyección y antes/después 27/150 → 100/150 (adapter v39) en [Parte 5](informe/informe-parte5.md) | A100 como limitación conocida (KI-A100-001); integrar `INFORME.md` (#16) |
 | [#6 Buscador](https://github.com/FranCalveyra/tp_final_ia_gen/issues/6) | **Implementado y comparado con el agente (2026-11-10).** `evaluar_rag`: `baseline` 48/60, `prefijos` 55/60 (referencia 51/60). Agente sin entrenar en Kaggle T4: `baseline` 10/50, `prefijos` 6/50; default `baseline` | Revisión del equipo de la Parte 2 del informe; opcional: repetir con el modelo entrenado |
 | [#7 Ciclo del agente](https://github.com/FranCalveyra/tp_final_ia_gen/issues/7) | **Implementado y validado en GPU T4 (2026-11-10).** `entrega.py` usa `AgentePrompt` + `PromptSpec`; tope de 40 llamadas del kit; guarda de contexto por caso; medición offline del contexto. Kaggle v23 (`AgentePrompt`, 50 casos) y v24 (entrega nueva, 10 casos): conversaciones idénticas a `AgenteJSON` (v22) | Enviar a Martu la nota de formato (#13); validación A100 sigue en KI-A100-001 |
 | [#9 Evaluación completa](https://github.com/FranCalveyra/tp_final_ia_gen/issues/9) | **Cerrado; filas medidas en GPU T4 (2026-11-11).** `sin_entrenar` (v25) 10/10/7 y `solo_prompt` (v27, `procedimiento-v1`) 14/16/12 en práctica original/b/c | Filas `solo_entrenamiento` y `ambos` cuando haya adapter publicado (#15); A100 en KI-A100-001 |
 | #10 Historial | **Implementado (2026-11-05).** Clasificador determinista, pruebas, `historial_clasificado.csv`, análisis reutilizable de costumbres e informe | Mantenerlo compatible con la curación del issue #11 |
 | #11 Costumbres | **Implementado (2026-11-05).** Trazas validadas, dos costumbres confirmadas, patrón por operador documentado y resumen para el equipo | Revisar con Martu y Eze antes de usarlo en el prompt final |
-| [#13 Prompt](https://github.com/FranCalveyra/tp_final_ia_gen/issues/13) | **Validado en GPU T4 (Eze, 2026-11-11).** Elegido `procedimiento-v1` en el dev (9/40 contra 8/40); `prefijos` pierde (4/40); C falla en CUDA de forma reproducible. Práctica (solo reporte): 42/150 contra 27/150, a ~2,6× de contexto | #8 regenerado con B en `v3-procedimiento`. Decisión de equipo: default de `entrega.py` y qué dataset entrena #15 ([detalle](optimizacion-prompt.md#decisión)). **Pendiente de la consigna:** el formato de los mensajes no se optimizó, solo el mensaje de sistema ([estado](optimizacion-prompt.md#estado-2026-11-11)) |
-| [#14 Análisis de errores](https://github.com/FranCalveyra/tp_final_ia_gen/issues/14) (Eze) | **Implementado, probado con dobles y aplicado a corridas reales (2026-11-10).** `scripts.analizar_errores`: fallas por control, tipo de caso y fuente (formato/costumbre/buscador/modelo), comparación entre corridas; registro de pasadas v22, v22 `prefijos`, v23, v24 y las de #13 (dev v25 y práctica v27) en [analisis-errores.md](analisis-errores.md) | Analizar los checkpoints de #15 contra la pasada 6 con el mismo comando; las reglas de fuente son heurísticas sin precisión medida |
+| [#13 Prompt](https://github.com/FranCalveyra/tp_final_ia_gen/issues/13) | **Validado en GPU T4 (Eze, 2026-11-11).** Elegido `procedimiento-v1` en el dev (9/40 contra 8/40); `prefijos` pierde (4/40); C falla en CUDA de forma reproducible. Práctica (solo reporte): 42/150 contra 27/150, a ~2,6× de contexto | #8 regenerado con B en `v3-procedimiento`. Decisión de equipo: default de `entrega.py` y qué dataset entrena #15 ([detalle](informe/optimizacion-prompt.md#decisión)). **Pendiente de la consigna:** el formato de los mensajes no se optimizó, solo el mensaje de sistema ([estado](informe/optimizacion-prompt.md#estado-2026-11-11)) |
+| [#14 Análisis de errores](https://github.com/FranCalveyra/tp_final_ia_gen/issues/14) (Eze) | **Implementado, probado con dobles y aplicado a corridas reales (2026-11-10).** `scripts.analizar_errores`: fallas por control, tipo de caso y fuente (formato/costumbre/buscador/modelo), comparación entre corridas; registro de pasadas v22, v22 `prefijos`, v23, v24 y las de #13 (dev v25 y práctica v27) en [analisis-errores.md](informe/analisis-errores.md) | Analizar los checkpoints de #15 contra la pasada 6 con el mismo comando; las reglas de fuente son heurísticas sin precisión medida |
 | #16 Entrega compartida | Guías técnicas y esta bitácora | Informe, README final reproducible, diagrama, Loom y envío con el equipo |
 
 El formato de conversaciones es **propuesto**, pendiente de coordinación con Eze/Yas.
@@ -57,7 +57,7 @@ reemplaza esos entregables. `INFORME.md` y el resumen del issue #11 contienen la
 - Las 2.000 trazas de `historial/trazas.jsonl` coinciden por ID, operador y ficha final con `historial/historial.csv`; se usan como evidencia del proceso, no como etiquetas independientes.
 - Costumbres confirmadas: no avisar al voluntariado a menores de 75 anos (1.298/1.415 `no` en filas limpias menores, ocho estratos `motivo x cobertura`) y priorizar prepaga con dos credenciales (162/171, 94,7%).
 - Patron adicional no confirmado como costumbre hospitalaria: OP-04, OP-11 y OP-17 concentran 117/225 avisos a menores, mientras los otros 17 operadores tienen 0/1.190. Se documentan los IDs y no se agrega una regla automatica.
-- Evidencia y resumen: [`costumbres.md`](../costumbres.md), [`historial_costumbres.json`](../historial_costumbres.json) y [`resumen para el equipo`](resumen-costumbres-issue-11.md). Pruebas especificas: 5/5.
+- Evidencia y resumen: [`costumbres.md`](../costumbres.md), [`historial_costumbres.json`](../historial_costumbres.json) y [`resumen para el equipo`](historico/resumen-costumbres-issue-11.md). Pruebas especificas: 5/5.
 
 ### 2026-11-05: auditoria y correccion de issue #10
 
@@ -81,14 +81,14 @@ reemplaza esos entregables. `INFORME.md` y el resumen del issue #11 contienen la
 `sin_comunes` gana d022/d026/d028 pero pierde d011 contra baseline. No se ocultó esa
 regresión ni se cambió silenciosamente el default. Las fallas principales son de ranking
 y vocabulario, no evidencia cortada. Estos números **no miden pacientes resueltos ni test secreto**.
-Detalles y reproducción: [buscador](buscador-baseline.md). Comparación por consulta:
+Detalles y reproducción: [buscador](informe/buscador-baseline.md). Comparación por consulta:
 `corridas/rag-variantes-20261101/comparacion.json` (artefacto local ignorado por Git).
 
 ### Integración y dependencias reales
 
 - Flujo con dos pacientes sintéticos: entorno, buscador, cinco herramientas, orden del lote,
   retry JSON, nueve controles y persistencia probados. Solo la generación era guionada:
-  [integración CPU](integracion-cpu.md).
+  [integración CPU](guias/integracion-cpu.md).
 - W&B online desde Modal CPU: corrida [`5f71i1i5`](https://forge.coreweave.com/wandb/francalveyra-ia-gen/tp-admision/runs/5f71i1i5),
   métrica técnica `setup_check=1`. Credencial/escritura verificadas, sin GPU ni pacientes.
 - Tokenizador Gemma en revisión fijada: fixture sintético de 167 tokens, 126 supervisados;
@@ -180,7 +180,7 @@ Consultar Git para confirmar el estado de publicación remoto; no se cierran iss
   de la cátedra instalaba solo `pyyaml`. En macOS no se instala nada extra (marcadores Linux)
   y las imágenes Modal siguen usando los `requirements-*.txt`. Tests: 66 corridos, 65 pasan y 1 opcional se saltea.
 - `.env.example`: Fran agrega a mano las variables `ADAPTER_*` (archivo protegido para el agente).
-  Guía: [modelo-modal.md](modelo-modal.md#adapter-lora-probado-con-dobles).
+  Guía: [modelo-modal.md](historico/modelo-modal.md#adapter-lora-probado-con-dobles).
 
 ### 2026-11-03: publicación HF desde el runner Modal (issue #3)
 
@@ -193,7 +193,7 @@ Consultar Git para confirmar el estado de publicación remoto; no se cierran iss
   reanudar, y rechazo de cambiar el modo. Suite: 68 corridos, 67 pasan y 1 opcional se saltea.
 - **Límites:** no hay subida real, secreto real ni GPU; `entrenamiento_app.py` no se importa en
   tests. El token de escritura debe poder descargar Gemma (licencia aceptada). Guía:
-  [entrenamiento-modal.md](entrenamiento-modal.md#publicación-hf-opt-in-probada-con-dobles).
+  [entrenamiento-modal.md](historico/entrenamiento-modal.md#publicación-hf-opt-in-probada-con-dobles).
 
 ### 2026-11-03: métricas de recursos por lote (issues #4 y #5)
 
@@ -203,7 +203,7 @@ Consultar Git para confirmar el estado de publicación remoto; no se cierran iss
 - **Implementado y probado con dobles:** JSONL por micro-lote. El runner baseline lo devuelve como
   `metricas.jsonl`. Suite: 71 corridos, 70 pasan y 1 opcional se saltea.
 - **Límites:** no se midió en GPU; la VRAM es la de PyTorch, no la del dispositivo.
-  Guía: [modelo-modal.md](modelo-modal.md#métricas-por-lote-probado-con-dobles).
+  Guía: [modelo-modal.md](historico/modelo-modal.md#métricas-por-lote-probado-con-dobles).
 
 ### 2026-11-03: Kaggle como respaldo temporal de desarrollo
 
@@ -214,7 +214,7 @@ Consultar Git para confirmar el estado de publicación remoto; no se cierran iss
   desde Kaggle Secrets, sin imprimirlo). Suite: 82 corridos, 81 pasan y 1 opcional se saltea.
 - **Límites:** no se ejecutó en Kaggle ni en GPU. Los resultados, tiempos y VRAM no son comparables con A100 y
   se reportan aparte. T4 no tiene bf16 nativo (fp16 puede fallar con Gemma); el torch fijado usa CUDA 13 y
-  no sirve en P100; el driver de Kaggle no está verificado. Guía: [kaggle.md](kaggle.md).
+  no sirve en P100; el driver de Kaggle no está verificado. Guía: [kaggle.md](guias/kaggle.md).
 - **Primer intento real en Kaggle (commit `38aac31`):** driver 580.178.04 (CUDA 13.0), 2x T4 de 15 GB, Python 3.13.
   `pip install -r requirements-inferencia.txt` dejó `torch 2.15.0+cu132` con CUDA disponible en 2 GPU.
   La corrida `t4-original-01` (3 casos, original) **falló antes de cargar el modelo**: el torchvision de la imagen,
@@ -332,7 +332,7 @@ contra `practica/esperadas-original.jsonl`. Cuota GPU consumida: ~2.690 s (~45 m
 `guardar_cada` (50 default). Se guardan en `corrida.json` (`ejecucion`) y la política de la identidad se deriva de ellos,
 con los defaults es exactamente `POLITICA`: la identidad A100/Modal no cambió. Nuevo runner `infra/kaggle_entrenamiento.py`
 (reusa `scripts.entrenar`/`entrenar`, sin duplicar entrenamiento ni publicación) y `scripts/datos_humo.py` (conversaciones
-sintéticas). Guía en [kaggle.md](kaggle.md#entrenamiento-sft-humo-en-kaggle).
+sintéticas). Guía en [kaggle.md](guias/kaggle.md#entrenamiento-sft-humo-en-kaggle).
 
 **Decisiones y motivos.**
 - Precisión/dispositivos como parámetros de `entrenar`, no campos de la configuración: el contrato de configuración es
@@ -391,7 +391,7 @@ Datos sintéticos de `scripts.datos_humo` (4 conversaciones, 8 pasos, checkpoint
 
 ### 2026-11-04: borrador de la Parte 5 del informe (issue #5)
 
-- Borrador en [informe-parte5.md](informe-parte5.md) con lo medido en T4 (s/caso, VRAM, lotes, humo de
+- Borrador en [informe-parte5.md](informe/informe-parte5.md) con lo medido en T4 (s/caso, VRAM, lotes, humo de
   entrenamiento) y cada número con su artefacto. `INFORME.md` se mantiene como informe compartido.
 - **Pendiente (PENDIENTE en el borrador):** todo lo que depende del modelo final o de A100-40GB (tiempo y VRAM de
   entrenamiento real, s/caso y costo en A100, lote máximo estable, antes/después). La VRAM de entrenamiento
@@ -457,7 +457,7 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
   118 pasan y uno se omite porque requiere un snapshot local explícito del tokenizer real.
   Solo se usaron modelos y entornos simulados para el código nuevo: no se cargó un modelo
   real, no se generaron datos y no se implementó DSPy/GEPA. Diseño y comandos:
-  [optimización de prompt](optimizacion-prompt.md).
+  [optimización de prompt](informe/optimizacion-prompt.md).
 
 ### 2026-11-09: tokens y métrica de candidatos (issue #13, en progreso)
 
@@ -469,7 +469,7 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
   cuenta respuestas sin JSON con el mismo parser que el coordinador.
 - Verificación CPU focalizada: 5 tests con tokenizer, trazas y resultados artificiales,
   todos pasan. Esto prueba el contrato y el orden, no tokens de Gemma ni calidad del agente.
-  [Diseño y límites](optimizacion-prompt.md#longitud-y-métrica-de-candidatos).
+  [Diseño y límites](informe/optimizacion-prompt.md#longitud-y-métrica-de-candidatos).
 
 ### 2026-11-09: runner auditable de candidatos (issue #13, en progreso)
 
@@ -482,7 +482,7 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
 - Verificación focalizada completa del issue #13: 21 tests pasan; suite CPU: 137
   ejecutados, 136 pasan y uno se omite por requerir tokenizer real local. Se usó Python
   3.12 del sistema porque no hay `uv`/`.venv`; no se instaló `transformers`, no se cargó
-  Gemma ni se ejecutó GPU. [Uso, artefactos y fronteras](optimizacion-prompt.md#runner-reproducible).
+  Gemma ni se ejecutó GPU. [Uso, artefactos y fronteras](informe/optimizacion-prompt.md#runner-reproducible).
 
 ### 2026-11-10: ciclo del agente y contexto (issue #7)
 
@@ -507,7 +507,7 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
   (`{herramienta}:\n{observacion}`) ahorra 0,67 %; quitar el nombre de la herramienta, 1,4 %; compactar líneas en
   blanco, 0,10 %; resumir secciones repetidas, 0,05–0,79 %. **No se adoptó ninguno**: el ahorro no justifica
   regenerar los datos de #8, y los dos últimos cambian la presentación del buscador (#6). La palanca real es el
-  mensaje de sistema (#13). Detalle y contrato con Martu: [optimización de prompt](optimizacion-prompt.md#contrato-de-formato-7--13).
+  mensaje de sistema (#13). Detalle y contrato con Martu: [optimización de prompt](informe/optimizacion-prompt.md#contrato-de-formato-7--13).
 - **Fuente única de formato:** un test rejuega todas las conversaciones de `generar_conversaciones` con
   `AgentePrompt` y comprueba que son idénticas a lo que el agente arma en inferencia.
 - Verificación: suite CPU completa con `uv run --locked --no-sync python -m unittest discover -s tests`.
@@ -530,11 +530,11 @@ Versión 8 del notebook, commit `522d540`, original, 50 casos, `MODELO_LOTE=8`, 
 ## Próximos pasos y bloqueos
 
 1. #13 (Eze): autorizar y correr la celda de fase 1 en Kaggle (~1 h 35 min a 2 h de T4), rankear y pasar a la fase 2
-   ([optimización de prompt](optimizacion-prompt.md#fase-1-2026-11-10-eze-conjunto-de-desarrollo-candidatos-y-evaluación-preparada)).
-2. Con autorización, correr `configuraciones/evaluacion/actual.json` en Kaggle ([evaluacion.md](evaluacion.md));
+   ([optimización de prompt](informe/optimizacion-prompt.md#fase-1-2026-11-10-eze-conjunto-de-desarrollo-candidatos-y-evaluación)).
+2. Con autorización, correr `configuraciones/evaluacion/actual.json` en Kaggle ([evaluacion.md](informe/evaluacion.md));
    después completar la plantilla de cuatro filas cuando existan prompt optimizado y adapter.
 3. Fijar en `configuracion.py` el adapter final (repo, revisión y subcarpeta) cuando exista.
-4. Confirmar accesos individuales Kaggle/HF/W&B del equipo con el [checklist de handoff](handoff-equipo.md#checklist-de-accesos-hecho-versus-pendiente-de-comprobar);
+4. Confirmar accesos individuales Kaggle/HF/W&B del equipo con el [checklist de handoff](historico/handoff-equipo.md#checklist-de-accesos-hecho-versus-pendiente-de-comprobar);
    no crear Secrets ni habilitar facturación Modal, plataforma descartada.
 5. Coordinar conversaciones curadas y prompt final; no entrenar sobre práctica.
 6. Determinar disponibilidad y VRAM de una vía A100-40GB sin lanzar sesiones para probar permisos.
@@ -554,21 +554,21 @@ usado en Kaggle. Los Secrets de Modal quedan como referencia legacy, no como set
 
 | Tema | Documento |
 |---|---|
-| Entorno del equipo | [entorno-equipo.md](entorno-equipo.md) |
-| RAG y experimentos | [buscador-baseline.md](buscador-baseline.md) |
-| Modelo y ejecución baseline | [modelo-modal.md](modelo-modal.md) |
-| Integración sin GPU | [integracion-cpu.md](integracion-cpu.md) |
-| W&B | [wandb.md](wandb.md) |
-| Conversaciones propuestas | [conversaciones-entrenamiento.md](conversaciones-entrenamiento.md) |
-| Preparación de corrida | [preparacion-entrenamiento.md](preparacion-entrenamiento.md) |
-| Tokens y máscaras | [tokenizacion-entrenamiento.md](tokenizacion-entrenamiento.md) |
-| Trainer SFT | [entrenamiento-sft.md](entrenamiento-sft.md) |
-| Persistencia Modal (legacy, no usar) | [entrenamiento-modal.md](entrenamiento-modal.md) |
-| Respaldo Kaggle (T4 x2), inferencia y entrenamiento humo | [kaggle.md](kaggle.md) |
-| Parte 5 del informe (recursos y producción), borrador con mediciones T4 | [informe-parte5.md](informe-parte5.md) |
-| Optimización de prompt, infraestructura inicial y contrato de formato con #7 | [optimizacion-prompt.md](optimizacion-prompt.md) |
-| Evaluación completa (50 casos × original/b/c) y tabla de la Parte 4 | [evaluacion.md](evaluacion.md) |
-| Análisis de errores por corrida y registro de pasadas | [analisis-errores.md](analisis-errores.md) |
+| Entorno del equipo | [entorno-equipo.md](guias/entorno-equipo.md) |
+| RAG y experimentos | [buscador-baseline.md](informe/buscador-baseline.md) |
+| Modelo y ejecución baseline | [modelo-modal.md](historico/modelo-modal.md) |
+| Integración sin GPU | [integracion-cpu.md](guias/integracion-cpu.md) |
+| W&B | [wandb.md](guias/wandb.md) |
+| Conversaciones propuestas | [conversaciones-entrenamiento.md](informe/conversaciones-entrenamiento.md) |
+| Preparación de corrida | [preparacion-entrenamiento.md](informe/preparacion-entrenamiento.md) |
+| Tokens y máscaras | [tokenizacion-entrenamiento.md](informe/tokenizacion-entrenamiento.md) |
+| Trainer SFT | [entrenamiento-sft.md](informe/entrenamiento-sft.md) |
+| Persistencia Modal (legacy, no usar) | [entrenamiento-modal.md](historico/entrenamiento-modal.md) |
+| Respaldo Kaggle (T4 x2), inferencia y entrenamiento humo | [kaggle.md](guias/kaggle.md) |
+| Parte 5 del informe (recursos y producción), borrador con mediciones T4 | [informe-parte5.md](informe/informe-parte5.md) |
+| Optimización de prompt, infraestructura inicial y contrato de formato con #7 | [optimizacion-prompt.md](informe/optimizacion-prompt.md) |
+| Evaluación completa (50 casos × original/b/c) y tabla de la Parte 4 | [evaluacion.md](informe/evaluacion.md) |
+| Análisis de errores por corrida y registro de pasadas | [analisis-errores.md](informe/analisis-errores.md) |
 
 ## Cómo mantener esta bitácora
 
@@ -591,7 +591,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 ### 2026-11-05: auditoría CPU de trazas nuevas (issue #3)
 
 - Auditadas las 800 trazas de referencia y las 2.000 del historial importadas de upstream `876d889`:
-  [informe y límites](auditoria-trazas.md). **No entrenan directamente:** el esquema crudo no satisface
+  [informe y límites](informe/auditoria-trazas.md). **No entrenan directamente:** el esquema crudo no satisface
   conversaciones v1; una transformación exploratoria en memoria sí pasa su estructura en 2.800/2.800.
 - Las 2.000 trazas alinean con el CSV en ids, fecha, operador y los ocho campos de ficha. No se evaluó
   corrección normativa: el historial sigue requiriendo clasificación/curación. Las 800 varían parámetros
@@ -606,7 +606,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - Implementadas las interfaces públicas acordadas `convertir_traza` y `convertir_archivo`, con CLI CPU,
   origen/prompt obligatorios y referencias a fuente/id. Conserva acciones y observaciones; solo omite el
   resultado terminal. Valida secuencia, ficha y contrato v1 antes de publicar; rechaza ids duplicados y no
-  sobrescribe salidas (tampoco symlinks). [Guía y comandos](conversaciones-entrenamiento.md#conversor-cpu-de-trazas-implementado).
+  sobrescribe salidas (tampoco symlinks). [Guía y comandos](informe/conversaciones-entrenamiento.md#conversor-cpu-de-trazas-implementado).
 - TDD red→green por unidad, sin mocks internos. Comando CPU completo:
   `env PYTHONPATH=tests .venv/bin/python -m unittest discover -s tests -q`:
   **116 ejecutados, 115 pasan y 1 opcional omitido**. Suite pertinente: 25/24/1.
@@ -622,7 +622,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - Criterios revisados contra trainer, persistencia, tests y artefactos locales reales: mecanismos implementados;
   humo T4 v6/v7 terminado, HF con revisiones y mismo run_id W&B al reanudar. **No cierra #3 completamente:**
   A100-40GB/Modal y corte/recuperación reales siguen sin validar; datos/prompt finales son dependencias externas.
-  [Matriz y comandos para Martu](entrenamiento-sft.md), sin agregar otro trainer ni nuevas seams de tests.
+  [Matriz y comandos para Martu](informe/entrenamiento-sft.md), sin agregar otro trainer ni nuevas seams de tests.
 - Corregidas afirmaciones obsoletas en la guía: sí hubo humo GPU y publicación HF en Kaggle, sí se carga adapter
   en inferencia y el collator ya preserva padding `-100`. El Secret `hf-write` pendiente es específico de Modal.
 - Ergonomía pendiente, no bloqueo del trainer: Modal no expone cadencia de checkpoints; usa50. Para humo con
@@ -632,18 +632,18 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   **52 ejecutados, 51 pasan y 1 opcional omitido**. `--help` de entrenar/preparar/tokenizar correcto sin GPU.
 - Asignaciones GitHub realizadas y verificadas por la sesión principal: Eze `ezequielrickert` #6–9,
   Yas `Yasmindesivo` #10–12, Martu `MartuGiordanelli` #13–15 y los cuatro #16.
-  [Handoff por persona](handoff-equipo.md): contratos, outputs, accesos propios y dependencias inevitables.
+  [Handoff por persona](historico/handoff-equipo.md): contratos, outputs, accesos propios y dependencias inevitables.
   Paquete preparado para `feat/training-handoff`; commit/push autorizados posteriormente por el usuario.
   Verificar publicación y hash comunicado por chat; no está integrado en `main` ni basta actualizar esa rama.
 
 
 ### 2026-11-05: accesos concretos y auditoría de pendientes #4/#5
 
-- [Checklist de handoff](handoff-equipo.md#checklist-de-accesos-hecho-versus-pendiente-de-comprobar):
+- [Checklist de handoff](historico/handoff-equipo.md#checklist-de-accesos-hecho-versus-pendiente-de-comprobar):
   GitHub código/asignaciones hechos (paquete inicial `3d7da60`, rama `feat/training-handoff`); accesos
   individuales Kaggle/HF/W&B **no verificados**, sin invitaciones ni cambios remotos en esta unidad.
   Notebooks inferencia para Eze/Martu y entrenamiento para Martu, con copia/versión separada y Secrets propios.
-- Guía Kaggle corregida con artefactos reales y [matriz SFT](entrenamiento-sft.md); no confundir T4 histórico
+- Guía Kaggle corregida con artefactos reales y [matriz SFT](informe/entrenamiento-sft.md); no confundir T4 histórico
   con estado actual de cuota/driver ni con validación A100. Informe Parte 5 ahora distingue humo 15,675 GB,
   diagnóstico lote 8 posterior y lote 16 no repetido con bloqueo; causa CUDA continúa siendo hipótesis.
 
@@ -680,7 +680,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   validada, datos/prompt/entrenamiento finales pendientes. La sesión principal decidirá actualizar el tracker.
 - #4/#5 mantienen mediciones de hardware final y antes/después pendientes. A100-40GB continúa como requisito;
   vía alternativa a determinar. Kaggle CLI lista A100 con posibles restricciones; disponibilidad y VRAM de
-  nuestras cuentas no verificadas ([fuente y límites](kaggle.md)). No se lanzó GPU para comprobarlo.
+  nuestras cuentas no verificadas ([fuente y límites](guias/kaggle.md)). No se lanzó GPU para comprobarlo.
 - Guías de estado/ruta actual y Parte 5 distinguen escenario Modal histórico/ilustrativo de próximos pasos.
   `entrenamiento-modal.md` y el bloque Modal de entorno quedan **legacy / no usar**. No se presenta la tarifa
   histórica de Modal como presupuesto de la plataforma futura ni se extrapolan recursos T4 a A100.
@@ -727,7 +727,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - [#4](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4) verificado **CLOSED / COMPLETED**, sus cuatro
   criterios funcionales marcados con evidencia T4. El body/comentario conserva explícitos KI-A100-001 y
   adapter final pendientes. Esta edición documental no hizo operaciones externas ni consume GPU.
-- [Handoff](handoff-equipo.md#pendientes-por-persona-y-aceptación-operativa) enumera accesos pendientes por
+- [Handoff](historico/handoff-equipo.md#pendientes-por-persona-y-aceptación-operativa) enumera accesos pendientes por
   Eze/Martu/Yas y datos de cuenta faltantes; usernames Kaggle/HF/W&B no se infieren de GitHub. Yas puede
   curar en CPU sin esos accesos adicionales. No se enviaron invitaciones ni se compartieron Secrets.
 - **KI-A100-001 permanece abierto** para entrenamiento/evaluación/recursos; #5 no se cierra. Sin excepción
@@ -745,9 +745,9 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   casos desde inicio común (`admision/correr.py`, `ultima_llamada`): lote 4 mín 302,221/mediana 670,895/
   máx 782,102 s; throughput amortizado 15,642 s/caso no es latencia individual. Sin SLO interactivo medido.
 - Fórmulas de capacidad/costo de producción con variables explícitas, sin nueva tarifa ni presupuesto.
-  [Matriz #5](informe-parte5.md#9-integración-de-criterios-5): **trabajos futuros redactados**, tres criterios
+  [Matriz #5](informe/informe-parte5.md#9-integración-de-criterios-5): **trabajos futuros redactados**, tres criterios
   cuantitativos aún parciales por modelo/hardware final. #5 no se cierra; no fabricar más cambios CPU.
-- Preparado [aporte Parte 4 infraestructura](informe-parte4-infra.md) para integración conjunta #16:
+- Preparado [aporte Parte 4 infraestructura](historico/informe-parte4-infra.md) para integración conjunta #16:
   enlaces a contratos/evidencia y límites, sin apropiarse de experimentos de Martu ni crear `INFORME.md`.
   Scripts CPU stdlib verificaron duraciones, conversiones de unidades y cuantiles sobre artefactos ya existentes;
   sin GPU, descargas, instalaciones, builds, tests nuevos ni escrituras cloud.
@@ -761,7 +761,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 
 - Usuario autorizó integrar y publicar todo en `main`. Sesión principal verificó `origin/main=fb74ce9`
   como ancestro (0/5 de divergencia), cambió a `main` y realizó fast-forward local hasta `1353cce`.
-- [Handoff](handoff-equipo.md) actualizado para `main`, árbol limpio y `pull --ff-only`; rama feature/hash
+- [Handoff](historico/handoff-equipo.md) actualizado para `main`, árbol limpio y `pull --ff-only`; rama feature/hash
   inicial conservados como historia. El commit de esta actualización y el push deben verificarse por la
   sesión principal antes de informar éxito remoto; usar el hash comunicado por chat, no uno autorreferente.
 - Esta unidad solo cambió los dos documentos; diffcheck limpio. Sin tests, GPU, builds ni operaciones Git/cloud propias.
@@ -814,7 +814,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 ### 2026-11-10: robustez del runner de prompts (#13) para Kaggle
 
 - Alcance: solo el runner de evaluación de Martu; no se optimizó prompt, no hay DSPy/GEPA y
-  `entrega.py` no cambió. Detalle en [optimización de prompt](optimizacion-prompt.md#guardas-de-datos-y-propósito).
+  `entrega.py` no cambió. Detalle en [optimización de prompt](informe/optimizacion-prompt.md#guardas-de-datos-y-propósito).
 - Guarda de práctica: el runner copiaba los casos antes de llamar a `jugar`, así que el chequeo
   `revisar_que_no_haya_esperadas` del kit nunca veía la carpeta original (se habían corrido 50 casos de
   `practica/`). Ahora se llama a esa función del kit sobre las rutas originales y se rechazan casos/esperadas
@@ -845,7 +845,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Decisión:** proponer `prefijos` como default (más recall con menos tokens), pendiente de decisión del
   equipo y de una comparación con el agente, porque cambia cuántas secciones ve (1 a 3, media 1,82).
   Rechazados: chunks por párrafo, recorte de párrafos, otros stemmers, pesos de título y ajustes BM25.
-- **Evidencia:** [guía del buscador](buscador-baseline.md#candidato-prefijos-2026-11-10-issue-6) y
+- **Evidencia:** [guía del buscador](informe/buscador-baseline.md#candidato-prefijos-2026-11-10-issue-6) y
   `corridas/rag-prefijos-20261110/` y `corridas/rag-exploracion-20261110/` (locales). Suite: 121 tests, 1 omitido opcional.
 - **Exploración reproducible:** `uv run --locked --no-sync python -m scripts.explorar_buscadores
   --salida corridas/rag-exploracion-20261110/original.json` reproduce todas las filas rechazadas de la guía.
@@ -872,7 +872,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   cada traza desde sus líneas `Valores:`, re-ejecuta cada búsqueda con el buscador de la entrega sobre una
   copia de las normas con esos valores, revalida la ficha con `razones_normativas` y las costumbres, y
   genera sintéticos con valores sorteados entre los de la referencia. Detalle y reglas:
-  [contrato](conversaciones-entrenamiento.md#dataset-v2-scriptsgenerar_conversaciones-issue-8).
+  [contrato](informe/conversaciones-entrenamiento.md#dataset-v2-scriptsgenerar_conversaciones-issue-8).
 - **Decisiones del equipo (después de la auditoría):** (1) buscador `baseline`, porque con el agente en
   Kaggle (50 casos, normas originales) resolvió 10/50 contra 6/50 de `prefijos`. (2) En 142 conversaciones
   reales de accidente de trabajo (49 de referencia y 93 de historial) la consulta combinada no traía
@@ -910,7 +910,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Decisión (usuario):** default `baseline`, sin cambiar `entrega.py`; `prefijos` queda seleccionable como
   resultado negativo documentado. El dataset del #8 se genera con `baseline`.
 - **Costo:** 2.968 s de sesión T4 (~20 min de `pip install`), más 642 s del humo v19. No comparable con A100.
-- **Evidencia:** [comparación con el agente](buscador-baseline.md#comparación-con-el-agente-2026-11-10),
+- **Evidencia:** [comparación con el agente](informe/buscador-baseline.md#comparación-con-el-agente-2026-11-10),
   Parte 2 de [INFORME.md](../INFORME.md#parte-2-buscador) y `corridas/kaggle/v22/` (local, ignorado por Git).
 - **Próximo paso:** si alcanzan tiempo y cuota, repetir con el modelo entrenado.
 
@@ -932,7 +932,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Medición CPU** (`scripts.medir_contexto`, 50 trazas v22 rejugadas, mide formato y no conducta):
   sistema 2.232 → A 1.632 / B 3.224 / C 3.639 / D 2.405 caracteres; contexto por caso 19.954 → 17.002 /
   24.835 / 26.877 / 20.805. Tabla y tokens estimados en
-  [optimización de prompt](optimizacion-prompt.md#medición-cpu).
+  [optimización de prompt](informe/optimizacion-prompt.md#medición-cpu).
 - **Runner:** acepta todas las variantes del buscador (antes solo `baseline`/`sin_comunes`); nuevas
   configuraciones `evaluacion-prompt-kaggle-t4-l4.json` (lote 4, `max_turnos` 120 = tope de la entrega)
   y `...-prefijos.json`. `scripts.rankear_prompts` ordena por resueltos sumados y después tokens de sistema,
@@ -949,7 +949,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 ### 2026-11-10: evaluación completa y tabla de la Parte 4 (issue #9, CPU, rama `feat/9-evaluacion-eze`)
 
 - **Estado:** implementado y probado con dobles; tabla validada con artefactos reales; **sin GPU**.
-  Guía: [evaluacion.md](evaluacion.md).
+  Guía: [evaluacion.md](informe/evaluacion.md).
 - **Qué hay:** un plan JSON (`configuraciones/evaluacion/actual.json`: solo `sin_entrenar` × original/b/c × 50;
   `plantilla-cuatro-filas.json`, rechazada por el runner hasta completarla). `infra/kaggle_evaluacion.py` valida
   el plan entero antes de gastar GPU (sha256 de prompts, adapter con commit HF, etiquetas únicas) y corre cada
@@ -971,7 +971,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 
 - **Estado:** implementado y probado con dobles (`tests/test_analizar_errores.py`, 9 tests con el `Entorno` real del
   kit y un buscador falso); aplicado a artefactos reales de Kaggle T4; **sin GPU**. Guía y registro de pasadas:
-  [analisis-errores.md](analisis-errores.md).
+  [analisis-errores.md](informe/analisis-errores.md).
 - **Qué hay:** `python -m scripts.analizar_errores analizar --corrida <carpeta> --salida <nueva>` puntúa con
   `admision.correr.puntuar`, cuenta fallas por control y por tipo de caso y asigna a cada control fallado una fuente
   con reglas explícitas (formato > costumbre > buscador > modelo, con «no buscó» vs «buscó y decidió mal»). Las
@@ -995,7 +995,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 ### 2026-11-11: prompt elegido y fila `solo_prompt` (issues #13 y #9, Kaggle T4 v25–v27)
 
 - **Estado:** validado en GPU T4. Detalle, tablas y comandos en
-  [optimización de prompt](optimizacion-prompt.md#resultados-kaggle-v25v27).
+  [optimización de prompt](informe/optimizacion-prompt.md#resultados-kaggle-v25v27).
 - **Fase 1, dev (40 casos, v25–v26):** B `procedimiento-v1` 9/40, `baseline` 8/40, D 2/40, A 1/40. C
   `procedimiento-costumbres-v1` termina con `CUDA error: unspecified launch failure` en 5 de 7 intentos, siempre en
   el mismo punto: no comparable. Acortar empeora; el procedimiento sube las búsquedas de ~1,3 a ~3,6 por caso y
@@ -1005,14 +1005,14 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Práctica, solo reporte (v27, 3 × 50 casos):** `solo_prompt` 14/16/12 contra
   `sin_entrenar` 10/10/7 (v25), por encima de la referencia sin entrenar de la cátedra (12/15/12). Caso por caso:
   23 ganados y 8 perdidos (versiones no independientes). Sube box, plazo y registro; bajan verificación y entidad;
-  el aviso no cambia. Análisis en [análisis de errores, pasadas 5–6](analisis-errores.md).
+  el aviso no cambia. Análisis en [análisis de errores, pasadas 5–6](informe/analisis-errores.md).
 - **#8 regenerado con B:** `datos/conversaciones/v3-procedimiento` (~20 s CPU, 2.900 válidas, `dirty=false`,
   regeneración idéntica); frente a v2 solo cambia el mensaje de sistema. v2 queda igual.
 - **Sin cambiar (decisión de equipo):** default de `entrega.py` (sigue `baseline`; recomendación: B) y qué dataset
   entrena #15 (Fran; la consigna pide el prompt optimizado, o sea v3).
 - **Cuota:** v25 ~1 h 58 min, v26 1 h 3 min, v27 1 h 12 min de T4 (límites 2× la estimación); usado 5 h 52 min de 30 h hasta el 14/11.
 - **Evidencia:** 259 tests CPU OK (1 omitido). Se quitó un prefijo de herramienta local que había quedado en
-  `docs/evaluacion.md`.
+  `docs/informe/evaluacion.md`.
 - **Próximo paso:** decidir default y datos de #8 con Fran; si sobra GPU, diagnosticar el fallo de C con lote 1.
 
 ### 2026-11-11: primer SFT real, OOM en la pérdida (issues #3 y #15, Kaggle T4 v28)
@@ -1027,7 +1027,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Causa:** el modelo proyecta todas las posiciones al vocabulario de 262k, pero solo ~10 % está supervisado.
   Los humos usaron conversaciones cortas y no lo mostraron.
 - **Arreglo:** `perdida_supervisada` con `logits_to_keep` booleano, en un `Trainer` propio
-  ([detalle](entrenamiento-sft.md)). Probado con dobles y equivalencia numérica con torch CPU; **no validado en GPU**.
+  ([detalle](informe/entrenamiento-sft.md)). Probado con dobles y equivalencia numérica con torch CPU; **no validado en GPU**.
 - **Corrida v29** (commit `10e117c`): falló en el paso 0 con `RuntimeError: indices should be either on cpu or on
   the same device as the indexed tensor (cuda:1)`. Con `device_map="auto"` la última capa queda en la segunda GPU y la
   máscara se había creado en la de `input_ids`. Arreglo: máscara en CPU (`e30ad97`). Unos 15 min de T4.
@@ -1073,7 +1073,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Pasada 7 (#14, CPU):** `ambos` contra `solo_prompt` gana 16/13/21 casos y no pierde ninguno. Las fallas de
   verificación y entidad desaparecen. El aviso queda igual: el modelo responde `false` en todos los 75+ sin
   acompañante, aunque el entrenamiento tiene la regla completa (302 positivos). Detalle e hipótesis en
-  [análisis de errores](analisis-errores.md#2026-11-12--pasada-7-fila-ambos-contra-solo_prompt-en-práctica-solo-reporte).
+  [análisis de errores](informe/analisis-errores.md#2026-11-12--pasada-7-fila-ambos-contra-solo_prompt-en-práctica-solo-reporte).
   Salidas de v27 descargadas de Kaggle a `corridas/kaggle/v27` (no versionado).
 - **Hipótesis del aviso confirmada en el dev (Kaggle v35, ~40 min de T4):** adapter + `procedimiento-v1` resuelve
   26/40 (sin adapter: 9/40); nunca responde aviso `true`, y los 8 mayores de 75 sin acompañante fallan solo por eso.
@@ -1082,7 +1082,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   cuota) o escribir la regla en el prompt (la consigna dice que las costumbres las enseña el entrenamiento).
   `adapter_inicial` en la configuración del SFT; `datos/conversaciones/v4-aviso` (633: 302 positivos, 231 negativos
   de 75+ con acompañante, 100 del resto; semilla 15); `configuraciones/sft-aviso.json` (lr 1e-4, 1 época). Ver
-  [entrenamiento-sft](entrenamiento-sft.md#5-seguir-entrenando-un-adapter-publicado-adapter_inicial).
+  [entrenamiento-sft](informe/entrenamiento-sft.md#5-seguir-entrenando-un-adapter-publicado-adapter_inicial).
 - **Kaggle v36 lanzado** (commit `fb353c0`, T4 x2, tope 5 h): entrena y evalúa el adapter nuevo en el dev en la
   misma sesión. Publica checkpoints en el repo HF privado y una corrida nueva en W&B.
 - **Próximo paso:** decidir **solo con el dev** si el adapter de la v36 reemplaza al de la entrega: contra v35
@@ -1094,16 +1094,16 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   A100. **Pendiente:** `.env.example` todavía tiene `ADAPTER_REPO=` vacío (exportarlo pide el modelo base sin
   adapter) y el comentario de `PROMPT_SPEC` dice baseline; el README avisa, pero hay que comentar esas líneas.
   Si v36 cambia el adapter de la entrega, actualizar la revisión en la tabla del README.
-- **#5 recursos (borrador `docs/informe-parte5.md`, sin GPU):** agregados el SFT real (2.900 conversaciones,
+- **#5 recursos (borrador `docs/informe/informe-parte5.md`, sin GPU):** agregados el SFT real (2.900 conversaciones,
   ~10 M tokens, 363 pasos a ~80–85 s, ~8,1 h de cómputo, 19,97 GB pico en 2 T4) y el antes/después en práctica
   (27/150 → 92/150; +59 % s/caso y 2,4× tokens de entrada por el prompt, VRAM 18,1 → 19,6 GB; ~145 casos/h por
   proceso con la entrega). Todo en T4: A100 sigue pendiente (KI-A100-001). Si v36 cambia el adapter, rehacer la
   fila `ambos`.
 - **Formato de los mensajes (#15, fase 3, CPU):** candidato `procedimiento-formato-v1` (mismo sistema que B, cambia
-  observación y JSON inválido) con test; plan en [optimización de prompt](optimizacion-prompt.md#fase-3-2026-11-12-formato-de-los-mensajes-sin-entrenar).
+  observación y JSON inválido) con test; plan en [optimización de prompt](informe/optimizacion-prompt.md#fase-3-2026-11-12-formato-de-los-mensajes-sin-entrenar).
   Se mide en el dev sin adapter después de v36. No puede ir a la entrega sin reentrenar. Respaldo sin GPU:
   reportar el análisis de tamaño (≤1,4 %).
-- **Auditoría de la entrega contra mission.md** ([auditoria-entrega.md](auditoria-entrega.md), CPU): el hueco más
+- **Auditoría de la entrega contra mission.md** ([auditoria-entrega.md](historico/auditoria-entrega.md), CPU): el hueco más
   grave era que ningún número era auditable (trazas solo en `corridas/`, ignorado). **Resuelto:** las evaluaciones
   reportadas (v25, v27, v34 en práctica; v25 fase 1 y v35 en el dev) quedan versionadas en `evaluaciones/` sin
   editar (escaneadas: sin secretos), y la tabla de la Parte 4 se regeneró desde ahí con procedencia limpia
@@ -1121,10 +1121,10 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   `subconjunto_aviso`, `TrainerSupervisado` anidada.
 - **`scripts.ver_caso`** reemplaza los `jq` del README («un caso»): muestra conversación, búsquedas con las
   secciones que trajo el buscador, ficha y 9 controles; sirve también para la demo del Loom. Borrador del mail de
-  entrega con su checklist en [mail-entrega.md](mail-entrega.md).
+  entrega con su checklist en [mail-entrega.md](guias/mail-entrega.md).
 - **v36 (refuerzo del aviso) NO adoptada (decisión de Fran, solo con el dev):** 23/40 contra 26/40 de v35; el
   aviso pasa de 0/8 a 6/8 en mayores sin acompañante pero da `true` en 12 de 32 que no corresponde
-  ([pasada 8](analisis-errores.md)). La entrega sigue con `dc41674a`; la práctica de la v36 no se corrió. Validó en
+  ([pasada 8](informe/analisis-errores.md)). La entrega sigue con `dc41674a`; la práctica de la v36 no se corrió. Validó en
   GPU `adapter_inicial`. Corridas y recibos versionados en `evaluaciones/` (también los del SFT v32/v33).
 - **Fase 3, formato de los mensajes (Kaggle v37, ~20 min de jugar):** `procedimiento-formato-v1` sin adapter da
   10/40 contra 9/40 de B en el dev (2 ganados, 1 perdido; controles que se compensan); contexto −2 %, tiempo −8 %.
@@ -1144,9 +1144,9 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   20,29 GB pico, W&B `f9326b10342b4be4`, `final` `17e9fe3d`, commit `984fc18`) y dio 26/40, igual que v35 (aviso
   30/40 contra 32, 1/8 positivos, 3 falsos `true`, y cobertura 3, registro 1 y `box_antes_del_registro` 1 rotos;
   ganó `pd-n2-002`, `pd-n1-008`, `pd-n1-012` y perdió `pd-n2-006`, `pd-n2-009`, `pd-n2-017`). La regla pedía superar
-  26: la entrega sigue con `dc41674a` y la práctica de la v38 no se corrió ([pasada 9](analisis-errores.md)).
+  26: la entrega sigue con `dc41674a` y la práctica de la v38 no se corrió ([pasada 9](informe/analisis-errores.md)).
   Corridas en `evaluaciones/dev/v38-peso`, recibos en `evaluaciones/entrenamiento/v38-peso`; guía en
-  [entrenamiento](entrenamiento-sft.md). Sin probar: DPO con pares que difieran solo en el aviso.
+  [entrenamiento](informe/entrenamiento-sft.md). Sin probar: DPO con pares que difieran solo en el aviso.
 - **#15, datos v6 con la edad y el acompañante antes de la ficha (rama `feat/15-aviso-datos`, CPU):** hipótesis:
   el adapter no aprende el aviso como un solo token, pero sí puede copiar los dos hechos de la nota y decidir
   después. El último mensaje (`registrar_decision`) pasa a `Edad: N años. Acompañante: X.` + salto de línea + JSON;
@@ -1161,9 +1161,9 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   (5/8 positivos atrapados contra 0/8, 2 falsos `true`; ganó 7 casos y perdió `pd-n1-010` y `pd-n2-013`). Superó la barra
   acordada antes (≥30/40, con ganancias en los 75+ sin acompañante). El prefijo apareció en 38 de 40 mensajes finales y
   `extraer_json` de la cátedra lo lee. Quedan fallas de aviso (6), cobertura (4) y `box_antes_del_registro` (3)
-  ([pasada 10](analisis-errores.md)). `ADAPTER_ENTREGA` apunta a `770c9fac` (commit `1405aab`) y el plan
+  ([pasada 10](informe/analisis-errores.md)). `ADAPTER_ENTREGA` apunta a `770c9fac` (commit `1405aab`) y el plan
   `configuraciones/evaluacion/entrenado-v39.json` fija las filas con adapter. Corridas en `evaluaciones/dev/v39-datos`,
-  recibos en `evaluaciones/entrenamiento/v39-datos`; guía en [entrenamiento](entrenamiento-sft.md).
+  recibos en `evaluaciones/entrenamiento/v39-datos`; guía en [entrenamiento](informe/entrenamiento-sft.md).
   Práctica con el adapter v39: ver la entrada de Kaggle v40 más abajo. Probado con dobles el prefijo; validado en GPU
   (T4) el entrenamiento, el dev y la práctica; A100 sigue sin validar.
 - **Práctica con el adapter v39 (Kaggle v40, 2026-11-13, solo para reportar):** plan
@@ -1177,9 +1177,9 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
     contra 0,72 / 0,72 / 0,72.
   - Costo: `ambos` pasó de ~19-25 a 27,8–28,8 s/caso en T4 (lote 4) por los tokens extra y ~6,7 llamadas por caso.
     `solo_entrenamiento` tiene 3/3/1 casos sin decisión.
-  - No se usó para elegir: el adapter ya estaba adoptado con el dev. Nota en [análisis de errores](analisis-errores.md)
+  - No se usó para elegir: el adapter ya estaba adoptado con el dev. Nota en [análisis de errores](informe/analisis-errores.md)
     (pasada 10). Tokens y VRAM de las filas v39 no se recalcularon. Validado en GPU (T4); A100 sigue sin validar.
-- **#5 cerrado (2026-11-13), alcance T4:** lo medible está en el [borrador de la Parte 5](informe-parte5.md):
+- **#5 cerrado (2026-11-13), alcance T4:** lo medible está en el [borrador de la Parte 5](informe/informe-parte5.md):
   - SFT real: tiempo, VRAM y costo en Kaggle.
   - Casos a la vez al entrenar y al evaluar.
   - Proyección a producción, como hipótesis.
@@ -1194,7 +1194,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 
 - **Estado:** `INFORME.md` reorganizado en resumen + Partes 1 a 5 + limitaciones y trabajos futuros, con cada pasada
   (incluidas las fallidas: v28–v31, v36, v37, v38, `prefijos`, prompts A/C/D) y la procedencia de cada número. La
-  Parte 5 integra [informe-parte5.md](informe-parte5.md), que queda como detalle.
+  Parte 5 integra [informe-parte5.md](informe/informe-parte5.md), que queda como detalle.
 - **Celdas «sin recalcular» de la Parte 5 completadas** con un cálculo propio sobre
   `evaluaciones/practica/v40-entrenado-v39/*/metricas.jsonl` (el mismo cálculo reproduce las filas de v34): `ambos` v39
   14.101–14.196 tokens de entrada y 353–355 generados por caso, 19,94 GB pico, ancho 4.395; `solo_entrenamiento` v39
@@ -1226,4 +1226,14 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Decisión:** el Known Issue se cierra sin resolverse. Fue una decisión consciente no usar Modal, porque pide una
   tarjeta de crédito, y no hay otra vía a una A100 de 40 GB. La entrega sigue **sin validar en A100**: el README, el
   informe y el mail lo declaran como limitación. No queda acción pendiente.
+
+### 2026-11-14: `docs/` reorganizado (CPU, rama `docs/reorganizar-docs`)
+
+- **Estructura:** `progreso.md` queda en la raíz de `docs/`. Los anexos del informe pasan a `docs/informe/`, las guías
+  operativas (incluido `mail-entrega.md`) a `docs/guias/`, y lo que ya no aplica a `docs/historico/`. Se movió con
+  `git mv`, así que se conserva el historial. El README tiene un mapa de las carpetas.
+- **Links:** se reescribieron los links relativos y las menciones de rutas en los `.md` y en los docstrings de 6
+  scripts. Un chequeo de archivos y anclas da 0 links rotos; también se arreglaron 3 anclas que ya estaban rotas.
+- **Sin tocar a propósito:** `configuraciones/evaluacion/solo-prompt.json` y los registros de `evaluaciones/`.
+  Conservan las rutas viejas porque son la configuración y la salida de corridas ya hechas.
 

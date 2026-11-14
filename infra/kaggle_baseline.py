@@ -1,4 +1,4 @@
-"""Baseline sin entrenar en Kaggle (T4 x2) como respaldo de desarrollo. Ver docs/kaggle.md.
+"""Baseline sin entrenar en Kaggle (T4 x2) como respaldo de desarrollo. Ver docs/guias/kaggle.md.
 
 Script común: una celda de notebook lo ejecuta con `python infra/kaggle_baseline.py ...`.
 Es independiente de `modal_app.py` a propósito: ese archivo importa `modal` al cargarse.

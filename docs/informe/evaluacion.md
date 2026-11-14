@@ -9,11 +9,11 @@ Son dos fases, como en el kit: **jugar** en Kaggle (GPU, sin fichas esperadas) y
 
 ## 1. Jugar en Kaggle: un plan
 
-El plan es un JSON versionado en [`configuraciones/evaluacion/`](../configuraciones/evaluacion/):
+El plan es un JSON versionado en [`configuraciones/evaluacion/`](../../configuraciones/evaluacion/):
 
-- [`actual.json`](../configuraciones/evaluacion/actual.json): lo que existe hoy, solo `sin_entrenar`
+- [`actual.json`](../../configuraciones/evaluacion/actual.json): lo que existe hoy, solo `sin_entrenar`
   (modelo base, prompt baseline) × original/b/c × 50 casos.
-- [`plantilla-cuatro-filas.json`](../configuraciones/evaluacion/plantilla-cuatro-filas.json): **plantilla** de la
+- [`plantilla-cuatro-filas.json`](../../configuraciones/evaluacion/plantilla-cuatro-filas.json): **plantilla** de la
   tabla completa (`sin_entrenar`, `solo_prompt`, `solo_entrenamiento`, `ambos`). Tiene `"plantilla": true` y
   `<...>`: el runner la rechaza hasta que se copie con un prompt y un adapter reales.
 
@@ -37,7 +37,7 @@ distinto de 0 o error atrapado por el kit), se anota y siguen las demás. `<sali
 el plan, su sha256, el comando, la máquina y el estado de cada corrida, y se reescribe después de cada una.
 
 Celdas (notebook con **GPU T4 x2**, Internet, Secrets `HF_TOKEN` y `GITHUB_TOKEN`): las celdas 1 y 2 de
-[kaggle.md](kaggle.md#cómo-correr) (clonar e instalar). Si un plan usa un adapter del repo privado, `HF_TOKEN`
+[kaggle.md](../guias/kaggle.md#cómo-correr) (clonar e instalar). Si un plan usa un adapter del repo privado, `HF_TOKEN`
 debe poder leerlo. Celda 3, una sola vez y sin tocar el notebook hasta que termine:
 
 ```

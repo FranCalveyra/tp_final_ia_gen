@@ -27,12 +27,12 @@ no forzar ni reescribir trabajo local.
 
 **Ruta actual (decisión 2026-11-05): Kaggle para desarrollo. Modal descartado definitivamente.**
 A100-40GB se exige **para entrenamiento y evaluación**, no solo para la entrega final; T4 no lo reemplaza.
-La deuda está registrada en [KI-A100-001](../README.md#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb).
+La deuda está registrada en [KI-A100-001](../../README.md#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb).
 T4 queda autorizado en principio para desarrollo, pero el alcance concreto de la próxima corrida GPU requiere confirmación.
 No hay excepción de hardware acordada con la cátedra.
 Menú de `franciscocalveyra/tp-admision-baseline` verificado el 2026-11-05: solo `None`, `GPU T4 x2` y
 `TPU v5e-8`, sin A100. Consulta read-only, Draft Session apagada; no se inició GPU ni se inspeccionó VRAM.
-No describe los permisos de otras cuentas/notebooks: ver [evidencia y alcance](kaggle.md).
+No describe los permisos de otras cuentas/notebooks: ver [evidencia y alcance](../guias/kaggle.md).
 
 ## Qué compartir y qué debe devolver cada uno
 
@@ -46,9 +46,9 @@ No describe los permisos de otras cuentas/notebooks: ver [evidencia y alcance](k
 ## Paquete mínimo y fuente de verdad
 
 - **Datos originales:** `entrenamiento/trazas.jsonl` (800 de referencia) y `historial/trazas.jsonl` (2.000).
-  Hashes, compatibilidad y límites en [auditoría](auditoria-trazas.md). Referencia varía parámetros entre trazas;
+  Hashes, compatibilidad y límites en [auditoría](../informe/auditoria-trazas.md). Referencia varía parámetros entre trazas;
   conservar sus observaciones. No asumir que las 2.000 sirven enteras para SFT.
-- **Contrato v1:** [conversaciones-entrenamiento.md](conversaciones-entrenamiento.md), validado por
+- **Contrato v1:** [conversaciones-entrenamiento.md](../informe/conversaciones-entrenamiento.md), validado por
   `scripts.validar_conversaciones`. **Versionado propuesto, aún por acordar** con Eze/Yas/Martu:
   `version,id,origen,referencias,messages`; JSON de herramientas y observaciones del agente, registro final.
   Acordar además procedencia de las 800: el conversor exige origen explícito, no lo inventa.
@@ -61,13 +61,13 @@ No describe los permisos de otras cuentas/notebooks: ver [evidencia y alcance](k
 
 | Trabajo | Guía |
 |---|---|
-| Entorno/dependencias del equipo | [entorno-equipo.md](entorno-equipo.md) |
-| RAG y medición | [buscador-baseline.md](buscador-baseline.md) |
-| Conversión y validación CPU | [conversaciones-entrenamiento.md](conversaciones-entrenamiento.md#conversor-cpu-de-trazas-implementado) |
-| Snapshots y tokenización | [preparacion-entrenamiento.md](preparacion-entrenamiento.md), [tokenizacion-entrenamiento.md](tokenizacion-entrenamiento.md) |
-| SFT: comandos, permisos, criterios #3 | [entrenamiento-sft.md](entrenamiento-sft.md) |
-| GPU/recuperación actual | [Kaggle](kaggle.md#entrenamiento-sft-humo-en-kaggle); [Modal legacy, no usar](entrenamiento-modal.md) |
-| Estado/evidencia, no etiquetas solas | [progreso.md](progreso.md) |
+| Entorno/dependencias del equipo | [entorno-equipo.md](../guias/entorno-equipo.md) |
+| RAG y medición | [buscador-baseline.md](../informe/buscador-baseline.md) |
+| Conversión y validación CPU | [conversaciones-entrenamiento.md](../informe/conversaciones-entrenamiento.md#conversor-cpu-de-trazas-implementado) |
+| Snapshots y tokenización | [preparacion-entrenamiento.md](../informe/preparacion-entrenamiento.md), [tokenizacion-entrenamiento.md](../informe/tokenizacion-entrenamiento.md) |
+| SFT: comandos, permisos, criterios #3 | [entrenamiento-sft.md](../informe/entrenamiento-sft.md) |
+| GPU/recuperación actual | [Kaggle](../guias/kaggle.md#entrenamiento-sft-humo-en-kaggle); [Modal legacy, no usar](entrenamiento-modal.md) |
+| Estado/evidencia, no etiquetas solas | [progreso.md](../progreso.md) |
 
 ## Checklist de accesos: hecho versus pendiente de comprobar
 

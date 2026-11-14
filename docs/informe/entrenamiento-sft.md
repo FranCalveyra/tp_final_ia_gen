@@ -20,7 +20,7 @@ vía alternativa **a determinar**. Datos/curación/prompt finales corresponden a
 ambos `runner.json` dicen `terminada`, `returncode=0`; `estado.json` dice `finalizada`, mismo
 `run_id=b9088ec869814b35`. Reanudación desde `checkpoint-2`, revisión
 `f11b0814564f09e2ff788937db3fba111317f149`; v7 publica nuevos 4/6/8/final. La curva es cercana, no idéntica bit a bit
-(ver [bitácora](progreso.md)). `humo-solo-texto` terminó y midió 15,675 GB pico sumados en 2 T4 con datos cortos:
+(ver [bitácora](../progreso.md)). `humo-solo-texto` terminó y midió 15,675 GB pico sumados en 2 T4 con datos cortos:
 **no demuestra** ajuste de conversaciones reales en A100. Sin acceso a estos artefactos, consultar la bitácora;
 reproducirlos consume GPU y requiere autorización.
 
@@ -107,8 +107,8 @@ Elegir un checkpoint **completo confirmado**; el nombre es un ejemplo, no una ga
 Repetir precisión/dispositivos/cadencia originales si no fueron defaults. Conserva run_id; online usa W&B
 `resume="must"`. Offline produce segmentos locales que hay que conciliar. No promete recuperar pasos
 posteriores al último checkpoint íntegro, ni salvar una escritura parcial. La CLI directa no descarga por sí sola
-un checkpoint HF: para recuperación desde HF usar [runner Kaggle](kaggle.md#entrenamiento-sft-humo-en-kaggle),
-que fija revisión y valida integridad. [Modal](entrenamiento-modal.md) queda solo como referencia legacy, no usar.
+un checkpoint HF: para recuperación desde HF usar [runner Kaggle](../guias/kaggle.md#entrenamiento-sft-humo-en-kaggle),
+que fija revisión y valida integridad. [Modal](../historico/entrenamiento-modal.md) queda solo como referencia legacy, no usar.
 
 ### 5. Seguir entrenando un adapter publicado (`adapter_inicial`)
 
@@ -160,14 +160,14 @@ de `sft-aviso-peso.json` (adapter inicial `dc41674a`, lr 1e-4, `peso_aviso` 20, 
 ponderada 0,038 y media 0,0398, W&B `41ec01f292e64306`, código `5a36ecf`, `final`
 `770c9fac84d5718b0b2cf4c40c3451cad322ac9e`. En el dev dio 31/40 contra 26/40 de v35 ([pasada 10](analisis-errores.md)).
 La pérdida es ponderada: no es comparable con v36. Recibos en `evaluaciones/entrenamiento/v39-datos`; práctica
-(Kaggle v40, solo para reportar): `ambos` 36/28/36 = 100/150, en [`evaluaciones/practica/tabla-v39`](../evaluaciones/practica/tabla-v39/tabla.md).
+(Kaggle v40, solo para reportar): `ambos` 36/28/36 = 100/150, en [`evaluaciones/practica/tabla-v39`](../../evaluaciones/practica/tabla-v39/tabla.md).
 
 ## Estado de cierre de infraestructura y límites restantes
 
 Los cuatro criterios técnicos del pipeline genérico están respaldados: conversaciones/config/semilla,
 checkpoints HF versionados, linaje W&B y recuperación real desde HF tienen evidencia de humo T4.
 **#3 sigue pendiente de aceptación/accesos y uso efectivo por Martu**: confirmar `--help` sin pesos es
-preflight, no un experimento. Ver [pasos de aceptación](handoff-equipo.md#pendientes-por-persona-y-aceptación-operativa).
+preflight, no un experimento. Ver [pasos de aceptación](../historico/handoff-equipo.md#pendientes-por-persona-y-aceptación-operativa).
 No se exige una nueva prueba de corte en Modal: esa plataforma fue descartada. Esta afirmación no cierra
 el issue automáticamente ni certifica entrenamiento final, calidad o ajuste en A100-40GB.
 
@@ -178,7 +178,7 @@ el issue automáticamente ni certifica entrenamiento final, calidad o ajuste en 
 - **Inferencia:** la carga del adapter está implementada; fijar adapter/revisión final cuando exista.
   Accesos de cátedra quedan en #16.
 
-Los nombres de Secrets y comandos de [Modal](entrenamiento-modal.md) son históricos: no crearlos ni ejecutarlos.
+Los nombres de Secrets y comandos de [Modal](../historico/entrenamiento-modal.md) son históricos: no crearlos ni ejecutarlos.
 El código/dependencias legacy se conservan sin migraciones ni borrados en esta decisión.
 
 ## Verificación de esta auditoría CPU

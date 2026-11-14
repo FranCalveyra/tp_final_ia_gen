@@ -8,7 +8,7 @@
 es una corrida suelta de `infra/kaggle_baseline.py` (con `runner.json`). Puntúa con `admision.correr.puntuar` contra
 `practica/esperadas-<version>.jsonl` y escribe en una carpeta nueva `tabla.json` (cada número con su procedencia),
 `tabla.md` y, por corrida, `resultados.jsonl` y `resumen.json` del kit. Puntuar la práctica es solo para reportar:
-nunca para elegir prompt, checkpoint ni hiperparámetros. Ver docs/evaluacion.md.
+nunca para elegir prompt, checkpoint ni hiperparámetros. Ver docs/informe/evaluacion.md.
 """
 
 import argparse

@@ -9,7 +9,7 @@ Acepta una carpeta de `infra/kaggle_baseline.py` o de una corrida de `infra/kagg
 `salida/trazas.jsonl`), una del runner de prompts del #13 (`manifiesto.json` + `trazas.jsonl` + `entradas/`) o una con
 solo trazas (`--version` obligatorio, sin procedencia). Puntúa siempre con `admision.correr.puntuar` y, si la carpeta
 ya trae `resultados.jsonl`/`resumen.json`, verifica que coincidan. Cada control fallado recibe una fuente (formato,
-costumbre, buscador o modelo) según reglas explícitas: ver docs/analisis-errores.md. Escribe en una carpeta nueva
+costumbre, buscador o modelo) según reglas explícitas: ver docs/informe/analisis-errores.md. Escribe en una carpeta nueva
 `analisis.json` (o `comparacion.json`) con cada número y su procedencia, y el reporte Markdown.
 
 Las esperadas y los casos se usan solo para diagnosticar después de jugar; nunca llegan al agente. Analizar la
@@ -47,7 +47,7 @@ FAMILIA = {"registro": "ADM", "numero_documento": "ADM", "box_antes_del_registro
            "cobertura": "COB", "entidad_a_notificar": "COB", "verificacion": "COB",
            "aviso_al_voluntariado": None}
 # Una búsqueda es relevante para una familia si su consulta tiene alguna de estas raíces (texto sin tildes)
-# o si devolvió alguna sección de la familia. Heurística: ver docs/analisis-errores.md.
+# o si devolvió alguna sección de la familia. Heurística: ver docs/informe/analisis-errores.md.
 PALABRAS = {
     "ADM": r"\b(registr|document|dni|pasaporte|cedula|box|identific|admision|mayor|edad|anos)",
     "TDE": r"\b(circuito|plazo|torac|ecg|electrocardio|acv|neurolog|sepsis|ambulancia|tiempo)",
@@ -551,7 +551,7 @@ def markdown_analisis(an: dict, comando: list[str], generado: str) -> str:
         for valor, g in valores.items():
             detalle = ", ".join(f"{k} {v}" for k, v in g["por_control"].items()) or "—"
             lineas.append(f"| {atributo} | {valor} | {g['casos']} | {g['resueltos']} | {detalle} |")
-    lineas += ["", f"Generado {generado} con `{' '.join(comando)}`. Reglas de fuente: docs/analisis-errores.md. "
+    lineas += ["", f"Generado {generado} con `{' '.join(comando)}`. Reglas de fuente: docs/informe/analisis-errores.md. "
                "Analizar práctica es diagnóstico y reporte, no selección."]
     return "\n".join(lineas) + "\n"
 

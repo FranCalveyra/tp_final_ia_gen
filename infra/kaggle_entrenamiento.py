@@ -1,4 +1,4 @@
-"""Entrenamiento SFT LoRA en Kaggle (T4 x2), respaldo de desarrollo. Ver docs/kaggle.md.
+"""Entrenamiento SFT LoRA en Kaggle (T4 x2), respaldo de desarrollo. Ver docs/guias/kaggle.md.
 
 Script común: una celda de notebook lo ejecuta con `python infra/kaggle_entrenamiento.py ...`.
 No duplica lógica: llama a `scripts.entrenar` (que usa `admision_tp.entrenamiento.entrenar`) en un

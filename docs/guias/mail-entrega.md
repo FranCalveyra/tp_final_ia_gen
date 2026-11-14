@@ -1,6 +1,6 @@
 # Mail de entrega (borrador)
 
-Formato de [mission.md, «Cómo se envía»](../mission.md#cómo-se-envía). Un solo mail por grupo, antes del
+Formato de [mission.md, «Cómo se envía»](../../mission.md#cómo-se-envía). Un solo mail por grupo, antes del
 **viernes 20/11/2026**, con todos los integrantes en copia. Los `<…>` se completan al enviarlo.
 
 ```text

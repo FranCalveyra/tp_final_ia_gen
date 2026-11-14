@@ -38,8 +38,8 @@ uv run python -m scripts.tabla_evaluacion --evaluacion evaluaciones/practica/v25
 | `dev/v39-datos/` | v39 | Adapter con edad y acompañante antes de la decisión (`770c9fac`) + `procedimiento-v1`: **31/40** contra 26/40 de v35; **adoptado como adapter de la entrega** |
 
 Cada corrida del conjunto de desarrollo tiene `manifiesto.json` (snapshots y hashes de prompt, configuración,
-casos y esperadas; métricas) y `entradas/`. Detalle e interpretación en [optimización de prompt](../docs/optimizacion-prompt.md),
-[evaluación](../docs/evaluacion.md) y [análisis de errores](../docs/analisis-errores.md).
+casos y esperadas; métricas) y `entradas/`. Detalle e interpretación en [optimización de prompt](../docs/informe/optimizacion-prompt.md),
+[evaluación](../docs/informe/evaluacion.md) y [análisis de errores](../docs/informe/analisis-errores.md).
 
 ## Entrenamientos (recibos)
 
@@ -57,7 +57,7 @@ revisión), `runner.log` (pérdida por paso), `estado.json` (VRAM, run de W&B).
 ## Recursos (Parte 5: lote, VRAM, carga y humos de entrenamiento)
 
 Corridas de Kaggle T4 x2 con el modelo sin entrenar y normas originales, salvo donde se indica. Son la evidencia de
-las secciones 5.1–5.3 del informe y del [anexo de la Parte 5](../docs/informe-parte5.md).
+las secciones 5.1–5.3 del informe y del [anexo de la Parte 5](../docs/informe/informe-parte5.md).
 
 | Carpeta | Commit | Qué mide |
 |---|---|---|
