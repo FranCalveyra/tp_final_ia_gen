@@ -150,8 +150,9 @@ y con qué argumentos. El entorno ejecuta la herramienta y devuelve la observaci
 
 ## Limitaciones conocidas
 
-- **A100 sin validar** ([KI-A100-001](#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb)):
-  entrenamos y evaluamos en Kaggle T4 x2; los tiempos y la VRAM de T4 no valen para A100.
+- **A100 sin validar** ([KI-A100-001](#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb),
+  cerrado como limitación aceptada): entrenamos y evaluamos en Kaggle T4 x2, porque decidimos no cargar una
+  tarjeta de crédito en Modal. Los tiempos y la VRAM de T4 no valen para A100.
 - **Acceso de la cátedra:** el repo HF y el proyecto W&B son privados. Hasta que la cátedra esté invitada (#16),
   su `HF_TOKEN` no puede bajar el adapter y `construir_agente()` falla con 401.
 
@@ -318,22 +319,19 @@ Instrumentación: [configurar W&B y probar sin conexión](docs/wandb.md).
 
 ### KI-A100-001 — Entrenamiento, evaluación y recursos sin validar en A100-40GB
 
-**Estado: deuda abierta. Responsable: Fran, en coordinación con el equipo y la cátedra.**
-Seguimos probando en **Kaggle T4 x2 para desarrollo**; esto no acredita cumplimiento en A100.
-La consigna exige **A100 de 40 GB también para entrenar**, no solo para la evaluación final
-([mission.md, línea 98](mission.md#modelo-y-cómputo)); además exige recursos/costos/tiempos en ese hardware
-([línea 220, Parte 5](mission.md#el-informe)). **No hay una excepción acordada con la cátedra.**
-**No usamos Modal** (la plataforma que sugiere la consigna) porque para habilitar el crédito pide cargar una tarjeta de crédito, y decidimos no hacerlo (2026-11-05). La vía A100 sigue por determinar. El menú del notebook baseline de Fran
-no ofrece A100 ([evidencia y alcance](docs/kaggle.md)); no se generaliza a todas las cuentas/contextos.
+**Estado: cerrado (2026-11-14) como limitación aceptada, no resuelta.** La entrega **no está validada en A100**:
+todo se entrenó, evaluó y midió en **Kaggle T4 x2**, y los tiempos y la VRAM de T4 no valen para A100.
 
-- **Impacto:** faltan pruebas A100 de entrenamiento, inferencia/evaluación y mediciones de VRAM, tiempos,
-  lotes y costos. Humo y resultados T4 se conservan como desarrollo, separados de esa validación.
-- **Seguimiento:** [#3 SFT](https://github.com/FranCalveyra/tp_final_ia_gen/issues/3),
-  [#4 lotes](https://github.com/FranCalveyra/tp_final_ia_gen/issues/4),
-  [#5 recursos](https://github.com/FranCalveyra/tp_final_ia_gen/issues/5).
-- **Resolver:** obtener acceso A100-40GB y registrar entrenamiento, inferencia/evaluación y recursos con
-  comandos/config/checkpoint/prompt y artefactos; **o** documentar aceptación explícita de una alternativa por
-  la cátedra y ejecutar/documentar la validación que acuerden. No cerrar la deuda solo por pasar tests CPU/T4.
-- **Próximo alcance GPU:** T4 autorizado en principio para continuar desarrollo; la corrida concreta,
-  datos/configuración, timeout y consumo todavía deben confirmarse antes de ejecutarla. Este aviso no inicia
-  ni autoriza automáticamente un entrenamiento adicional.
+- **Por qué:** fue una **decisión consciente** del equipo. Modal, la plataforma que sugiere la consigna para la
+  A100, pide cargar una tarjeta de crédito para habilitar el crédito gratis, y decidimos no hacerlo (2026-11-05).
+  No había otra vía a una A100 de 40 GB: el notebook de Kaggle no la ofrece ([evidencia y alcance](docs/kaggle.md)).
+- **Qué implica:** la consigna pide A100 de 40 GB para entrenar y para correr
+  ([mission.md](mission.md#modelo-y-cómputo)), y los recursos medidos en ese hardware ([Parte 5](mission.md#el-informe)).
+  Eso no lo cumplimos. No hay una excepción acordada con la cátedra.
+  - Los recursos que reporta el [informe](INFORME.md#parte-5-recursos) son de T4.
+  - Lo de A100 queda como proyección, marcado PENDIENTE.
+- **Riesgo para la corrida de la cátedra:** en T4 la entrega usa 19,94 GB de pico repartidos en 2 GPU, en fp16 y con
+  lote 4. En una A100 de 40 GB se espera que entre (bf16, `cuda:0`), pero no está probado.
+- **Por qué se cierra:** no queda ninguna acción pendiente. La limitación está declarada en el informe y se va a
+  mencionar en el mail de entrega. Las corridas en T4 siguen siendo evidencia de desarrollo, separada de cualquier
+  validación en A100.

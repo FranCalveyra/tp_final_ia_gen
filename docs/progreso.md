@@ -9,7 +9,7 @@ Kaggle es la plataforma operativa de desarrollo; evidencia propia T4 x2. A100-40
 menú de `franciscocalveyra/tp-admision-baseline` verificado sin A100 (2026-11-05); determinar otra vía/contexto
 sin asumir GPU/VRAM ni equiparar T4 con A100.
 
-**Known Issue abierto:** [KI-A100-001](../README.md#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb).
+**Known Issue cerrado como limitación aceptada (2026-11-14):** [KI-A100-001](../README.md#ki-a100-001--entrenamiento-evaluación-y-recursos-sin-validar-en-a100-40gb). No usamos Modal porque decidimos no cargar una tarjeta de crédito.
 La consigna exige A100-40GB **también para entrenar**, además de evaluación/recursos; sin excepción acordada.
 Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto antes de la próxima ejecución GPU.
 
@@ -1220,3 +1220,10 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 
 - **Fix del README:** el paso 4 (evaluación completa) usaba el plan `entrenado` (adapter `dc41674a`) y reproducía la
   tabla vieja. Ahora usa `entrenado-v39` (`770c9fac`), que es el de la entrega y el de `tabla-v39`.
+
+### 2026-11-14: KI-A100-001 cerrado como limitación aceptada
+
+- **Decisión:** el Known Issue se cierra sin resolverse. Fue una decisión consciente no usar Modal, porque pide una
+  tarjeta de crédito, y no hay otra vía a una A100 de 40 GB. La entrega sigue **sin validar en A100**: el README, el
+  informe y el mail lo declaran como limitación. No queda acción pendiente.
+
