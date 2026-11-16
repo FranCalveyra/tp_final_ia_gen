@@ -1261,3 +1261,7 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
 - **Links:** el README y el informe ahora enlazan la auditoría, que antes no estaba referenciada.
 - **Entrega:** el tag `entrega-final-v2` en `main` reemplaza a `entrega-final` como el commit entregado. El tag viejo
   queda como registro.
+- **Namespace HF:** el repo del adapter se transfirió a `TP-Final-IA-Gen/tp-admision`. Verificado el 15/11 con la API
+  autenticada: `FranCalveyra/tp-admision` redirige al mismo id, y la revisión `770c9fac…` resuelve en los dos nombres
+  con la carpeta `final/` completa. `ADAPTER_ENTREGA`, el README, el informe y la guía del mail usan el nombre nuevo.
+  Las configuraciones y los registros de corridas pasadas conservan el nombre viejo porque documentan lo que corrió.

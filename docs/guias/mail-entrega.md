@@ -16,7 +16,7 @@ Integrantes:
 
 Repositorio de GitHub:   https://github.com/FranCalveyra/tp_final_ia_gen
 Commit entregado:        tag entrega-final-v2 (<hash completo del commit>)
-Modelo en Hugging Face:  https://huggingface.co/FranCalveyra/tp-admision — versión del punto de control final: <revisión de 40 hex>, carpeta final
+Modelo en Hugging Face:  https://huggingface.co/TP-Final-IA-Gen/tp-admision — versión del punto de control final: <revisión de 40 hex>, carpeta final
 Proyecto de W&B:         <link del proyecto francalveyra-ia-gen/tp-admision>
 Presentación en Loom:    https://www.loom.com/share/46e9c51266334bf7bb7795a12a683834
                          https://www.loom.com/share/a04da84b31f54867aace1a759ec140a4

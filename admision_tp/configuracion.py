@@ -11,7 +11,7 @@ DTYPES = ("bfloat16", "float16", "float32")
 DEVICE_MAP = re.compile(r"auto|cuda(:\d+)?")
 # Adapter de la entrega (v39: SFT sobre v6-aviso-datos, continuado desde dc41674a, Kaggle v39).
 # Sin ADAPTER_REPO en el entorno se usa este; ADAPTER_REPO vacío pide la base sola.
-ADAPTER_ENTREGA = ("FranCalveyra/tp-admision", "770c9fac84d5718b0b2cf4c40c3451cad322ac9e")
+ADAPTER_ENTREGA = ("TP-Final-IA-Gen/tp-admision", "770c9fac84d5718b0b2cf4c40c3451cad322ac9e")
 # Lote de la entrega: con el que corrieron todas las evaluaciones reportadas (evaluaciones/). MODELO_LOTE lo cambia.
 LOTE_ENTREGA = 4
 

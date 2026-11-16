@@ -3,7 +3,7 @@
 ## Resumen
 
 **Entrega.** `entrega.py` arma el agente con Gemma 4 E4B (`google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2`),
-el adapter LoRA **`FranCalveyra/tp-admision@770c9fac84d5718b0b2cf4c40c3451cad322ac9e`, carpeta `final`** (v39), el
+el adapter LoRA **`TP-Final-IA-Gen/tp-admision@770c9fac84d5718b0b2cf4c40c3451cad322ac9e`, carpeta `final`** (v39), el
 prompt `procedimiento-v1` (sha256 `8c692c2c…1ecdd`), el buscador `baseline` (BM25, 2 secciones completas) y lote 4.
 
 | Resultado (práctica, 50 casos; solo para reportar) | original | b | c | Total |

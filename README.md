@@ -29,7 +29,7 @@ Qué se usa en la entrega (`entrega.py`, sin variables de entorno):
 | Pieza | Valor | Dónde se fija |
 |---|---|---|
 | Modelo base | `google/gemma-4-E4B-it@ee0ef6023621cff504d758262d4e04895a5af4a2` | `admision_tp/configuracion.py` |
-| Adapter LoRA | `FranCalveyra/tp-admision@770c9fac84d5718b0b2cf4c40c3451cad322ac9e`, carpeta `final` (repo HF **privado**; v39, desde 2026-11-13: antes de la decisión escribe `Edad: N años. Acompañante: X.`) | `ADAPTER_ENTREGA` en `admision_tp/configuracion.py` |
+| Adapter LoRA | `TP-Final-IA-Gen/tp-admision@770c9fac84d5718b0b2cf4c40c3451cad322ac9e`, carpeta `final` (repo HF **privado**; v39, desde 2026-11-13: antes de la decisión escribe `Edad: N años. Acompañante: X.`) | `ADAPTER_ENTREGA` en `admision_tp/configuracion.py` |
 | Prompt | `configuraciones/prompts/procedimiento-v1.json` (sha256 verificado al cargar) | `RUTA_ENTREGA` en `admision_tp/prompts.py` |
 | Buscador | BM25, una sección de las normas por fragmento, armado con la carpeta que recibe | `admision_tp/buscador.py` |
 | Lote | 4 casos por micro-lote (el de todos los números reportados; `MODELO_LOTE` lo cambia) | `LOTE_ENTREGA` en `admision_tp/configuracion.py` |
@@ -43,7 +43,7 @@ uv sync --locked                 # grupo `inferencia` por defecto: torch, transf
 export HF_TOKEN=<token de Hugging Face>   # la aplicación no lee .env sola
 ```
 
-`HF_TOKEN` tiene que poder leer el modelo base y el repo privado `FranCalveyra/tp-admision`, compartido con la
+`HF_TOKEN` tiene que poder leer el modelo base y el repo privado `TP-Final-IA-Gen/tp-admision`, compartido con la
 cátedra. `WANDB_API_KEY` solo hace falta para entrenar. **No hace falta ninguna otra variable:** sin ellas,
 `construir_agente()` usa lo de la tabla de arriba. `.env.example` lista las opcionales (lote, prompt, otro
 adapter) y se puede exportar tal cual: deja comentadas las del adapter (`ADAPTER_REPO` vacío pediría el modelo
@@ -113,7 +113,7 @@ eligieron en un conjunto de desarrollo aparte ([`datos/prompt-dev/v1`](docs/info
 | `datos/entrenamiento/` (primera versión, #12; no la usa el adapter) | `scripts.seleccionar_entrenamiento`, `scripts.generar_sinteticos_entrenamiento` | `datos/entrenamiento/manifiesto.json` (semilla 12012) |
 | `datos/prompt-dev/v1/` (conjunto de desarrollo, 40 casos) | `python -m scripts.generar_prompt_dev --semilla 20261110 --carpetas 2 --casos-por-carpeta 20 --candidatos 4000` | Excluye los casos de práctica |
 | `configuraciones/prompts/procedimiento-v1.json` (prompt elegido) | Escrito a mano; elegido con `scripts.evaluar_prompts` + `scripts.rankear_prompts` en el conjunto de desarrollo | [Optimización de prompt](docs/informe/optimizacion-prompt.md) |
-| Adapter `final` en `FranCalveyra/tp-admision` | `scripts.preparar_entrenamiento` → `scripts.tokenizar_entrenamiento` → `scripts.entrenar --online --publicar` | `configuraciones/sft-ejemplo.json` (semilla 42, lr 2e-4, 1 época, LoRA r=8); corrida W&B `3add2742ddfd4b42`; cada checkpoint con su revisión HF |
+| Adapter `final` en `TP-Final-IA-Gen/tp-admision` | `scripts.preparar_entrenamiento` → `scripts.tokenizar_entrenamiento` → `scripts.entrenar --online --publicar` | `configuraciones/sft-ejemplo.json` (semilla 42, lr 2e-4, 1 época, LoRA r=8); corrida W&B `3add2742ddfd4b42`; cada checkpoint con su revisión HF |
 | Adapter de la entrega (v39): continuación del anterior (`dc41674a`) sobre `datos/conversaciones/v6-aviso-datos/` | `scripts.entrenar --online --publicar` con `configuraciones/sft-aviso-datos.json` (semilla 42, lr 1e-4, 1 época, `peso_aviso` 20; 142 pasos) | corrida W&B `41ec01f292e64306`, código `5a36ecf`; `final` = `770c9fac`; recibos en `evaluaciones/entrenamiento/v39-datos/` |
 
 Volver a entrenar ([entrenamiento SFT](docs/informe/entrenamiento-sft.md)), con las mismas entradas y en una A100:
