@@ -24,7 +24,7 @@ rendimiento ni calidad en la A100 de 40 GB exigida para la entrega.
 
 ## Fuentes
 
-La reconstrucción usa exclusivamente:
+La reconstrucción original de Kaggle v1–v41 se basó en:
 
 1. La extracción histórica externa `kaggle-auditoria/v1` a `v41`, con un notebook y un
    `kernel-metadata.json` por versión.
@@ -34,6 +34,13 @@ La reconstrucción usa exclusivamente:
 4. Los artefactos versionados bajo [`evaluaciones/`](../../evaluaciones/).
 5. La [bitácora](../progreso.md), la [guía de Kaggle](../guias/kaggle.md) y los documentos de
    [`docs/informe/`](../informe/).
+
+La ampliación de Hugging Face y W&B también contrasta recibos locales con **capturas de interfaces
+privadas compartidas el 15 de noviembre de 2026**. Estas capturas no están incorporadas al repositorio:
+sus valores se identifican como *observaciones de interfaz*, no como consultas autenticadas a la API,
+y su verificación independiente requiere acceso autorizado. La lista visible de W&B contiene 12
+entradas, de las cuales 11 se correlacionaron con los IDs locales; la otra es una verificación,
+mientras que el ID local de v30 no aparece en esa captura.
 
 Las raíces externas se describen por nombre lógico y no se copian al repositorio. Los hashes permiten comprobar
 una futura reextracción sin incorporar notebooks privados, logs completos, pesos ni datos sensibles.
@@ -79,6 +86,10 @@ sí sola la revisión N. Esa asociación depende de la extracción histórica.
 - [`versiones.csv`](versiones.csv): una fila normalizada por versión.
 - [`recursos.csv`](recursos.csv): ejecuciones y sesiones con tiempos y recursos comprobables.
 - [`evidencia.csv`](evidencia.csv): índice de notebooks, commits, artefactos, HF, W&B y documentos.
+- [`huggingface.md`](huggingface.md) y [`huggingface-revisiones.csv`](huggingface-revisiones.csv): publicaciones,
+  checkpoints y linaje de adapters.
+- [`wandb.md`](wandb.md) y [`wandb-corridas.csv`](wandb-corridas.csv): corridas, métricas y relojes de W&B.
+- [`trazabilidad-externa.md`](trazabilidad-externa.md): cadena Git → Kaggle → W&B → Hugging Face → evaluación.
 
 ## Convenciones importantes
 
