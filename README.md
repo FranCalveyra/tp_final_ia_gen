@@ -10,12 +10,14 @@ Más abajo sigue, sin cambios, el [manual del kit de la cátedra](#manual-del-ki
 [2](https://www.loom.com/share/a04da84b31f54867aace1a759ec140a4) ·
 [3](https://www.loom.com/share/f6de8789e99a41d3b06ff9182a26d05d) ·
 [4](https://www.loom.com/share/29be9dfc81434863bc3dfb7085b52ab3) ·
-[5](https://www.loom.com/share/9ce936e889054230b452c37286599caa). La versión entregada es el tag `entrega-final`.
+[5](https://www.loom.com/share/9ce936e889054230b452c37286599caa). La versión entregada es el tag `entrega-final-v2`.
 
 **Documentación (`docs/`):**
 
 - [`docs/progreso.md`](docs/progreso.md) es la bitácora de cada pasada, con sus decisiones y evidencia.
 - [`docs/informe/`](docs/informe/) tiene los anexos que respaldan cada parte de `INFORME.md`.
+- [`docs/auditoria-kaggle/`](docs/auditoria-kaggle/README.md) reconstruye las 41 versiones de Kaggle y su
+  [trazabilidad externa](docs/auditoria-kaggle/trazabilidad-externa.md): Git → Kaggle → W&B → Hugging Face → evaluación.
 - [`docs/guias/`](docs/guias/) explica cómo operar: entorno, Kaggle, W&B, integración sin GPU y el mail de entrega.
 - [`docs/historico/`](docs/historico/) guarda como registro lo que ya no aplica: Modal, borradores ya integrados y
   auditorías viejas.

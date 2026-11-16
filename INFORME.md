@@ -30,7 +30,9 @@ prompt `procedimiento-v1` (sha256 `8c692c2c…1ecdd`), el buscador `baseline` (B
 **Cómo leer los números.** Cada tabla dice el comando, el punto de control y el prompt, o enlaza la procedencia
 generada por el script. Las evaluaciones están versionadas sin editar en [`evaluaciones/`](evaluaciones/README.md):
 conversaciones completas, tiempos, métricas por micro-lote y `runner.json` con commit, modelo, adapter, prompt y
-buscador. La bitácora completa de cada pasada está en [`docs/progreso.md`](docs/progreso.md).
+buscador. La bitácora completa de cada pasada está en [`docs/progreso.md`](docs/progreso.md). La
+[auditoría de Kaggle v1–v41](docs/auditoria-kaggle/README.md) une cada versión con su commit, su corrida de W&B, sus
+revisiones de Hugging Face y su evaluación ([trazabilidad externa](docs/auditoria-kaggle/trazabilidad-externa.md)).
 
 Se distinguen cuatro niveles: *implementado*, *probado con dobles* (tests CPU), *validado con dependencia real* y
 *validado en GPU (T4)*. Ningún resultado está *validado en A100*.
@@ -585,7 +587,9 @@ puntuar.
 ### Pasadas de entrenamiento, incluidas las que no funcionaron
 
 Todas corrieron en Kaggle 2× T4 fp16. Los recibos están en [`evaluaciones/entrenamiento/`](evaluaciones/README.md)
-(`runner.json`, `runner.log`, `estado.json`). Cada checkpoint está en HF con su revisión y cada corrida en W&B.
+(`runner.json`, `runner.log`, `estado.json`). Cada checkpoint está en HF con su revisión y cada corrida en W&B: las 46 revisiones y los 12 Run IDs están
+inventariados en [`huggingface.md`](docs/auditoria-kaggle/huggingface.md) y [`wandb.md`](docs/auditoria-kaggle/wandb.md),
+con sus límites de verificación.
 
 | Kaggle | Qué | Resultado | Decisión |
 |---|---|---|---|

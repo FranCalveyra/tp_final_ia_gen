@@ -15,7 +15,7 @@ Integrantes:
 - <Nombre y apellido> — <mail> — <usuario de GitHub>
 
 Repositorio de GitHub:   https://github.com/FranCalveyra/tp_final_ia_gen
-Commit entregado:        tag entrega-final (<hash completo del commit>)
+Commit entregado:        tag entrega-final-v2 (<hash completo del commit>)
 Modelo en Hugging Face:  https://huggingface.co/FranCalveyra/tp-admision — versión del punto de control final: <revisión de 40 hex>, carpeta final
 Proyecto de W&B:         <link del proyecto francalveyra-ia-gen/tp-admision>
 Presentación en Loom:    https://www.loom.com/share/46e9c51266334bf7bb7795a12a683834
@@ -32,7 +32,7 @@ estar activos y accesibles al momento de la corrección.»
 
 - [ ] **Revisión del adapter:** la misma que `ADAPTER_ENTREGA` en `admision_tp/configuracion.py` del commit
       entregado (hoy `770c9fac84d5718b0b2cf4c40c3451cad322ac9e`, la v39).
-- [ ] **Commit entregado:** en `main`, con PR mergeados; conviene un tag (p. ej. `entrega-final`) para que no se mueva.
+- [ ] **Commit entregado:** en `main`, con PR mergeados; conviene un tag (`entrega-final-v2`) para que no se mueva.
 - [ ] **Acceso de la cátedra:** invitados al repo de GitHub, al repo HF privado y al proyecto W&B (#16). Probar
       que su `HF_TOKEN` baje el adapter: sin eso, `construir_agente()` falla con 401.
 - [ ] **Link de W&B:** abrirlo sin sesión de un integrante para confirmar que la cátedra lo ve. El run del SFT

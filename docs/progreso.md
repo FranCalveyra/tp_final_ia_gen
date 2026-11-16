@@ -1,6 +1,6 @@
 # Progreso y decisiones
 
-**Estado: FINAL (2026-11-14), tag `entrega-final`.** El trabajo está cerrado. La entrega es Gemma 4 E4B +
+**Estado: FINAL (2026-11-15), tag `entrega-final-v2`.** El trabajo está cerrado. La entrega es Gemma 4 E4B +
 adapter v39 (`FranCalveyra/tp-admision@770c9fac`, carpeta `final`) + `procedimiento-v1` + buscador `baseline`, lote 4:
 100/150 en práctica, todo medido en Kaggle 2× T4. El [informe](../INFORME.md) y el Loom (links en el
 [README](../README.md)) son la síntesis. Lo que sigue abajo es el registro histórico: las secciones con fecha
@@ -33,7 +33,7 @@ Se seguirá desarrollando en T4, pendiente de confirmar el alcance concreto ante
 | #11 Costumbres | **Implementado (2026-11-05).** Trazas validadas, dos costumbres confirmadas, patrón por operador documentado y resumen para el equipo | Revisar con Martu y Eze antes de usarlo en el prompt final |
 | [#13 Prompt](https://github.com/FranCalveyra/tp_final_ia_gen/issues/13) | **Validado en GPU T4 (Eze, 2026-11-11).** Elegido `procedimiento-v1` en el dev (9/40 contra 8/40); `prefijos` pierde (4/40); C falla en CUDA de forma reproducible. Práctica (solo reporte): 42/150 contra 27/150, a ~2,6× de contexto | #8 regenerado con B en `v3-procedimiento`. Decisión de equipo: default de `entrega.py` y qué dataset entrena #15 ([detalle](informe/optimizacion-prompt.md#decisión)). **Pendiente de la consigna:** el formato de los mensajes no se optimizó, solo el mensaje de sistema ([estado](informe/optimizacion-prompt.md#estado-2026-11-11)) |
 | [#14 Análisis de errores](https://github.com/FranCalveyra/tp_final_ia_gen/issues/14) (Eze) | **Implementado, probado con dobles y aplicado a corridas reales (2026-11-10).** `scripts.analizar_errores`: fallas por control, tipo de caso y fuente (formato/costumbre/buscador/modelo), comparación entre corridas; registro de pasadas v22, v22 `prefijos`, v23, v24 y las de #13 (dev v25 y práctica v27) en [analisis-errores.md](informe/analisis-errores.md) | Analizar los checkpoints de #15 contra la pasada 6 con el mismo comando; las reglas de fuente son heurísticas sin precisión medida |
-| #16 Entrega compartida | **Final (2026-11-14).** `INFORME.md` completo, README reproducible, Loom en cinco partes y tag `entrega-final` | Enviar el mail ([guía](guias/mail-entrega.md)) y dar acceso a la cátedra en HF y W&B |
+| #16 Entrega compartida | **Final (2026-11-14).** `INFORME.md` completo, README reproducible, Loom en cinco partes y tag `entrega-final-v2` (reemplaza a `entrega-final`) | Enviar el mail ([guía](guias/mail-entrega.md)) y dar acceso a la cátedra en HF y W&B |
 
 El formato de conversaciones es **propuesto**, pendiente de coordinación con Eze/Yas.
 El entrenamiento real también espera el prompt optimizado de Martu. Preparar código no
@@ -1250,3 +1250,14 @@ está implementado. Las reglas comunes viven en [AGENTS.md](../AGENTS.md).
   `entrega-final` en `main`.
 - **Falta, fuera del repo:** enviar el mail ([guía](guias/mail-entrega.md)) con el hash del tag y dar acceso a la
   cátedra en el repo HF privado y en W&B.
+
+### 2026-11-15: auditoría HF y W&B y tag `entrega-final-v2` (PR #33)
+
+- **Qué entra:** la auditoría de Martu sobre Hugging Face y W&B (PR #33, merge `87840e8`): 46 revisiones HF con su
+  linaje de checkpoints, 12 Run IDs de W&B y la cadena Git → Kaggle → W&B → HF → evaluación, en
+  [`auditoria-kaggle/`](auditoria-kaggle/README.md).
+- **Límites declarados:** el acceso anónimo a HF dio 401; los estados remotos de W&B salen de capturas autenticadas
+  no versionadas, y v30 no aparece en ellas. No se descargaron pesos ni se usaron secretos.
+- **Links:** el README y el informe ahora enlazan la auditoría, que antes no estaba referenciada.
+- **Entrega:** el tag `entrega-final-v2` en `main` reemplaza a `entrega-final` como el commit entregado. El tag viejo
+  queda como registro.
